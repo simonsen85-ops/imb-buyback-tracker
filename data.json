@@ -119,12 +119,18 @@
     }
   ],
   "kurs": {
-    "price": 3050.44,
-    "prev_close": 3026.0,
-    "change": 24.44,
-    "change_pct": 0.81,
+    "price": 3075.0,
+    "prev_close": 3059.0,
+    "change": 16.0,
+    "change_pct": 0.52,
     "currency": "GBp",
-    "timestamp": "2026-03-28 08:00 UTC"
+    "timestamp": "2026-03-28 10:40 UTC"
   },
-  "sidst_opdateret": "2026-03-28 08:00 UTC"
+  "sidst_opdateret": "2026-03-28 10:40 UTC",
+  "summary": {
+    "total_aktier_tilbagekoebt": 2759820,
+    "total_brugt_mio": 86.4,
+    "aktier_nu": 781966128,
+    "fremgang_pct": 6.0
+  }
 }
