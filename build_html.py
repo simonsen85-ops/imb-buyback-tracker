@@ -1,0 +1,381 @@
+"""
+IMB Buyback Tracker — build_html.py
+Genererer index.html med al data fra data.json bagt direkte ind.
+Samme arkitektur som FED-trackeren: ingen runtime fetch, ingen CORS.
+
+Workflow: scraper.py → data.json → build_html.py → index.html
+"""
+
+import json
+from pathlib import Path
+
+DATA_PATH = Path(__file__).parent / "data.json"
+OUT_PATH = Path(__file__).parent / "index.html"
+
+
+def main():
+    with open(DATA_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # Serialiser data som JS-variabel
+    data_js = json.dumps(data, ensure_ascii=False)
+
+    html = f"""<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imperial Brands — Buyback Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {{
+  --bg:#0a0e17;--card:#111827;--bdr:#1e293b;--bdr2:#2a3a52;
+  --t1:#f8fafc;--t2:#b0bac9;--t3:#6b7a90;--t4:#3d4a5c;
+  --g1:#4ade80;--g2:#22c55e;--g3:#16a34a;
+  --blue:#3b82f6;--amber:#f59e0b;--red:#ef4444;
+  --mono:'JetBrains Mono',monospace;--sans:'Outfit',sans-serif;
+}}
+*{{margin:0;padding:0;box-sizing:border-box}}
+body{{background:var(--bg);color:var(--t1);font-family:var(--mono);min-height:100vh;-webkit-font-smoothing:antialiased}}
+
+.hdr{{border-bottom:1px solid var(--bdr);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}}
+.hdr-l{{display:flex;align-items:center;gap:16px}}
+.ticker{{font-size:28px;font-weight:700;letter-spacing:-.5px}}
+.ticker-sub{{font-family:var(--sans);font-size:13px;color:var(--t3)}}
+.badge{{font-size:10px;font-weight:600;color:var(--blue);background:rgba(59,130,246,.12);padding:3px 8px;border-radius:4px;letter-spacing:.5px}}
+.hdr-r{{display:flex;align-items:center;gap:20px}}
+.price-live{{font-size:22px;font-weight:600}}
+.price-curr{{font-size:12px;color:var(--t3);font-weight:400}}
+.price-chg{{font-size:13px;font-weight:500;padding:3px 8px;border-radius:4px}}
+.price-chg.up{{color:var(--g1);background:rgba(74,222,128,.1)}}
+.price-chg.dn{{color:var(--red);background:rgba(239,68,68,.1)}}
+.updated{{font-size:11px;color:var(--t4)}}
+
+.ctn{{max-width:1400px;margin:0 auto;padding:24px 32px 48px}}
+
+.banner{{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}}
+.banner-t{{font-family:var(--sans);font-size:15px;font-weight:600}}
+.banner-d{{font-size:12px;color:var(--t3)}}
+.banner-d strong{{color:var(--t2);font-weight:600}}
+.status{{display:flex;align-items:center;gap:8px}}
+.dot{{width:8px;height:8px;border-radius:50%;background:var(--g1);animation:pulse 2s ease-in-out infinite}}
+@keyframes pulse{{0%,100%{{opacity:1}}50%{{opacity:.4}}}}
+.status-t{{font-size:12px;font-weight:500;color:var(--g1)}}
+
+.kpis{{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}}
+.kpi{{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:16px 20px;transition:border-color .2s}}
+.kpi:hover{{border-color:var(--bdr2)}}
+.kpi-lbl{{font-family:var(--sans);font-size:11px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}}
+.kpi-val{{font-size:24px;font-weight:700;line-height:1.1}}
+.kpi-sub{{font-size:11px;color:var(--t3);margin-top:4px}}
+.grn{{color:var(--g1)}} .amb{{color:var(--amber)}}
+
+.prog{{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:20px 24px;margin-bottom:24px}}
+.prog-h{{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}}
+.prog-lbl{{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--t2)}}
+.prog-pct{{font-size:20px;font-weight:700;color:var(--g1)}}
+.prog-bg{{height:10px;background:var(--bg);border-radius:5px;overflow:hidden;margin-bottom:12px}}
+.prog-fill{{height:100%;background:linear-gradient(90deg,var(--g3),var(--g1));border-radius:5px;transition:width 1s ease}}
+.prog-meta{{display:flex;justify-content:space-between;font-size:11px;color:var(--t3)}}
+.tranche-info{{color:var(--blue)}}
+
+.two{{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}}
+.sc{{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:20px 24px}}
+.sc-t{{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--bdr)}}
+
+.vt{{width:100%;border-collapse:collapse}}
+.vt tr{{border-bottom:1px solid rgba(30,41,59,.5)}}
+.vt tr:last-child{{border-bottom:none}}
+.vt td{{padding:8px 0;font-size:13px}}
+.vt td:first-child{{color:var(--t3);font-family:var(--sans)}}
+.vt td:last-child{{text-align:right;font-weight:600}}
+
+.tr-list{{display:flex;flex-direction:column;gap:12px}}
+.tr-item{{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg);border-radius:6px;border:1px solid var(--bdr)}}
+.tr-name{{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--t2)}}
+.tr-amt{{font-size:14px;font-weight:600}}
+.tr-dates{{font-size:11px;color:var(--t3)}}
+.tr-badge{{font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;letter-spacing:.3px}}
+.tr-badge.act{{color:var(--g1);background:rgba(74,222,128,.1)}}
+.tr-badge.upc{{color:var(--amber);background:rgba(245,158,11,.1)}}
+
+.tx{{width:100%;border-collapse:collapse}}
+.tx th{{font-family:var(--sans);font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.8px;text-align:left;padding:0 0 10px}}
+.tx th:nth-child(2),.tx th:nth-child(3),.tx th:nth-child(4),.tx th:last-child{{text-align:right}}
+.tx td{{padding:7px 0;font-size:12px;color:var(--t2);border-bottom:1px solid rgba(30,41,59,.4)}}
+.tx td:first-child{{color:var(--t3)}}
+.tx td:nth-child(2),.tx td:nth-child(3),.tx td:nth-child(4),.tx td:last-child{{text-align:right}}
+.tx td:last-child{{color:var(--g2);font-weight:500}}
+
+.charts{{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}}
+.chc{{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:16px 20px}}
+.chc h3{{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}}
+.chc h3 span{{color:var(--t4);font-weight:400}}
+.chw{{position:relative;height:200px}}
+
+.hist{{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}}
+.hist-card{{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:16px 20px}}
+.hist-yr{{font-size:11px;font-weight:600;color:var(--t4);letter-spacing:1px;margin-bottom:6px}}
+.hist-amt{{font-size:20px;font-weight:700}}
+.hist-sh{{font-size:11px;color:var(--t3);margin-top:4px}}
+.hist-bar{{height:4px;background:var(--bg);border-radius:2px;margin-top:8px;overflow:hidden}}
+.hist-bar-f{{height:100%;border-radius:2px}}
+
+.info-box{{margin-top:12px;padding:12px 16px;background:var(--bg);border-radius:6px;border:1px solid var(--bdr)}}
+.info-lbl{{font-family:var(--sans);font-size:11px;color:var(--t3);margin-bottom:6px}}
+.info-val{{font-family:var(--sans);font-size:13px;color:var(--t2)}}
+.info-sub{{font-size:11px;color:var(--t4);margin-top:4px}}
+
+.foot{{text-align:center;padding:24px 32px;border-top:1px solid var(--bdr);font-family:var(--sans);font-size:11px;color:var(--t4)}}
+
+@media(max-width:900px){{.two,.charts{{grid-template-columns:1fr}}.hdr,.ctn{{padding-left:20px;padding-right:20px}}.kpis{{grid-template-columns:repeat(2,1fr)}}}}
+@media(max-width:600px){{.kpis{{grid-template-columns:1fr}}.ticker{{font-size:22px}}}}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-l"><div>
+    <div class="ticker">IMB <span class="badge">LSE</span></div>
+    <div class="ticker-sub">Imperial Brands PLC · Buyback Tracker</div>
+  </div></div>
+  <div class="hdr-r">
+    <div>
+      <div class="price-live" id="live-price">— <span class="price-curr">GBp</span></div>
+      <div class="price-chg" id="live-change">—</div>
+    </div>
+    <div class="updated" id="live-date">—</div>
+  </div>
+</header>
+
+<div class="ctn">
+  <div class="banner">
+    <div>
+      <div class="banner-t">FY26 Aktietilbagek&#248;bsprogram</div>
+      <div class="banner-d">Annonceret <strong>7. okt 2025</strong> · Fuldf&#248;rt senest <strong>28. okt 2026</strong> · M&#230;gler: <strong>Morgan Stanley</strong></div>
+    </div>
+    <div class="status"><div class="dot"></div><span class="status-t">AKTIV</span></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-lbl">Program st&#248;rrelse</div><div class="kpi-val">&#163;1.45B</div><div class="kpi-sub">~5.7% af aktiekapitalen</div></div>
+    <div class="kpi"><div class="kpi-lbl">Tilbagek&#248;bt</div><div class="kpi-val grn" id="kpi-spent">—</div><div class="kpi-sub" id="kpi-spent-sub">—</div></div>
+    <div class="kpi"><div class="kpi-lbl">Aktier annulleret</div><div class="kpi-val" id="kpi-shares">—</div><div class="kpi-sub" id="kpi-shares-sub">—</div></div>
+    <div class="kpi"><div class="kpi-lbl">Gns. tilbagek&#248;bskurs</div><div class="kpi-val" id="kpi-avgpx">—</div><div class="kpi-sub" id="kpi-avgpx-sub">—</div></div>
+    <div class="kpi"><div class="kpi-lbl">Udbytte (FY25)</div><div class="kpi-val">160.32p</div><div class="kpi-sub">+4.5% YoY · Yield ~5.2%</div></div>
+    <div class="kpi"><div class="kpi-lbl">Samlet kapitalretur (FY26E)</div><div class="kpi-val amb">&gt;&#163;2.7B</div><div class="kpi-sub">~11% af markedsv&#230;rdi</div></div>
+  </div>
+
+  <div class="prog">
+    <div class="prog-h"><span class="prog-lbl">Buyback-fremgang · &#163;1.45B program</span><span class="prog-pct" id="prog-pct">—</span></div>
+    <div class="prog-bg"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-meta"><span>Start: 30. okt 2025</span><span class="tranche-info">Tranche 1: op til &#163;725M · Frist: 30. apr 2026</span><span>Slut: 28. okt 2026</span></div>
+  </div>
+
+  <div class="two">
+    <div class="sc">
+      <div class="sc-t">V&#230;rdiskabelse · EPS-accretion</div>
+      <table class="vt">
+        <tr><td>Aktier primo FY26</td><td id="v-primo">—</td></tr>
+        <tr><td>Aktier annulleret til dato</td><td class="grn" id="v-cancelled">—</td></tr>
+        <tr><td>Aktier i oml&#248;b (nu)</td><td id="v-now">—</td></tr>
+        <tr><td>Reduktion i aktiekapital</td><td class="grn" id="v-reduction">—</td></tr>
+        <tr><td>Adj. EPS (FY25)</td><td>315.0p</td></tr>
+        <tr><td>EPS-accretion (fuldt program, est.)</td><td class="grn" id="v-eps-accr">—</td></tr>
+        <tr><td>Free Cash Flow (FY25)</td><td>&#163;2.7B</td></tr>
+        <tr><td>FCF Yield</td><td class="grn" id="v-fcfy">—</td></tr>
+        <tr><td>ROIC (FY25)</td><td class="grn">20.7%</td></tr>
+        <tr><td>Adj. ND/EBITDA</td><td class="amb">2.0x</td></tr>
+      </table>
+    </div>
+    <div class="sc">
+      <div class="sc-t">Programstruktur · Trancher</div>
+      <div class="tr-list">
+        <div class="tr-item"><div><div class="tr-name">Tranche 1 · Morgan Stanley</div><div class="tr-dates">30. okt 2025 &#8594; 30. apr 2026</div></div><div style="text-align:right"><div class="tr-amt">&#163;725M</div><span class="tr-badge act">AKTIV</span></div></div>
+        <div class="tr-item"><div><div class="tr-name">Tranche 2 · M&#230;gler TBD</div><div class="tr-dates">~maj 2026 &#8594; 28. okt 2026</div></div><div style="text-align:right"><div class="tr-amt">&#163;725M</div><span class="tr-badge upc">KOMMENDE</span></div></div>
+        <div class="tr-item" style="border-color:var(--bdr2)"><div><div class="tr-name" style="color:var(--t3)">Evergreen-program til FY30</div><div class="tr-dates">Bestyrelsen fasts&#230;tter &#229;rligt</div></div><div style="text-align:right"><div class="tr-amt" style="color:var(--t3)">TBD</div><div style="font-size:10px;color:var(--t4)">~&#163;1.4-1.5B/&#229;r</div></div></div>
+      </div>
+      <div class="info-box" style="margin-top:16px"><div class="info-lbl">CEO</div><div class="info-val">Lukas Paravicini</div><div class="info-sub">FY26–FY30: 3-5% AOP-v&#230;kst, &#8805; high single-digit EPS-v&#230;kst, FCF &#8805; &#163;2.2B</div></div>
+      <div class="info-box"><div class="info-lbl">N&#198;STE BEGIVENHED</div><div class="info-val" style="color:var(--amber)">Trading Update · 14. apr 2026</div><div class="info-sub">HY26 resultater: 19. maj 2026</div></div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="chc"><h3>Akkumulerede aktier <span>— annulleret</span></h3><div class="chw"><canvas id="ch-shares"></canvas></div></div>
+    <div class="chc"><h3>Akkumuleret bel&#248;b <span>— &#163;M</span></h3><div class="chw"><canvas id="ch-amount"></canvas></div></div>
+    <div class="chc"><h3>Gennemsnitskurs <span>— GBp</span></h3><div class="chw"><canvas id="ch-avgpx"></canvas></div></div>
+    <div class="chc"><h3>Aktier i oml&#248;b <span>— mio.</span></h3><div class="chw"><canvas id="ch-outstanding"></canvas></div></div>
+  </div>
+
+  <div class="sc" style="margin-bottom:24px">
+    <div class="sc-t">Transaktioner · RNS-filings</div>
+    <table class="tx">
+      <thead><tr><th>Dato</th><th>Antal aktier</th><th>Gns. kurs (GBp)</th><th>Bel&#248;b (&#163;M)</th><th>Aktier efter</th></tr></thead>
+      <tbody id="tx-body"></tbody>
+    </table>
+  </div>
+
+  <div class="sc" style="margin-bottom:24px">
+    <div class="sc-t">Buyback-historik · FY21–FY26</div>
+    <div class="hist">
+      <div class="hist-card"><div class="hist-yr">FY26 (IGANGV&#198;RENDE)</div><div class="hist-amt">&#163;1.45B</div><div class="hist-sh">~5.7% af aktiekapital · Frist: okt 2026</div><div class="hist-bar"><div class="hist-bar-f" id="hist-fy26" style="width:0%;background:var(--g2)"></div></div></div>
+      <div class="hist-card"><div class="hist-yr">FY25</div><div class="hist-amt">&#163;1.25B</div><div class="hist-sh">44.6M aktier annulleret · -5.3%</div><div class="hist-bar"><div class="hist-bar-f" style="width:100%;background:var(--t3)"></div></div></div>
+      <div class="hist-card"><div class="hist-yr">FY24</div><div class="hist-amt">&#163;1.10B</div><div class="hist-sh">Fuldf&#248;rt · Barclays/Morgan Stanley</div><div class="hist-bar"><div class="hist-bar-f" style="width:100%;background:var(--t3)"></div></div></div>
+      <div class="hist-card"><div class="hist-yr">FY21–FY25 KUMULATIVT</div><div class="hist-amt">~&#163;10B</div><div class="hist-sh">Samlet kapitalretur (buyback + udbytte)</div><div class="hist-bar"><div class="hist-bar-f" style="width:100%;background:var(--blue)"></div></div></div>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="sc">
+      <div class="sc-t">N&#248;gletal · Fundamentals</div>
+      <table class="vt">
+        <tr><td>P/E (TTM)</td><td id="f-pe">—</td></tr>
+        <tr><td>Fwd P/E (FY26E)</td><td>~8.8x</td></tr>
+        <tr><td>EV/EBITDA</td><td>~8.0x</td></tr>
+        <tr><td>Dividend Yield</td><td class="grn" id="f-divy">—</td></tr>
+        <tr><td>Shareholder Yield (est.)</td><td class="grn">~11%</td></tr>
+        <tr><td>Beta (5Y)</td><td>0.20</td></tr>
+        <tr><td>Markedsv&#230;rdi</td><td id="f-mcap">—</td></tr>
+        <tr><td>Adj. nettog&#230;ld</td><td class="amb">&#163;8.4B</td></tr>
+        <tr><td>Tobacco NR v&#230;kst</td><td class="grn">+4.1%</td></tr>
+        <tr><td>NGP NR v&#230;kst</td><td class="grn">+13.7%</td></tr>
+      </table>
+    </div>
+    <div class="sc">
+      <div class="sc-t">Kapitalallokering · Framework</div>
+      <table class="vt">
+        <tr><td style="color:var(--g2)">&#9312; Investering i strategi</td><td>B&#230;redygtig v&#230;kst</td></tr>
+        <tr><td style="color:var(--g2)">&#9313; Gearing i lavt interval</td><td>2.0–2.5x ND/EBITDA</td></tr>
+        <tr><td style="color:var(--g2)">&#9314; Progressivt udbytte</td><td>4 ens kvartalsbetalinger</td></tr>
+        <tr><td style="color:var(--g2)">&#9315; Buyback af overskudskapital</td><td>Evergreen til FY30</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  Imperial Brands Buyback Tracker · Data fra Investegate RNS-filings · Kurs via Yahoo Finance<br>
+  Opdateret: {data.get("sidst_opdateret", "—")} · Ikke investeringsr&#229;dgivning
+</div>
+
+<script>
+const D = {data_js};
+
+const SHARES_PRIMO = 807300000;
+const EPS_FY25 = 315.0;
+const FCF_FY25 = 2700;
+const PROGRAM_SIZE = 1450;
+
+const txs = (D.transaktioner || []).sort((a,b) => b.dato.localeCompare(a.dato));
+const fN = n => n.toLocaleString('da-DK');
+const fM = n => '\\u00a3' + n.toFixed(1) + 'M';
+const fmt = n => n.toLocaleString('da-DK', {{minimumFractionDigits:2, maximumFractionDigits:2}});
+
+// Metrics
+const totalShares = txs.reduce((s,t) => s + t.antal_aktier, 0);
+const totalSpent = txs.reduce((s,t) => s + t.beloeb_gbp_mio, 0);
+const avgPrice = totalShares > 0 ? txs.reduce((s,t) => s + t.gns_kurs_gbp * t.antal_aktier, 0) / totalShares : 0;
+const sharesNow = txs.length > 0 && txs[0].aktier_efter ? txs[0].aktier_efter : (SHARES_PRIMO - totalShares);
+const cancelled = SHARES_PRIMO - sharesNow;
+const reductionPct = cancelled / SHARES_PRIMO * 100;
+const progressPct = totalSpent / PROGRAM_SIZE * 100;
+const estTotalShares = PROGRAM_SIZE * 1e6 / (avgPrice / 100);
+const epsAccretion = (SHARES_PRIMO / (SHARES_PRIMO - estTotalShares) - 1) * 100;
+
+// Price from scraper
+const px = D.kurs || {{}};
+const price = px.price || 0;
+
+// KPIs
+document.getElementById('kpi-spent').textContent = fM(totalSpent);
+document.getElementById('kpi-spent-sub').textContent = progressPct.toFixed(0) + '% af \\u00a31.45B program';
+document.getElementById('kpi-shares').textContent = fN(cancelled);
+document.getElementById('kpi-shares-sub').textContent = 'Fra ' + (SHARES_PRIMO/1e6).toFixed(1) + 'M \\u2192 ' + (sharesNow/1e6).toFixed(1) + 'M';
+document.getElementById('kpi-avgpx').textContent = avgPrice.toFixed(0) + 'p';
+document.getElementById('kpi-avgpx-sub').textContent = 'vs. kurs ' + (price ? fmt(price) : '—') + 'p';
+
+// Progress
+document.getElementById('prog-pct').textContent = progressPct.toFixed(0) + '%';
+document.getElementById('prog-fill').style.width = Math.min(progressPct, 100) + '%';
+document.getElementById('hist-fy26').style.width = Math.min(progressPct, 100) + '%';
+
+// Value table
+document.getElementById('v-primo').textContent = fN(SHARES_PRIMO);
+document.getElementById('v-cancelled').textContent = '-' + fN(cancelled);
+document.getElementById('v-now').textContent = fN(sharesNow);
+document.getElementById('v-reduction').textContent = '-' + reductionPct.toFixed(1) + '%';
+document.getElementById('v-eps-accr').textContent = '+' + epsAccretion.toFixed(1) + '%';
+
+if (price > 0) {{
+  const mcapB = (price / 100 * sharesNow) / 1e9;
+  const pe = (price / 100) / 2.49;
+  const divy = 160.32 / price * 100;
+  const fcfy = FCF_FY25 / (price / 100 * sharesNow / 1e6) * 100;
+  document.getElementById('f-mcap').textContent = '\\u00a3' + mcapB.toFixed(1) + 'B';
+  document.getElementById('f-pe').textContent = pe.toFixed(1) + 'x';
+  document.getElementById('f-divy').textContent = divy.toFixed(2) + '%';
+  document.getElementById('v-fcfy').textContent = fcfy.toFixed(1) + '%';
+
+  // Header price
+  const sign = px.change >= 0 ? '+' : '';
+  document.getElementById('live-price').innerHTML = fmt(price) + ' <span class="price-curr">GBp</span>';
+  document.getElementById('live-change').textContent = sign + fmt(px.change || 0) + ' (' + sign + (px.change_pct || 0).toFixed(2) + '%)';
+  document.getElementById('live-change').className = 'price-chg ' + ((px.change || 0) >= 0 ? 'up' : 'dn');
+  document.getElementById('live-date').textContent = (px.timestamp || '') + ' · Yahoo Finance';
+}}
+
+// Transaction table
+const tbody = document.getElementById('tx-body');
+txs.forEach(t => {{
+  const tr = document.createElement('tr');
+  const d = new Date(t.dato);
+  tr.innerHTML =
+    '<td>' + d.toLocaleDateString('da-DK',{{day:'numeric',month:'short',year:'numeric'}}) + '</td>' +
+    '<td>' + fN(t.antal_aktier) + '</td>' +
+    '<td>' + t.gns_kurs_gbp.toFixed(2) + '</td>' +
+    '<td>' + fM(t.beloeb_gbp_mio) + '</td>' +
+    '<td>' + (t.aktier_efter ? fN(t.aktier_efter) : '\\u2014') + '</td>';
+  tbody.appendChild(tr);
+}});
+
+// Charts
+const txAsc = [...txs].reverse();
+const labels = txAsc.map(t => {{
+  const d = new Date(t.dato);
+  return d.toLocaleDateString('da-DK',{{day:'numeric',month:'short'}});
+}});
+let cumS=0, cumA=0, cumW=0;
+const cumSA=[], cumAA=[], avgPA=[], outA=[];
+txAsc.forEach(t => {{
+  cumS += t.antal_aktier; cumA += t.beloeb_gbp_mio;
+  cumW += t.gns_kurs_gbp * t.antal_aktier;
+  cumSA.push(cumS); cumAA.push(cumA);
+  avgPA.push(cumW/cumS); outA.push((SHARES_PRIMO-cumS)/1e6);
+}});
+
+const cO = (x={{}}) => ({{
+  responsive:true, maintainAspectRatio:false,
+  plugins:{{legend:{{display:false}},tooltip:{{backgroundColor:'#1e293b',titleColor:'#f8fafc',bodyColor:'#b0bac9',borderColor:'#2a3a52',borderWidth:1,cornerRadius:4,titleFont:{{family:'JetBrains Mono',size:11}},bodyFont:{{family:'JetBrains Mono',size:11}},callbacks:x.ttCb||{{}}}}}},
+  scales:{{x:{{ticks:{{color:'#6b7a90',font:{{family:'JetBrains Mono',size:10}},maxRotation:45}},grid:{{color:'rgba(61,74,92,.35)'}}}},y:{{ticks:{{color:'#6b7a90',font:{{family:'JetBrains Mono',size:10}},...(x.yt||{{}})}},grid:{{color:'rgba(61,74,92,.35)'}},...(x.y||{{}})}}}}
+}});
+
+if (labels.length > 0) {{
+  new Chart(document.getElementById('ch-shares'),{{type:'line',data:{{labels,datasets:[{{data:cumSA,borderColor:'#8b99ad',backgroundColor:'rgba(139,153,173,.05)',borderWidth:2,fill:true,tension:.3,pointRadius:2.5,pointBackgroundColor:'#8b99ad'}}]}},options:cO({{ttCb:{{label:c=>fN(c.raw)+' aktier'}}}})}}); 
+  new Chart(document.getElementById('ch-amount'),{{type:'line',data:{{labels,datasets:[{{data:cumAA,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.06)',borderWidth:2,fill:true,tension:.3,pointRadius:2.5,pointBackgroundColor:'#22c55e'}}]}},options:cO({{ttCb:{{label:c=>'\\u00a3'+c.raw.toFixed(1)+'M'}}}})}}); 
+  new Chart(document.getElementById('ch-avgpx'),{{type:'line',data:{{labels,datasets:[{{data:avgPA,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.06)',borderWidth:2,fill:true,tension:.3,pointRadius:2.5,pointBackgroundColor:'#f59e0b'}}]}},options:cO({{ttCb:{{label:c=>c.raw.toFixed(0)+'p'}}}})}}); 
+  new Chart(document.getElementById('ch-outstanding'),{{type:'line',data:{{labels,datasets:[{{data:outA,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.06)',borderWidth:2,fill:true,tension:.3,pointRadius:2.5,pointBackgroundColor:'#ef4444'}}]}},options:cO({{ttCb:{{label:c=>c.raw.toFixed(1)+'M'}}}})}}); 
+}}
+</script>
+</body>
+</html>"""
+
+    with open(OUT_PATH, "w", encoding="utf-8") as f:
+        f.write(html)
+
+    tx_count = len(data.get("transaktioner", []))
+    print(f"index.html genereret med {tx_count} transaktioner bagt ind")
+
+
+if __name__ == "__main__":
+    main()
