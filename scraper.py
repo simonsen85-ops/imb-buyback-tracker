@@ -1,10 +1,11 @@
 """
-IMB Buyback Tracker — Scraper v2
-- Henter aktiekurs fra Yahoo Finance (fallback i data.json)
-- Scraper Investegate for nye "Transaction in Own Shares" RNS-filings
-- HTML'en henter selv live kurs via JavaScript ved pageload
+IMB Buyback Tracker — Scraper v3
+Kilder:
+  1. Investegate.co.uk — scraper IMB's RNS-oversigt for "Transaction in Own Shares" links
+  2. Yahoo Finance — live kurs til fallback i data.json
 
-GitHub Actions kører dette dagligt (man–fre).
+HTML'en henter selv live kurs via JavaScript ved pageload.
+GitHub Actions kører dette dagligt (man-fre kl. 17:30 UTC).
 """
 
 import json
@@ -13,28 +14,29 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; IMB-Tracker/1.0)"}
+HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+DATA_PATH = Path(__file__).parent / "data.json"
 
 
-def fetch_yahoo_price(ticker: str = "IMB.L") -> dict | None:
+# ═══════════════════════════════════════════════
+# 1. YAHOO FINANCE — fallback kurs
+# ═══════════════════════════════════════════════
+
+def fetch_yahoo_price(ticker="IMB.L"):
     """Hent seneste kurs fra Yahoo Finance v8 chart API."""
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=5d&interval=1d"
     req = urllib.request.Request(url, headers=HEADERS)
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode())
-
         meta = data["chart"]["result"][0]["meta"]
         price = meta["regularMarketPrice"]
         prev = meta.get("chartPreviousClose", meta.get("previousClose", price))
-        change = price - prev
-        change_pct = (change / prev * 100) if prev else 0
-
         return {
             "price": round(price, 2),
             "prev_close": round(prev, 2),
-            "change": round(change, 2),
-            "change_pct": round(change_pct, 2),
+            "change": round(price - prev, 2),
+            "change_pct": round((price - prev) / prev * 100, 2) if prev else 0,
             "currency": meta.get("currency", "GBp"),
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         }
@@ -43,147 +45,90 @@ def fetch_yahoo_price(ticker: str = "IMB.L") -> dict | None:
         return None
 
 
-def scrape_investegate_rns() -> list:
-    """
-    Scrape Investegate for Imperial Brands 'Transaction in Own Shares' RNS-filings.
-    Henter oversigten og parser individuelle meddelelser.
-    """
-    base_url = "https://www.investegate.co.uk"
-    # Søg efter IMB announcements
-    search_url = f"{base_url}/Index.aspx?searchtype=3&words=transaction+in+own+shares&company=IMB"
-    req = urllib.request.Request(search_url, headers=HEADERS)
+# ═══════════════════════════════════════════════
+# 2. INVESTEGATE — scrape RNS-filings
+# ═══════════════════════════════════════════════
 
-    try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
-            html = resp.read().decode("utf-8", errors="replace")
-    except Exception as e:
-        print(f"  Investegate søgning fejlede: {e}")
-        # Fallback: prøv direkte company announcements
-        return scrape_investegate_company_page()
-
-    # Parse announcement links
-    announcements = []
-    # Find links til "Transaction in Own Shares" announcements
-    pattern = r'href="(/announcement/rns/imperial-brands--imb/transaction-in-own-shares/\d+)"'
-    matches = re.findall(pattern, html, re.IGNORECASE)
-
-    if not matches:
-        print("  Ingen RNS-links fundet i søgeresultat, prøver company page...")
-        return scrape_investegate_company_page()
-
-    for link in matches[:30]:  # Max 30 seneste
-        full_url = base_url + link
-        tx = parse_rns_announcement(full_url)
-        if tx:
-            announcements.append(tx)
-
-    return announcements
-
-
-def scrape_investegate_company_page() -> list:
-    """Fallback: scrape IMB's company page for RNS filings."""
+def get_rns_links():
+    """Hent Investegate IMB company page, find alle Transaction in Own Shares links."""
     url = "https://www.investegate.co.uk/company/IMB"
     req = urllib.request.Request(url, headers=HEADERS)
-
     try:
         with urllib.request.urlopen(req, timeout=20) as resp:
             html = resp.read().decode("utf-8", errors="replace")
     except Exception as e:
-        print(f"  Company page fejlede: {e}")
+        print(f"  Investegate fejl: {e}")
         return []
 
-    announcements = []
     pattern = r'href="(/announcement/rns/imperial-brands--imb/transaction-in-own-shares/(\d+))"'
     matches = re.findall(pattern, html, re.IGNORECASE)
 
-    for link, ann_id in matches[:20]:
-        full_url = "https://www.investegate.co.uk" + link
-        tx = parse_rns_announcement(full_url)
-        if tx:
-            announcements.append(tx)
+    links = []
+    seen = set()
+    for path, ann_id in matches:
+        if ann_id not in seen:
+            links.append(f"https://www.investegate.co.uk{path}")
+            seen.add(ann_id)
 
-    return announcements
+    print(f"  Fandt {len(links)} 'Transaction in Own Shares'-links")
+    return links
 
 
-def parse_rns_announcement(url: str) -> dict | None:
-    """
-    Parse en individuel RNS 'Transaction in Own Shares' meddelelse.
-    Returnerer dict med dato, antal, gns. kurs, aktier_efter.
-    """
+def parse_rns_page(url):
+    """Parse en enkelt RNS Transaction in Own Shares meddelelse."""
     req = urllib.request.Request(url, headers=HEADERS)
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             html = resp.read().decode("utf-8", errors="replace")
     except Exception as e:
-        print(f"  Kunne ikke hente {url}: {e}")
+        print(f"    Kunne ikke hente {url}: {e}")
         return None
 
-    # Fjern HTML-tags for lettere parsing
     text = re.sub(r"<[^>]+>", " ", html)
     text = re.sub(r"\s+", " ", text)
 
-    # Parse dato: "on DD Month YYYY" eller "on March 27, 2026"
-    date_match = re.search(
+    months = {
+        "january": 1, "february": 2, "march": 3, "april": 4,
+        "may": 5, "june": 6, "july": 7, "august": 8,
+        "september": 9, "october": 10, "november": 11, "december": 12
+    }
+
+    # DATO
+    date_m = re.search(
         r"on\s+(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})",
         text, re.IGNORECASE
     )
-    if not date_match:
-        # Alternativt format
-        date_match = re.search(
-            r"(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})",
-            text, re.IGNORECASE
-        )
-        if date_match:
-            month_str, day, year = date_match.groups()
-        else:
-            return None
-    else:
-        day, month_str, year = date_match.groups()
-
-    months = {"january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
-              "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12}
-    try:
-        dato = f"{year}-{months[month_str.lower()]:02d}-{int(day):02d}"
-    except (KeyError, ValueError):
+    if not date_m:
         return None
+    day, mon, year = date_m.groups()
+    dato = f"{year}-{months[mon.lower()]:02d}-{int(day):02d}"
 
-    # Parse antal aktier: "purchased ... NNN,NNN ... ordinary shares"
-    # eller "repurchased NNN,NNN ordinary shares"
-    shares_match = re.search(
-        r"(?:purchased|repurchased)\s+(?:for\s+cancellation\s+)?(?:the\s+following\s+number\s+of\s+)?(\d[\d,]+)\s+(?:of\s+its\s+)?ordinary\s+shares",
+    # ANTAL AKTIER
+    sh_m = re.search(
+        r"(?:purchased|repurchased)\s+(?:for\s+cancellation\s+)?(?:the\s+following\s+number\s+of\s+its\s+)?(\d[\d,]+)\s+(?:of\s+its\s+)?ordinary",
         text, re.IGNORECASE
     )
-    # Alternativt: "Number of securities purchased: NNN,NNN"
-    if not shares_match:
-        shares_match = re.search(r"Number\s+of\s+securities\s+purchased\s*:?\s*(\d[\d,]+)", text, re.IGNORECASE)
-    if not shares_match:
+    if not sh_m:
+        sh_m = re.search(r"Number\s+of\s+securities\s+purchased\s*:?\s*(\d[\d,]+)", text, re.IGNORECASE)
+    if not sh_m:
         return None
+    antal = int(sh_m.group(1).replace(",", ""))
 
-    antal = int(shares_match.group(1).replace(",", ""))
-
-    # Parse gennemsnitskurs: "average price of GBp NNN.NN" eller "GBp 3,050.44"
-    price_match = re.search(
-        r"average\s+price\s+(?:paid\s+)?(?:per\s+share\s+)?(?:was\s+)?(?:of\s+)?(?:GBp?\s*)?(\d[\d,]*\.?\d*)\s*(?:pence|p|GBp)?",
+    # GNS. KURS
+    px_m = re.search(
+        r"average\s+price\s+(?:paid\s+)?(?:per\s+share\s+)?(?:was\s+)?(?:of\s+)?(?:GBp?\s*)?(\d[\d,]*\.\d+)",
         text, re.IGNORECASE
     )
-    if not price_match:
-        price_match = re.search(r"(?:Average|Avg).*?(\d[\d,]*\.\d{2})\s*(?:pence|p|GBp)", text, re.IGNORECASE)
-    
-    gns_kurs = 0.0
-    if price_match:
-        gns_kurs = float(price_match.group(1).replace(",", ""))
+    gns_kurs = float(px_m.group(1).replace(",", "")) if px_m else 0.0
 
-    # Parse aktier efter: "remaining number of ordinary shares in issue will be NNN,NNN,NNN"
-    remaining_match = re.search(
+    # AKTIER EFTER
+    rem_m = re.search(
         r"(?:remaining|total)\s+(?:number\s+of\s+)?ordinary\s+shares\s+in\s+issue\s+(?:will\s+be|is\s+now|is)\s+(\d[\d,]+)",
         text, re.IGNORECASE
     )
-    aktier_efter = None
-    if remaining_match:
-        aktier_efter = int(remaining_match.group(1).replace(",", ""))
+    aktier_efter = int(rem_m.group(1).replace(",", "")) if rem_m else None
 
-    # Beregn beløb
-    beloeb = round(antal * gns_kurs / 100 / 1e6, 1)  # GBp → £ → £M
+    beloeb = round(antal * gns_kurs / 100 / 1e6, 1) if gns_kurs else 0
 
     return {
         "dato": dato,
@@ -195,85 +140,90 @@ def parse_rns_announcement(url: str) -> dict | None:
     }
 
 
-def merge_transactions(existing: list, scraped: list) -> list:
-    """Merge nye transaktioner ind i eksisterende, undgå dubletter (via dato)."""
+def scrape_all_rns():
+    """Hent alle Transaction in Own Shares fra Investegate og parse dem."""
+    links = get_rns_links()
+    results = []
+    for i, link in enumerate(links):
+        tx = parse_rns_page(link)
+        if tx:
+            results.append(tx)
+        if (i + 1) % 10 == 0:
+            print(f"    Parsed {i+1}/{len(links)}...")
+    print(f"  Parsed {len(results)} transaktioner succesfuldt")
+    return results
+
+
+# ═══════════════════════════════════════════════
+# 3. MERGE & SAVE
+# ═══════════════════════════════════════════════
+
+def merge_transactions(existing, scraped):
+    """Merge nye transaktioner, dedup via dato."""
     existing_dates = {t["dato"] for t in existing}
     new_count = 0
-
     for tx in scraped:
         if tx["dato"] not in existing_dates:
             existing.append(tx)
             existing_dates.add(tx["dato"])
             new_count += 1
-            print(f"  Ny transaktion: {tx['dato']} — {tx['antal_aktier']:,} aktier @ {tx['gns_kurs_gbp']:.2f}p")
-
+            print(f"    + {tx['dato']}: {tx['antal_aktier']:,} aktier @ {tx['gns_kurs_gbp']:.2f}p = {tx['beloeb_gbp_mio']}M GBP")
     if new_count == 0:
-        print("  Ingen nye transaktioner fundet")
+        print("  Ingen nye transaktioner")
     else:
-        print(f"  {new_count} nye transaktioner tilføjet")
-
-    # Sortér faldende efter dato
+        print(f"  {new_count} nye transaktioner tilfojet")
     existing.sort(key=lambda t: t["dato"], reverse=True)
     return existing
 
 
-def load_data() -> dict:
-    """Indlæs data.json."""
-    data_path = Path(__file__).parent / "data.json"
-    with open(data_path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
-def save_data(data: dict):
-    """Gem data.json."""
-    data_path = Path(__file__).parent / "data.json"
-    with open(data_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
-
 def main():
-    print("═══ IMB Buyback Tracker — Scraper v2 ═══")
-    data = load_data()
+    print("=== IMB Buyback Tracker - Scraper v3 ===")
+    print(f"    {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n")
 
-    # 1. Hent kurs
-    print("\n1. Henter kurs fra Yahoo Finance...")
+    with open(DATA_PATH, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # 1. Kurs
+    print("1. Yahoo Finance kurs...")
     price = fetch_yahoo_price()
     if price:
         data["kurs"] = price
-        print(f"  Kurs: {price['price']} GBp ({price['change_pct']:+.2f}%)")
+        print(f"  OK: {price['price']} GBp ({price['change_pct']:+.2f}%)")
     else:
-        print("  Beholder gammel kursdata")
+        print("  Beholder gammel kurs")
 
-    # 2. Scrape nye RNS-filings
-    print("\n2. Scraper Investegate for nye RNS-filings...")
-    scraped = scrape_investegate_rns()
+    # 2. RNS-filings
+    print("\n2. Investegate RNS-filings...")
+    scraped = scrape_all_rns()
     if scraped:
-        print(f"  Fandt {len(scraped)} transaktioner fra Investegate")
-        data["transaktioner"] = merge_transactions(data.get("transaktioner", []), scraped)
-    else:
-        print("  Ingen transaktioner scraped (kan skyldes netværk/CORS)")
+        data["transaktioner"] = merge_transactions(
+            data.get("transaktioner", []), scraped
+        )
 
-    # 3. Opdater metadata
-    data["sidst_opdateret"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
-
-    # 4. Beregn summerede metrics
+    # 3. Summary
     txs = data.get("transaktioner", [])
     if txs:
         total_shares = sum(t["antal_aktier"] for t in txs)
         total_spent = sum(t["beloeb_gbp_mio"] for t in txs)
-        shares_now = txs[0].get("aktier_efter") if txs[0].get("aktier_efter") else (807300000 - total_shares)
-
+        shares_now = next(
+            (t["aktier_efter"] for t in sorted(txs, key=lambda x: x["dato"], reverse=True) if t.get("aktier_efter")),
+            807300000 - total_shares
+        )
         data["summary"] = {
             "total_aktier_tilbagekoebt": total_shares,
             "total_brugt_mio": round(total_spent, 1),
             "aktier_nu": shares_now,
             "fremgang_pct": round(total_spent / 1450 * 100, 1),
         }
-        print(f"\n  Summary: {total_shares:,} aktier, £{total_spent:.1f}M brugt, {total_spent/1450*100:.0f}% af program")
+        print(f"\n  {total_shares:,} aktier tilbagekoebt")
+        print(f"  GBP {total_spent:.1f}M brugt ({total_spent/1450*100:.0f}% af 1,450M program)")
+        print(f"  {shares_now:,} aktier i omloeb")
 
-    # 5. Gem
-    save_data(data)
-    print("\n✓ data.json gemt")
+    # 4. Gem
+    data["sidst_opdateret"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    with open(DATA_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    print("\nOK: data.json gemt")
 
 
 if __name__ == "__main__":
