@@ -1,32 +1,61 @@
 """
-IMB Buyback Tracker — Scraper v3
+IMB Buyback Tracker — Scraper v4
 Kilder:
-  1. Investegate.co.uk — scraper IMB's RNS-oversigt for "Transaction in Own Shares" links
+  1. Investegate.co.uk — scraper IMB's RNS-oversigt for "Transaction in Own Shares"
   2. Yahoo Finance — live kurs til fallback i data.json
 
-HTML'en henter selv live kurs via JavaScript ved pageload.
+Fix v4: Investegate kræver "Private Investor" accept-cookie (ig_acc=1).
+        Bruger http.cookiejar til at sætte denne automatisk.
+        Tilføjer debug-logging hvis 0 links findes.
+
 GitHub Actions kører dette dagligt (man-fre kl. 17:30 UTC).
 """
 
 import json
 import re
+import http.cookiejar
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
 DATA_PATH = Path(__file__).parent / "data.json"
 
 
+def make_opener():
+    """Opret urllib opener med cookie-support og Investegate accept-cookie."""
+    cj = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+    opener.addheaders = [
+        ("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"),
+        ("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
+        ("Accept-Language", "en-GB,en;q=0.9"),
+    ]
+    # Sæt Investegate "Private Investor" accept-cookie
+    cookie = http.cookiejar.Cookie(
+        version=0, name="ig_acc", value="1",
+        port=None, port_specified=False,
+        domain=".investegate.co.uk", domain_specified=True, domain_initial_dot=True,
+        path="/", path_specified=True,
+        secure=False, expires=None, discard=True,
+        comment=None, comment_url=None, rest={}, rfc2109=False,
+    )
+    cj.set_cookie(cookie)
+    return opener
+
+
+OPENER = make_opener()
+
+
 # ═══════════════════════════════════════════════
-# 1. YAHOO FINANCE — fallback kurs
+# 1. YAHOO FINANCE
 # ═══════════════════════════════════════════════
 
 def fetch_yahoo_price(ticker="IMB.L"):
-    """Hent seneste kurs fra Yahoo Finance v8 chart API."""
     url = f"https://query1.finance.yahoo.com/v8/finance/chart/{ticker}?range=5d&interval=1d"
-    req = urllib.request.Request(url, headers=HEADERS)
     try:
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        })
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode())
         meta = data["chart"]["result"][0]["meta"]
@@ -52,14 +81,16 @@ def fetch_yahoo_price(ticker="IMB.L"):
 def get_rns_links():
     """Hent Investegate IMB company page, find alle Transaction in Own Shares links."""
     url = "https://www.investegate.co.uk/company/IMB"
-    req = urllib.request.Request(url, headers=HEADERS)
     try:
-        with urllib.request.urlopen(req, timeout=20) as resp:
+        with OPENER.open(url, timeout=20) as resp:
             html = resp.read().decode("utf-8", errors="replace")
     except Exception as e:
         print(f"  Investegate fejl: {e}")
         return []
 
+    print(f"  HTML hentet: {len(html)} bytes")
+
+    # Find alle "Transaction in Own Shares" links
     pattern = r'href="(/announcement/rns/imperial-brands--imb/transaction-in-own-shares/(\d+))"'
     matches = re.findall(pattern, html, re.IGNORECASE)
 
@@ -71,14 +102,36 @@ def get_rns_links():
             seen.add(ann_id)
 
     print(f"  Fandt {len(links)} 'Transaction in Own Shares'-links")
+
+    if len(links) == 0:
+        # Debug: tjek hvad vi faktisk fik
+        all_ann = re.findall(r'href="(/announcement/[^"]+)"', html)
+        print(f"  DEBUG: {len(all_ann)} announcement-links totalt")
+        for l in all_ann[:5]:
+            print(f"    {l}")
+
+        if "Transaction in Own Shares" in html:
+            print("  DEBUG: Teksten 'Transaction in Own Shares' FINDES i HTML")
+            idx = html.find("Transaction in Own Shares")
+            # Vis rå HTML omkring den (med tags)
+            raw = html[max(0, idx-300):idx+100]
+            print(f"  DEBUG raw HTML context:\n{raw}")
+        elif "transaction" in html.lower():
+            print("  DEBUG: 'transaction' (lowercase) fundet i HTML")
+            idx = html.lower().find("transaction")
+            raw = html[max(0, idx-100):idx+200]
+            print(f"  DEBUG context:\n{raw}")
+        else:
+            print("  DEBUG: Ingen 'transaction' fundet. Cookie-gate?")
+            print(f"  DEBUG: Foerste 1000 chars:\n{html[:1000]}")
+
     return links
 
 
 def parse_rns_page(url):
     """Parse en enkelt RNS Transaction in Own Shares meddelelse."""
-    req = urllib.request.Request(url, headers=HEADERS)
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with OPENER.open(url, timeout=15) as resp:
             html = resp.read().decode("utf-8", errors="replace")
     except Exception as e:
         print(f"    Kunne ikke hente {url}: {e}")
@@ -159,7 +212,6 @@ def scrape_all_rns():
 # ═══════════════════════════════════════════════
 
 def merge_transactions(existing, scraped):
-    """Merge nye transaktioner, dedup via dato."""
     existing_dates = {t["dato"] for t in existing}
     new_count = 0
     for tx in scraped:
@@ -177,7 +229,7 @@ def merge_transactions(existing, scraped):
 
 
 def main():
-    print("=== IMB Buyback Tracker - Scraper v3 ===")
+    print("=== IMB Buyback Tracker - Scraper v4 ===")
     print(f"    {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n")
 
     with open(DATA_PATH, "r", encoding="utf-8") as f:
