@@ -38,6 +38,14 @@
   ],
   "transaktioner": [
     {
+      "dato": "2026-03-30",
+      "antal_aktier": 72688,
+      "gns_kurs_gbp": 3087.59,
+      "beloeb_gbp_mio": 2.2,
+      "aktier_efter": 781893440,
+      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9500521"
+    },
+    {
       "dato": "2026-03-27",
       "antal_aktier": 210567,
       "gns_kurs_gbp": 3050.44,
@@ -391,18 +399,18 @@
     }
   ],
   "kurs": {
-    "price": 3097.0,
-    "prev_close": 3019.0,
-    "change": 78.0,
-    "change_pct": 2.58,
+    "price": 3057.0,
+    "prev_close": 3026.0,
+    "change": 31.0,
+    "change_pct": 1.02,
     "currency": "GBp",
-    "timestamp": "2026-03-30 18:10 UTC"
+    "timestamp": "2026-03-31 18:11 UTC"
   },
-  "sidst_opdateret": "2026-03-30 18:11 UTC",
+  "sidst_opdateret": "2026-03-31 18:11 UTC",
   "summary": {
-    "total_aktier_tilbagekoebt": 12714414,
-    "total_brugt_mio": 397.9,
-    "aktier_nu": 781966128,
-    "fremgang_pct": 27.4
+    "total_aktier_tilbagekoebt": 12787102,
+    "total_brugt_mio": 400.1,
+    "aktier_nu": 781893440,
+    "fremgang_pct": 27.6
   }
 }
