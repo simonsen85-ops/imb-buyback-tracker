@@ -511,14 +511,14 @@
     }
   ],
   "kurs": {
-    "price": 2734.0,
-    "prev_close": 2933.0,
-    "change": -199.0,
-    "change_pct": -6.78,
+    "price": 2753.0,
+    "prev_close": 2829.5,
+    "change": -76.5,
+    "change_pct": -2.7,
     "currency": "GBp",
-    "timestamp": "2026-04-21 18:36 UTC"
+    "timestamp": "2026-04-22 18:36 UTC"
   },
-  "sidst_opdateret": "2026-04-21 18:37 UTC",
+  "sidst_opdateret": "2026-04-22 18:36 UTC",
   "summary": {
     "total_aktier_tilbagekoebt": 15608377,
     "total_brugt_mio": 483.4,
