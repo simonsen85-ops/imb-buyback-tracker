@@ -44,7 +44,8 @@
       "gns_kurs_gbp": 2734.8202,
       "beloeb_gbp_mio": 7.5,
       "aktier_efter": 778797165,
-      "rns_id": "9534918"
+      "rns_id": "9534918",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-21",
@@ -52,7 +53,8 @@
       "gns_kurs_gbp": 2758.2776,
       "beloeb_gbp_mio": 5.2,
       "aktier_efter": 779072165,
-      "rns_id": "9531336"
+      "rns_id": "9531336",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-20",
@@ -60,14 +62,16 @@
       "gns_kurs_gbp": 2794.4491,
       "beloeb_gbp_mio": 6.1,
       "aktier_efter": 779262165,
-      "rns_id": "9529084"
+      "rns_id": "9529084",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-17",
       "antal_aktier": 285000,
       "gns_kurs_gbp": 2815.4,
       "beloeb_gbp_mio": 8.0,
-      "aktier_efter": 781017219
+      "aktier_efter": 781017219,
+      "program": "unknown"
     },
     {
       "dato": "2026-04-17",
@@ -75,14 +79,16 @@
       "gns_kurs_gbp": 2777.9081,
       "beloeb_gbp_mio": 6.7,
       "aktier_efter": 779479990,
-      "rns_id": "9526793"
+      "rns_id": "9526793",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-16",
       "antal_aktier": 312450,
       "gns_kurs_gbp": 2794.0,
       "beloeb_gbp_mio": 8.7,
-      "aktier_efter": 781302219
+      "aktier_efter": 781302219,
+      "program": "unknown"
     },
     {
       "dato": "2026-04-16",
@@ -90,14 +96,16 @@
       "gns_kurs_gbp": 2818.3661,
       "beloeb_gbp_mio": 6.2,
       "aktier_efter": 779719990,
-      "rns_id": "9524684"
+      "rns_id": "9524684",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-15",
       "antal_aktier": 198000,
       "gns_kurs_gbp": 2833.0,
       "beloeb_gbp_mio": 5.6,
-      "aktier_efter": 781614669
+      "aktier_efter": 781614669,
+      "program": "unknown"
     },
     {
       "dato": "2026-04-15",
@@ -105,7 +113,8 @@
       "gns_kurs_gbp": 2855.8918,
       "beloeb_gbp_mio": 7.1,
       "aktier_efter": 779939990,
-      "rns_id": "9522316"
+      "rns_id": "9522316",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-14",
@@ -113,7 +122,8 @@
       "gns_kurs_gbp": 2901.164,
       "beloeb_gbp_mio": 7.5,
       "aktier_efter": 780189990,
-      "rns_id": "9520116"
+      "rns_id": "9520116",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-13",
@@ -121,7 +131,8 @@
       "gns_kurs_gbp": 3101.9783,
       "beloeb_gbp_mio": 7.7,
       "aktier_efter": 780449990,
-      "rns_id": "9517820"
+      "rns_id": "9517820",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-10",
@@ -129,7 +140,8 @@
       "gns_kurs_gbp": 3095.48,
       "beloeb_gbp_mio": 6.0,
       "aktier_efter": 780699425,
-      "rns_id": "9515547"
+      "rns_id": "9515547",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-09",
@@ -137,7 +149,8 @@
       "gns_kurs_gbp": 3087.45,
       "beloeb_gbp_mio": 1.5,
       "aktier_efter": 780894283,
-      "rns_id": "9513417"
+      "rns_id": "9513417",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-08",
@@ -145,7 +158,8 @@
       "gns_kurs_gbp": 3121.25,
       "beloeb_gbp_mio": 2.9,
       "aktier_efter": 780942153,
-      "rns_id": "9511156"
+      "rns_id": "9511156",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-07",
@@ -153,7 +167,8 @@
       "gns_kurs_gbp": 3128.13,
       "beloeb_gbp_mio": 2.7,
       "aktier_efter": 781034545,
-      "rns_id": "9508974"
+      "rns_id": "9508974",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-02",
@@ -161,7 +176,8 @@
       "gns_kurs_gbp": 3074.62,
       "beloeb_gbp_mio": 5.6,
       "aktier_efter": 781119655,
-      "rns_id": "9506803"
+      "rns_id": "9506803",
+      "program": "unknown"
     },
     {
       "dato": "2026-04-01",
@@ -169,7 +185,8 @@
       "gns_kurs_gbp": 3048.05,
       "beloeb_gbp_mio": 12.9,
       "aktier_efter": 781302219,
-      "rns_id": "9504253"
+      "rns_id": "9504253",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-31",
@@ -177,7 +194,8 @@
       "gns_kurs_gbp": 3090.22,
       "beloeb_gbp_mio": 5.2,
       "aktier_efter": 781724118,
-      "rns_id": "9502926"
+      "rns_id": "9502926",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-30",
@@ -185,14 +203,8 @@
       "gns_kurs_gbp": 3087.59,
       "beloeb_gbp_mio": 2.2,
       "aktier_efter": 781893440,
-      "rns_id": "9500521"
-    },
-    {
-      "dato": "2026-03-27",
-      "antal_aktier": 210567,
-      "gns_kurs_gbp": 3050.44,
-      "beloeb_gbp_mio": 6.4,
-      "aktier_efter": 781966128
+      "rns_id": "9500521",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-27",
@@ -200,7 +212,16 @@
       "gns_kurs_gbp": 3050.44,
       "beloeb_gbp_mio": 6.4,
       "aktier_efter": 781966128,
-      "rns_id": "9496786"
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-27",
+      "antal_aktier": 210567,
+      "gns_kurs_gbp": 3050.44,
+      "beloeb_gbp_mio": 6.4,
+      "aktier_efter": 781966128,
+      "rns_id": "9496786",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-26",
@@ -208,7 +229,8 @@
       "gns_kurs_gbp": 3046.69,
       "beloeb_gbp_mio": 6.2,
       "aktier_efter": 782176695,
-      "rns_id": "9494617"
+      "rns_id": "9494617",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-25",
@@ -216,7 +238,8 @@
       "gns_kurs_gbp": 3044.87,
       "beloeb_gbp_mio": 3.5,
       "aktier_efter": 782379950,
-      "rns_id": "9492299"
+      "rns_id": "9492299",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-24",
@@ -224,7 +247,8 @@
       "gns_kurs_gbp": 3016.49,
       "beloeb_gbp_mio": 6.6,
       "aktier_efter": 782493418,
-      "rns_id": "9490077"
+      "rns_id": "9490077",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-23",
@@ -232,14 +256,16 @@
       "gns_kurs_gbp": 3020.7,
       "beloeb_gbp_mio": 17.0,
       "aktier_efter": 782711287,
-      "rns_id": "9488850"
+      "rns_id": "9488850",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-20",
       "antal_aktier": 367626,
       "gns_kurs_gbp": 3069.83,
       "beloeb_gbp_mio": 11.3,
-      "aktier_efter": 782176695
+      "aktier_efter": 782176695,
+      "program": "unknown"
     },
     {
       "dato": "2026-03-20",
@@ -247,14 +273,16 @@
       "gns_kurs_gbp": 3069.83,
       "beloeb_gbp_mio": 11.3,
       "aktier_efter": 783272992,
-      "rns_id": "9485473"
+      "rns_id": "9485473",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-19",
       "antal_aktier": 683323,
       "gns_kurs_gbp": 3098.55,
       "beloeb_gbp_mio": 21.2,
-      "aktier_efter": 782544321
+      "aktier_efter": 782544321,
+      "program": "unknown"
     },
     {
       "dato": "2026-03-19",
@@ -262,14 +290,16 @@
       "gns_kurs_gbp": 3098.55,
       "beloeb_gbp_mio": 21.2,
       "aktier_efter": 783640618,
-      "rns_id": "9483295"
+      "rns_id": "9483295",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-18",
       "antal_aktier": 520411,
       "gns_kurs_gbp": 3075.2,
       "beloeb_gbp_mio": 16.0,
-      "aktier_efter": 783227644
+      "aktier_efter": 783227644,
+      "program": "unknown"
     },
     {
       "dato": "2026-03-18",
@@ -277,21 +307,24 @@
       "gns_kurs_gbp": 3138.49,
       "beloeb_gbp_mio": 16.0,
       "aktier_efter": 784323941,
-      "rns_id": "9481099"
+      "rns_id": "9481099",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-17",
       "antal_aktier": 515297,
       "gns_kurs_gbp": 3105.62,
       "beloeb_gbp_mio": 16.0,
-      "aktier_efter": 783748055
+      "aktier_efter": 783748055,
+      "program": "unknown"
     },
     {
       "dato": "2026-03-13",
       "antal_aktier": 12064,
       "gns_kurs_gbp": 3130.72,
       "beloeb_gbp_mio": 0.4,
-      "aktier_efter": 784263352
+      "aktier_efter": 784263352,
+      "program": "unknown"
     },
     {
       "dato": "2026-03-13",
@@ -299,14 +332,16 @@
       "gns_kurs_gbp": 3130.72,
       "beloeb_gbp_mio": 0.4,
       "aktier_efter": 784832903,
-      "rns_id": "9474483"
+      "rns_id": "9474483",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-12",
       "antal_aktier": 378901,
       "gns_kurs_gbp": 3104.07,
       "beloeb_gbp_mio": 11.8,
-      "aktier_efter": 784275416
+      "aktier_efter": 784275416,
+      "program": "unknown"
     },
     {
       "dato": "2026-03-12",
@@ -314,7 +349,8 @@
       "gns_kurs_gbp": 3104.07,
       "beloeb_gbp_mio": 11.8,
       "aktier_efter": 784844967,
-      "rns_id": "9472330"
+      "rns_id": "9472330",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-11",
@@ -322,14 +358,16 @@
       "gns_kurs_gbp": 3120.5,
       "beloeb_gbp_mio": 17.0,
       "aktier_efter": 785223868,
-      "rns_id": "9470057"
+      "rns_id": "9470057",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-10",
       "antal_aktier": 169649,
       "gns_kurs_gbp": 3155.71,
       "beloeb_gbp_mio": 5.4,
-      "aktier_efter": 784654317
+      "aktier_efter": 784654317,
+      "program": "unknown"
     },
     {
       "dato": "2026-03-10",
@@ -337,7 +375,8 @@
       "gns_kurs_gbp": 3155.71,
       "beloeb_gbp_mio": 5.4,
       "aktier_efter": 785769193,
-      "rns_id": "9469132"
+      "rns_id": "9469132",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-09",
@@ -345,7 +384,8 @@
       "gns_kurs_gbp": 3154.39,
       "beloeb_gbp_mio": 6.6,
       "aktier_efter": 785938842,
-      "rns_id": "9467054"
+      "rns_id": "9467054",
+      "program": "unknown"
     },
     {
       "dato": "2026-03-06",
@@ -353,68 +393,247 @@
       "gns_kurs_gbp": 3143.08,
       "beloeb_gbp_mio": 24.1,
       "aktier_efter": 786149615,
-      "rns_id": "9463314"
+      "rns_id": "9463314",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 40000,
+      "gns_kurs_gbp": 3939.5888,
+      "beloeb_gbp_mio": 1.6,
+      "aktier_efter": null,
+      "rns_id": "9463313",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 11085,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463291",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 42853,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463288",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 34513,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463286",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 750000,
+      "gns_kurs_gbp": 403.7,
+      "beloeb_gbp_mio": 3.0,
+      "aktier_efter": null,
+      "rns_id": "9463278",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 109772,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463276",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 632455,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463266",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 50000,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463265",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 50000,
+      "gns_kurs_gbp": 278.48,
+      "beloeb_gbp_mio": 0.1,
+      "aktier_efter": null,
+      "rns_id": "9463257",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 313614,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463251",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 31898,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463250",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 140000,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463243",
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-03-06",
+      "antal_aktier": 313755,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463230",
+      "program": "unknown"
     },
     {
       "dato": "2026-02-18",
       "antal_aktier": 425000,
       "gns_kurs_gbp": 3120.0,
       "beloeb_gbp_mio": 13.3,
-      "aktier_efter": 784823966
+      "aktier_efter": 784823966,
+      "program": "unknown"
     },
     {
       "dato": "2026-02-05",
       "antal_aktier": 380000,
       "gns_kurs_gbp": 3095.0,
       "beloeb_gbp_mio": 11.8,
-      "aktier_efter": 785248966
+      "aktier_efter": 785248966,
+      "program": "unknown"
     },
     {
       "dato": "2026-01-22",
       "antal_aktier": 450000,
       "gns_kurs_gbp": 3050.0,
       "beloeb_gbp_mio": 13.7,
-      "aktier_efter": 785628966
+      "aktier_efter": 785628966,
+      "program": "unknown"
+    },
+    {
+      "dato": "2026-01-16",
+      "antal_aktier": 20000,
+      "gns_kurs_gbp": 630.3857,
+      "beloeb_gbp_mio": 0.1,
+      "aktier_efter": null,
+      "rns_id": "9463272",
+      "program": "unknown"
     },
     {
       "dato": "2025-12-18",
       "antal_aktier": 395000,
       "gns_kurs_gbp": 3180.0,
       "beloeb_gbp_mio": 12.6,
-      "aktier_efter": 786078966
+      "aktier_efter": 786078966,
+      "program": "unknown"
+    },
+    {
+      "dato": "2025-12-09",
+      "antal_aktier": 148637,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463307",
+      "program": "unknown"
     },
     {
       "dato": "2025-12-01",
       "antal_aktier": 428728,
       "gns_kurs_gbp": 3242.45,
       "beloeb_gbp_mio": 13.9,
-      "aktier_efter": 786473966
+      "aktier_efter": 786473966,
+      "program": "unknown"
     },
     {
       "dato": "2025-11-15",
       "antal_aktier": 410000,
       "gns_kurs_gbp": 3215.0,
       "beloeb_gbp_mio": 13.2,
-      "aktier_efter": 786902694
+      "aktier_efter": 786902694,
+      "program": "unknown"
+    },
+    {
+      "dato": "2025-11-12",
+      "antal_aktier": 115000,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463304",
+      "program": "unknown"
     },
     {
       "dato": "2025-11-01",
       "antal_aktier": 385000,
       "gns_kurs_gbp": 3190.0,
       "beloeb_gbp_mio": 12.3,
-      "aktier_efter": 787312694
+      "aktier_efter": 787312694,
+      "program": "unknown"
+    },
+    {
+      "dato": "2025-10-01",
+      "antal_aktier": 500000,
+      "gns_kurs_gbp": 0.0,
+      "beloeb_gbp_mio": 0,
+      "aktier_efter": null,
+      "rns_id": "9463287",
+      "program": "unknown"
+    },
+    {
+      "dato": "2025-05-15",
+      "antal_aktier": 54538,
+      "gns_kurs_gbp": 143.6355,
+      "beloeb_gbp_mio": 0.1,
+      "aktier_efter": null,
+      "rns_id": "9463295",
+      "program": "unknown"
+    },
+    {
+      "dato": "2007-12-28",
+      "antal_aktier": 210000,
+      "gns_kurs_gbp": 455.469,
+      "beloeb_gbp_mio": 1.0,
+      "aktier_efter": 761484727,
+      "rns_id": "9463254",
+      "program": "unknown"
     }
   ],
   "kurs": {
-    "price": 2775.0,
+    "price": 2772.0,
     "prev_close": 2753.0,
-    "change": 22.0,
-    "change_pct": 0.8,
+    "change": 19.0,
+    "change_pct": 0.69,
     "currency": "GBp",
-    "timestamp": "2026-04-23T15:04:56+00:00Z"
+    "timestamp": "2026-04-23T20:52:09+00:00Z"
   },
   "meta": {
-    "last_updated": "2026-04-23 15:05 UTC",
+    "last_updated": "2026-04-23 20:57 UTC",
     "data_kilde": "Investegate RNS (primary), Yahoo Finance (price)"
   }
 }

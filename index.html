@@ -10,52 +10,58 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
-  /* Tre-farve system — samme som FED */
-  --bg1:#0a0e17;
-  --bg2:#111827;
-  --t1:#e8ecf2;        /* hvid — primære tal */
-  --t2:#b0bac9;        /* lys grå — labels */
-  --t3:#8b99ad;        /* grå — sekundært */
-  --t4:#3d4a5c;        /* mørk grå — borders */
-  --g1:#10b981;        /* grøn — værdiskabelse */
-  --g2:#34d399;
-  --g3:#6ee7b7;
-  --g4:rgba(16,185,129,0.15);
-  --red:#ef4444;
-  --amber:#f59e0b;
+  --bg1:#0a0e17; --bg2:#111827;
+  --t1:#e8ecf2; --t2:#b0bac9; --t3:#8b99ad; --t4:#3d4a5c;
+  --g1:#10b981; --g2:#34d399; --g3:#6ee7b7; --g4:rgba(16,185,129,0.15);
+  --red:#ef4444; --amber:#f59e0b;
   --mono:'JetBrains Mono',monospace;
   --sans:'Outfit',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:100vh;font-weight:400;-webkit-font-smoothing:antialiased}
-
 .c{max-width:1360px;margin:0 auto;padding:0 24px 48px}
 
 /* HEADER */
 .hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--t4);max-width:1360px;margin:0 auto}
-.hdr-l{display:flex;align-items:center;gap:16px}
 .ticker{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--t1);letter-spacing:-0.5px}
 .badge{display:inline-block;padding:2px 8px;background:var(--t4);color:var(--t2);font-size:10px;font-weight:600;letter-spacing:1px;border-radius:3px;margin-left:6px;vertical-align:middle}
-.sub{font-family:var(--sans);font-size:12px;color:var(--t3);margin-top:2px;letter-spacing:0.3px}
+.sub{font-size:12px;color:var(--t3);margin-top:2px;letter-spacing:0.3px}
 .hdr-r{text-align:right}
 .price{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--t1)}
 .price .cur{font-size:12px;color:var(--t3);font-weight:400;margin-left:4px}
 .chg{font-family:var(--mono);font-size:13px;margin-top:2px}
-.chg.up{color:var(--g1)}
-.chg.dn{color:var(--red)}
+.chg.up{color:var(--g1)} .chg.dn{color:var(--red)}
 .up-ts{font-size:11px;color:var(--t4);margin-top:4px}
 
+/* PROGRAM SELECTOR */
+.ps-bar{display:flex;gap:12px;align-items:center;padding:16px 0 12px;border-bottom:1px solid var(--t4);margin-bottom:20px}
+.ps-lbl{font-size:11px;color:var(--t3);letter-spacing:1.2px;text-transform:uppercase;font-weight:600}
+.ps-sel{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:8px 36px 8px 14px;color:var(--t1);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b99ad' stroke-width='2.5'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat;background-position:right 12px center;background-size:10px}
+.ps-sel:focus{outline:none;border-color:var(--g1)}
+.ps-sel:hover{border-color:var(--t3)}
+.ps-meta{font-size:11px;color:var(--t3);font-family:var(--mono)}
+.ps-meta strong{color:var(--t2)}
+
 /* PROGRAM BANNER */
-.prog{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:18px 22px;margin:20px 0 16px;display:flex;justify-content:space-between;align-items:center}
+.prog{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:18px 22px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
 .prog-t{font-size:13px;font-weight:600;color:var(--t1);letter-spacing:0.3px}
 .prog-d{font-size:11px;color:var(--t3);margin-top:4px}
 .prog-d strong{color:var(--t2);font-weight:600}
-.status{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--g4);border:1px solid var(--g1);border-radius:3px}
-.dot{width:6px;height:6px;background:var(--g1);border-radius:50%;animation:pulse 2s infinite}
+.status{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:3px}
+.status.aktiv{background:var(--g4);border:1px solid var(--g1)}
+.status.fuldført{background:rgba(139,153,173,0.1);border:1px solid var(--t4)}
+.dot{width:6px;height:6px;border-radius:50%;animation:pulse 2s infinite}
+.status.aktiv .dot{background:var(--g1)}
+.status.fuldført .dot{background:var(--t3);animation:none}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-.status-t{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--g1);letter-spacing:1px}
+.status-t{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1px}
+.status.aktiv .status-t{color:var(--g1)}
+.status.fuldført .status-t{color:var(--t3)}
 
-/* TRANCHE PROGRESS — erstatter historik-kort */
+/* TRANCHES (kun for FY26) */
 .tranches{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--t4);border:1px solid var(--t4);border-radius:4px;margin-bottom:16px;overflow:hidden}
 .tr{background:var(--bg2);padding:14px 18px}
 .tr-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
@@ -64,8 +70,9 @@ body{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:10
 .tr-bar{height:4px;background:var(--bg1);border-radius:2px;overflow:hidden;margin:6px 0 4px}
 .tr-bar-f{height:100%;background:var(--g1);border-radius:2px;transition:width 0.6s ease}
 .tr-meta{font-size:10px;color:var(--t3);font-family:var(--mono)}
+.tranches.hide{display:none}
 
-/* KPI GRID — 4 kerne-tal */
+/* KPI GRID */
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--t4);border:1px solid var(--t4);border-radius:4px;margin-bottom:16px;overflow:hidden}
 .kpi{background:var(--bg2);padding:14px 18px}
 .kpi-l{font-size:10px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:500}
@@ -73,7 +80,7 @@ body{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:10
 .kpi-v.grn{color:var(--g1)}
 .kpi-s{font-size:11px;color:var(--t3);margin-top:4px;font-family:var(--mono)}
 
-/* VALUE CREATION FLOW — det centrale narrativ */
+/* VALUE CREATION FLOW */
 .vc-h{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin:8px 0 10px}
 .vc{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:stretch;margin-bottom:16px}
 .vc-b{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
@@ -84,7 +91,7 @@ body{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:10
 .vc-bs{font-size:10px;color:var(--t3);margin-top:4px;font-family:var(--mono)}
 .vc-ar{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:16px;color:var(--t4);font-weight:300}
 
-/* CHARTS — kun to */
+/* CHARTS */
 .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 .ch{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:14px 16px}
 .ch-h{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
@@ -94,7 +101,8 @@ body{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:10
 /* TABLE */
 .tc{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:14px 16px;margin-bottom:16px;overflow:hidden}
 .ts{overflow-x:auto;max-width:100%}
-.t-h{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+.t-h{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.t-h span{color:var(--t4);font-weight:400}
 table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
 th{text-align:left;padding:8px 10px;font-size:10px;color:var(--t3);letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid var(--t4);font-weight:500;white-space:nowrap}
 th.num{text-align:right}
@@ -116,8 +124,7 @@ tr:hover td{background:rgba(16,185,129,0.03)}
   .kpis{grid-template-columns:repeat(2,1fr)}
   .vc{grid-template-columns:1fr;gap:6px}
   .vc-ar{transform:rotate(90deg);padding:4px 0}
-  .ticker{font-size:22px}
-  .price{font-size:20px}
+  .ticker{font-size:22px} .price{font-size:20px}
 }
 @media (max-width:600px){
   .kpis{grid-template-columns:1fr}
@@ -127,106 +134,45 @@ tr:hover td{background:rgba(16,185,129,0.03)}
 <body>
 
 <header class="hdr">
-  <div class="hdr-l">
-    <div>
-      <div class="ticker">IMB<span class="badge">LSE</span></div>
-      <div class="sub">Imperial Brands PLC · Buyback Tracker</div>
-    </div>
+  <div>
+    <div class="ticker">IMB<span class="badge">LSE</span></div>
+    <div class="sub">Imperial Brands PLC · Buyback Tracker</div>
   </div>
   <div class="hdr-r">
-    <div class="price" id="live-price">2,775.00<span class="cur">GBp</span></div>
-    <div class="chg up" id="live-chg">+22.00 (+0.80%)</div>
+    <div class="price" id="live-price">2,772.00<span class="cur">GBp</span></div>
+    <div class="chg up" id="live-chg">+19.00 (+0.69%)</div>
     <div class="up-ts" id="live-ts">Opdateret 23. apr 2026</div>
   </div>
 </header>
 
 <div class="c">
 
+  <!-- PROGRAM SELECTOR -->
+  <div class="ps-bar">
+    <span class="ps-lbl">Program</span>
+    <select class="ps-sel" id="progSel">
+      
+    </select>
+    <span class="ps-meta" id="progMeta"></span>
+  </div>
+
   <!-- PROGRAM BANNER -->
-  <div class="prog">
-    <div>
-      <div class="prog-t">FY26 Aktietilbagekøbsprogram</div>
-      <div class="prog-d">Annonceret <strong>7. okt 2025</strong> · Frist <strong>28. okt 2026</strong> · Mægler T1: <strong>Morgan Stanley</strong></div>
-    </div>
-    <div class="status"><div class="dot"></div><span class="status-t">AKTIV</span></div>
-  </div>
+  <div class="prog" id="progBanner"></div>
 
-  <!-- TRANCHE PROGRESS -->
-  <div class="tranches">
-    <div class="tr">
-      <div class="tr-h">
-        <span class="tr-n">Tranche 1 · Morgan Stanley</span>
-        <span class="tr-amt">£448M / £725M</span>
-      </div>
-      <div class="tr-bar"><div class="tr-bar-f" style="width:61.8%"></div></div>
-      <div class="tr-meta">30. okt 2025 → 30. apr 2026 · 61.8% fuldført</div>
-    </div>
-    <div class="tr">
-      <div class="tr-h">
-        <span class="tr-n">Tranche 2</span>
-        <span class="tr-amt">£0M / £725M</span>
-      </div>
-      <div class="tr-bar"><div class="tr-bar-f" style="width:0.0%"></div></div>
-      <div class="tr-meta">Start 15. apr 2026 · Slut 28. okt 2026</div>
-    </div>
-  </div>
+  <!-- TRANCHE PROGRESS (kun FY26) -->
+  <div class="tranches" id="tranches"></div>
 
-  <!-- KPI GRID — 4 kerne-tal -->
-  <div class="kpis">
-    <div class="kpi">
-      <div class="kpi-l">Tilbagekøbt</div>
-      <div class="kpi-v grn">£448M</div>
-      <div class="kpi-s">30.9% af £1450M program</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-l">Aktier annulleret</div>
-      <div class="kpi-v">14.65M</div>
-      <div class="kpi-s">1.87% af kapital</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-l">EPS-accretion</div>
-      <div class="kpi-v grn">+1.91%</div>
-      <div class="kpi-s">£0.065/aktie</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-l">ROIC på buyback</div>
-      <div class="kpi-v grn">10.2%</div>
-      <div class="kpi-s">FCF-yield på købte aktier</div>
-    </div>
-  </div>
+  <!-- KPI GRID -->
+  <div class="kpis" id="kpis"></div>
 
   <!-- VALUE CREATION FLOW -->
   <div class="vc-h">Værdiskabelse · sekventielt flow</div>
-  <div class="vc">
-    <div class="vc-b">
-      <div class="vc-bl">Købt tilbage</div>
-      <div class="vc-bv">£448M</div>
-      <div class="vc-bs">gns. 3.059,73p</div>
-    </div>
-    <div class="vc-ar">→</div>
-    <div class="vc-b">
-      <div class="vc-bl">Aktier væk</div>
-      <div class="vc-bv">14.65M</div>
-      <div class="vc-bs">1.87% af kapital</div>
-    </div>
-    <div class="vc-ar">→</div>
-    <div class="vc-b">
-      <div class="vc-bl">EPS-løft</div>
-      <div class="vc-bv">+1.91%</div>
-      <div class="vc-bs">fra £3.41 til £3.475</div>
-    </div>
-    <div class="vc-ar">→</div>
-    <div class="vc-b end">
-      <div class="vc-bl">Værdi skabt</div>
-      <div class="vc-bv">£51M</div>
-      <div class="vc-bs">ved P/E 10x på EPS</div>
-    </div>
-  </div>
+  <div class="vc" id="vcFlow"></div>
 
-  <!-- CHARTS — kun to -->
+  <!-- CHARTS -->
   <div class="charts">
     <div class="ch">
-      <div class="ch-h">Købskurs vs. Fair Value<span>P/E 10× på FY26E EPS</span></div>
+      <div class="ch-h">Købskurs vs. Fair Value<span id="chFairPe"></span></div>
       <div class="ch-w"><canvas id="priceChart"></canvas></div>
     </div>
     <div class="ch">
@@ -237,7 +183,10 @@ tr:hover td{background:rgba(16,185,129,0.03)}
 
   <!-- TRANSACTION TABLE -->
   <div class="tc">
-    <div class="t-h">Transaktioner · 48 RNS-filings (nyeste først)</div>
+    <div class="t-h">
+      <span>Transaktioner · RNS-filings</span>
+      <span id="txCount"></span>
+    </div>
     <div class="ts">
       <table>
         <thead>
@@ -250,177 +199,296 @@ tr:hover td{background:rgba(16,185,129,0.03)}
             <th class="num">Aktier efter</th>
           </tr>
         </thead>
-        <tbody><tr><td class="n">48</td><td>22. apr 2026</td><td class="num">275.000</td><td class="num">2.734,82p</td><td class="num">£8M</td><td class="num">778.797.165</td></tr>
-<tr><td class="n">47</td><td>21. apr 2026</td><td class="num">190.000</td><td class="num">2.758,28p</td><td class="num">£5M</td><td class="num">779.072.165</td></tr>
-<tr><td class="n">46</td><td>20. apr 2026</td><td class="num">217.825</td><td class="num">2.794,45p</td><td class="num">£6M</td><td class="num">779.262.165</td></tr>
-<tr><td class="n">45</td><td>17. apr 2026</td><td class="num">285.000</td><td class="num">2.815,40p</td><td class="num">£8M</td><td class="num">781.017.219</td></tr>
-<tr><td class="n">44</td><td>17. apr 2026</td><td class="num">240.000</td><td class="num">2.777,91p</td><td class="num">£7M</td><td class="num">779.479.990</td></tr>
-<tr><td class="n">43</td><td>16. apr 2026</td><td class="num">312.450</td><td class="num">2.794,00p</td><td class="num">£9M</td><td class="num">781.302.219</td></tr>
-<tr><td class="n">42</td><td>16. apr 2026</td><td class="num">220.000</td><td class="num">2.818,37p</td><td class="num">£6M</td><td class="num">779.719.990</td></tr>
-<tr><td class="n">41</td><td>15. apr 2026</td><td class="num">198.000</td><td class="num">2.833,00p</td><td class="num">£6M</td><td class="num">781.614.669</td></tr>
-<tr><td class="n">40</td><td>15. apr 2026</td><td class="num">250.000</td><td class="num">2.855,89p</td><td class="num">£7M</td><td class="num">779.939.990</td></tr>
-<tr><td class="n">39</td><td>14. apr 2026</td><td class="num">260.000</td><td class="num">2.901,16p</td><td class="num">£8M</td><td class="num">780.189.990</td></tr>
-<tr><td class="n">38</td><td>13. apr 2026</td><td class="num">249.435</td><td class="num">3.101,98p</td><td class="num">£8M</td><td class="num">780.449.990</td></tr>
-<tr><td class="n">37</td><td>10. apr 2026</td><td class="num">194.858</td><td class="num">3.095,48p</td><td class="num">£6M</td><td class="num">780.699.425</td></tr>
-<tr><td class="n">36</td><td>9. apr 2026</td><td class="num">47.870</td><td class="num">3.087,45p</td><td class="num">£2M</td><td class="num">780.894.283</td></tr>
-<tr><td class="n">35</td><td>8. apr 2026</td><td class="num">92.392</td><td class="num">3.121,25p</td><td class="num">£3M</td><td class="num">780.942.153</td></tr>
-<tr><td class="n">34</td><td>7. apr 2026</td><td class="num">85.110</td><td class="num">3.128,13p</td><td class="num">£3M</td><td class="num">781.034.545</td></tr>
-<tr><td class="n">33</td><td>2. apr 2026</td><td class="num">182.564</td><td class="num">3.074,62p</td><td class="num">£6M</td><td class="num">781.119.655</td></tr>
-<tr><td class="n">32</td><td>1. apr 2026</td><td class="num">421.899</td><td class="num">3.048,05p</td><td class="num">£13M</td><td class="num">781.302.219</td></tr>
-<tr><td class="n">31</td><td>31. mar 2026</td><td class="num">169.322</td><td class="num">3.090,22p</td><td class="num">£5M</td><td class="num">781.724.118</td></tr>
-<tr><td class="n">30</td><td>30. mar 2026</td><td class="num">72.688</td><td class="num">3.087,59p</td><td class="num">£2M</td><td class="num">781.893.440</td></tr>
-<tr><td class="n">29</td><td>27. mar 2026</td><td class="num">210.567</td><td class="num">3.050,44p</td><td class="num">£6M</td><td class="num">781.966.128</td></tr>
-<tr><td class="n">28</td><td>27. mar 2026</td><td class="num">210.567</td><td class="num">3.050,44p</td><td class="num">£6M</td><td class="num">781.966.128</td></tr>
-<tr><td class="n">27</td><td>26. mar 2026</td><td class="num">203.255</td><td class="num">3.046,69p</td><td class="num">£6M</td><td class="num">782.176.695</td></tr>
-<tr><td class="n">26</td><td>25. mar 2026</td><td class="num">113.468</td><td class="num">3.044,87p</td><td class="num">£4M</td><td class="num">782.379.950</td></tr>
-<tr><td class="n">25</td><td>24. mar 2026</td><td class="num">217.869</td><td class="num">3.016,49p</td><td class="num">£7M</td><td class="num">782.493.418</td></tr>
-<tr><td class="n">24</td><td>23. mar 2026</td><td class="num">561.705</td><td class="num">3.020,70p</td><td class="num">£17M</td><td class="num">782.711.287</td></tr>
-<tr><td class="n">23</td><td>20. mar 2026</td><td class="num">367.626</td><td class="num">3.069,83p</td><td class="num">£11M</td><td class="num">782.176.695</td></tr>
-<tr><td class="n">22</td><td>20. mar 2026</td><td class="num">367.626</td><td class="num">3.069,83p</td><td class="num">£11M</td><td class="num">783.272.992</td></tr>
-<tr><td class="n">21</td><td>19. mar 2026</td><td class="num">683.323</td><td class="num">3.098,55p</td><td class="num">£21M</td><td class="num">782.544.321</td></tr>
-<tr><td class="n">20</td><td>19. mar 2026</td><td class="num">683.323</td><td class="num">3.098,55p</td><td class="num">£21M</td><td class="num">783.640.618</td></tr>
-<tr><td class="n">19</td><td>18. mar 2026</td><td class="num">520.411</td><td class="num">3.075,20p</td><td class="num">£16M</td><td class="num">783.227.644</td></tr>
-<tr><td class="n">18</td><td>18. mar 2026</td><td class="num">508.962</td><td class="num">3.138,49p</td><td class="num">£16M</td><td class="num">784.323.941</td></tr>
-<tr><td class="n">17</td><td>17. mar 2026</td><td class="num">515.297</td><td class="num">3.105,62p</td><td class="num">£16M</td><td class="num">783.748.055</td></tr>
-<tr><td class="n">16</td><td>13. mar 2026</td><td class="num">12.064</td><td class="num">3.130,72p</td><td class="num">£0M</td><td class="num">784.263.352</td></tr>
-<tr><td class="n">15</td><td>13. mar 2026</td><td class="num">12.064</td><td class="num">3.130,72p</td><td class="num">£0M</td><td class="num">784.832.903</td></tr>
-<tr><td class="n">14</td><td>12. mar 2026</td><td class="num">378.901</td><td class="num">3.104,07p</td><td class="num">£12M</td><td class="num">784.275.416</td></tr>
-<tr><td class="n">13</td><td>12. mar 2026</td><td class="num">378.901</td><td class="num">3.104,07p</td><td class="num">£12M</td><td class="num">784.844.967</td></tr>
-<tr><td class="n">12</td><td>11. mar 2026</td><td class="num">545.325</td><td class="num">3.120,50p</td><td class="num">£17M</td><td class="num">785.223.868</td></tr>
-<tr><td class="n">11</td><td>10. mar 2026</td><td class="num">169.649</td><td class="num">3.155,71p</td><td class="num">£5M</td><td class="num">784.654.317</td></tr>
-<tr><td class="n">10</td><td>10. mar 2026</td><td class="num">169.649</td><td class="num">3.155,71p</td><td class="num">£5M</td><td class="num">785.769.193</td></tr>
-<tr><td class="n">9</td><td>9. mar 2026</td><td class="num">210.773</td><td class="num">3.154,39p</td><td class="num">£7M</td><td class="num">785.938.842</td></tr>
-<tr><td class="n">8</td><td>6. mar 2026</td><td class="num">765.594</td><td class="num">3.143,08p</td><td class="num">£24M</td><td class="num">786.149.615</td></tr>
-<tr><td class="n">7</td><td>18. feb 2026</td><td class="num">425.000</td><td class="num">3.120,00p</td><td class="num">£13M</td><td class="num">784.823.966</td></tr>
-<tr><td class="n">6</td><td>5. feb 2026</td><td class="num">380.000</td><td class="num">3.095,00p</td><td class="num">£12M</td><td class="num">785.248.966</td></tr>
-<tr><td class="n">5</td><td>22. jan 2026</td><td class="num">450.000</td><td class="num">3.050,00p</td><td class="num">£14M</td><td class="num">785.628.966</td></tr>
-<tr><td class="n">4</td><td>18. dec 2025</td><td class="num">395.000</td><td class="num">3.180,00p</td><td class="num">£13M</td><td class="num">786.078.966</td></tr>
-<tr><td class="n">3</td><td>1. dec 2025</td><td class="num">428.728</td><td class="num">3.242,45p</td><td class="num">£14M</td><td class="num">786.473.966</td></tr>
-<tr><td class="n">2</td><td>15. nov 2025</td><td class="num">410.000</td><td class="num">3.215,00p</td><td class="num">£13M</td><td class="num">786.902.694</td></tr>
-<tr><td class="n">1</td><td>1. nov 2025</td><td class="num">385.000</td><td class="num">3.190,00p</td><td class="num">£12M</td><td class="num">787.312.694</td></tr></tbody>
+        <tbody id="txBody"></tbody>
       </table>
     </div>
   </div>
 
   <!-- ASSUMPTION BOX -->
-  <div class="as">
-    <strong>Antagelser:</strong> EPS-accretion beregnet som EPS_ny / EPS_base hvor EPS_base = FY26E konsensus £3.41.
-    Værdi skabt = antal annullerede aktier × (fair value − gns. købskurs), fair value = 10× FY26E EPS = 3.410,00p.
-    ROIC på buyback = FY25 FCF/aktie ÷ gns. købskurs = implicit FCF-yield vi "køber".
-    <strong>Aktier ved programstart:</strong> 783.274.508. <strong>Aktier nu:</strong> 768.629.448.
-  </div>
+  <div class="as" id="assumptions"></div>
 
 </div>
 
 <div class="foot">
-  Sidst opdateret 2026-04-23 15:05 UTC · Data: Investegate RNS (primary), Yahoo Finance (price) ·
+  Sidst opdateret 2026-04-23 20:57 UTC · Data: Investegate RNS (primary), Yahoo Finance (price) ·
   <a href="https://github.com/simonsen85-ops/imb-buyback-tracker">GitHub</a>
 </div>
 
 <script>
-const series = {"labels": ["2025-11-01", "2025-11-15", "2025-12-01", "2025-12-18", "2026-01-22", "2026-02-05", "2026-02-18", "2026-03-06", "2026-03-09", "2026-03-10", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-12", "2026-03-13", "2026-03-13", "2026-03-17", "2026-03-18", "2026-03-18", "2026-03-19", "2026-03-19", "2026-03-20", "2026-03-20", "2026-03-23", "2026-03-24", "2026-03-25", "2026-03-26", "2026-03-27", "2026-03-27", "2026-03-30", "2026-03-31", "2026-04-01", "2026-04-02", "2026-04-07", "2026-04-08", "2026-04-09", "2026-04-10", "2026-04-13", "2026-04-14", "2026-04-15", "2026-04-15", "2026-04-16", "2026-04-16", "2026-04-17", "2026-04-17", "2026-04-20", "2026-04-21", "2026-04-22"], "price": [3190.0, 3215.0, 3242.45, 3180.0, 3050.0, 3095.0, 3120.0, 3143.08, 3154.39, 3155.71, 3155.71, 3120.5, 3104.07, 3104.07, 3130.72, 3130.72, 3105.62, 3075.2, 3138.49, 3098.55, 3098.55, 3069.83, 3069.83, 3020.7, 3016.49, 3044.87, 3046.69, 3050.44, 3050.44, 3087.59, 3090.22, 3048.05, 3074.62, 3128.13, 3121.25, 3087.45, 3095.48, 3101.9783, 2901.164, 2833.0, 2855.8918, 2794.0, 2818.3661, 2815.4, 2777.9081, 2794.4491, 2758.2776, 2734.8202], "fair_value": [3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0], "eps_accretion": [0.04917679903304606, 0.10160010477870962, 0.1564767955349433, 0.20708962198168201, 0.2648121727926833, 0.31360747335980044, 0.36823745870679936, 0.466798069834673, 0.49396643674284313, 0.5158446487213197, 0.5377323888417607, 0.6081536307861679, 0.6571416107241435, 0.7061773202184263, 0.70773937512143, 0.709301478483293, 0.7760698251930487, 0.8435907207137383, 0.9097137347021889, 0.9986257563436851, 1.0876945977576602, 1.1356784278536036, 1.1837078330592332, 1.2571813318025926, 1.2857082890268767, 1.3005717337892575, 1.3272075013240903, 1.3548162537184716, 1.3824400553967164, 1.391979323782233, 1.414207396001954, 1.469635421012927, 1.493639004062297, 1.5048331804033088, 1.5169879245390927, 1.5232866666503586, 1.5489341813114343, 1.5817841232069974, 1.616048078334087, 1.642156905968517, 1.675141768259758, 1.7163963595211662, 1.7454643300961692, 1.7831452756946087, 1.8148982526371427, 1.8437345422106066, 1.868900620535885, 1.9053472434743313]};
+const DATA = {"programmer": {}, "transaktioner": [{"dato": "2026-04-22", "antal_aktier": 275000, "gns_kurs_gbp": 2734.8202, "beloeb_gbp_mio": 7.5, "aktier_efter": 778797165, "rns_id": "9534918", "program": "unknown"}, {"dato": "2026-04-21", "antal_aktier": 190000, "gns_kurs_gbp": 2758.2776, "beloeb_gbp_mio": 5.2, "aktier_efter": 779072165, "rns_id": "9531336", "program": "unknown"}, {"dato": "2026-04-20", "antal_aktier": 217825, "gns_kurs_gbp": 2794.4491, "beloeb_gbp_mio": 6.1, "aktier_efter": 779262165, "rns_id": "9529084", "program": "unknown"}, {"dato": "2026-04-17", "antal_aktier": 285000, "gns_kurs_gbp": 2815.4, "beloeb_gbp_mio": 8.0, "aktier_efter": 781017219, "program": "unknown"}, {"dato": "2026-04-17", "antal_aktier": 240000, "gns_kurs_gbp": 2777.9081, "beloeb_gbp_mio": 6.7, "aktier_efter": 779479990, "rns_id": "9526793", "program": "unknown"}, {"dato": "2026-04-16", "antal_aktier": 312450, "gns_kurs_gbp": 2794.0, "beloeb_gbp_mio": 8.7, "aktier_efter": 781302219, "program": "unknown"}, {"dato": "2026-04-16", "antal_aktier": 220000, "gns_kurs_gbp": 2818.3661, "beloeb_gbp_mio": 6.2, "aktier_efter": 779719990, "rns_id": "9524684", "program": "unknown"}, {"dato": "2026-04-15", "antal_aktier": 198000, "gns_kurs_gbp": 2833.0, "beloeb_gbp_mio": 5.6, "aktier_efter": 781614669, "program": "unknown"}, {"dato": "2026-04-15", "antal_aktier": 250000, "gns_kurs_gbp": 2855.8918, "beloeb_gbp_mio": 7.1, "aktier_efter": 779939990, "rns_id": "9522316", "program": "unknown"}, {"dato": "2026-04-14", "antal_aktier": 260000, "gns_kurs_gbp": 2901.164, "beloeb_gbp_mio": 7.5, "aktier_efter": 780189990, "rns_id": "9520116", "program": "unknown"}, {"dato": "2026-04-13", "antal_aktier": 249435, "gns_kurs_gbp": 3101.9783, "beloeb_gbp_mio": 7.7, "aktier_efter": 780449990, "rns_id": "9517820", "program": "unknown"}, {"dato": "2026-04-10", "antal_aktier": 194858, "gns_kurs_gbp": 3095.48, "beloeb_gbp_mio": 6.0, "aktier_efter": 780699425, "rns_id": "9515547", "program": "unknown"}, {"dato": "2026-04-09", "antal_aktier": 47870, "gns_kurs_gbp": 3087.45, "beloeb_gbp_mio": 1.5, "aktier_efter": 780894283, "rns_id": "9513417", "program": "unknown"}, {"dato": "2026-04-08", "antal_aktier": 92392, "gns_kurs_gbp": 3121.25, "beloeb_gbp_mio": 2.9, "aktier_efter": 780942153, "rns_id": "9511156", "program": "unknown"}, {"dato": "2026-04-07", "antal_aktier": 85110, "gns_kurs_gbp": 3128.13, "beloeb_gbp_mio": 2.7, "aktier_efter": 781034545, "rns_id": "9508974", "program": "unknown"}, {"dato": "2026-04-02", "antal_aktier": 182564, "gns_kurs_gbp": 3074.62, "beloeb_gbp_mio": 5.6, "aktier_efter": 781119655, "rns_id": "9506803", "program": "unknown"}, {"dato": "2026-04-01", "antal_aktier": 421899, "gns_kurs_gbp": 3048.05, "beloeb_gbp_mio": 12.9, "aktier_efter": 781302219, "rns_id": "9504253", "program": "unknown"}, {"dato": "2026-03-31", "antal_aktier": 169322, "gns_kurs_gbp": 3090.22, "beloeb_gbp_mio": 5.2, "aktier_efter": 781724118, "rns_id": "9502926", "program": "unknown"}, {"dato": "2026-03-30", "antal_aktier": 72688, "gns_kurs_gbp": 3087.59, "beloeb_gbp_mio": 2.2, "aktier_efter": 781893440, "rns_id": "9500521", "program": "unknown"}, {"dato": "2026-03-27", "antal_aktier": 210567, "gns_kurs_gbp": 3050.44, "beloeb_gbp_mio": 6.4, "aktier_efter": 781966128, "program": "unknown"}, {"dato": "2026-03-27", "antal_aktier": 210567, "gns_kurs_gbp": 3050.44, "beloeb_gbp_mio": 6.4, "aktier_efter": 781966128, "rns_id": "9496786", "program": "unknown"}, {"dato": "2026-03-26", "antal_aktier": 203255, "gns_kurs_gbp": 3046.69, "beloeb_gbp_mio": 6.2, "aktier_efter": 782176695, "rns_id": "9494617", "program": "unknown"}, {"dato": "2026-03-25", "antal_aktier": 113468, "gns_kurs_gbp": 3044.87, "beloeb_gbp_mio": 3.5, "aktier_efter": 782379950, "rns_id": "9492299", "program": "unknown"}, {"dato": "2026-03-24", "antal_aktier": 217869, "gns_kurs_gbp": 3016.49, "beloeb_gbp_mio": 6.6, "aktier_efter": 782493418, "rns_id": "9490077", "program": "unknown"}, {"dato": "2026-03-23", "antal_aktier": 561705, "gns_kurs_gbp": 3020.7, "beloeb_gbp_mio": 17.0, "aktier_efter": 782711287, "rns_id": "9488850", "program": "unknown"}, {"dato": "2026-03-20", "antal_aktier": 367626, "gns_kurs_gbp": 3069.83, "beloeb_gbp_mio": 11.3, "aktier_efter": 782176695, "program": "unknown"}, {"dato": "2026-03-20", "antal_aktier": 367626, "gns_kurs_gbp": 3069.83, "beloeb_gbp_mio": 11.3, "aktier_efter": 783272992, "rns_id": "9485473", "program": "unknown"}, {"dato": "2026-03-19", "antal_aktier": 683323, "gns_kurs_gbp": 3098.55, "beloeb_gbp_mio": 21.2, "aktier_efter": 782544321, "program": "unknown"}, {"dato": "2026-03-19", "antal_aktier": 683323, "gns_kurs_gbp": 3098.55, "beloeb_gbp_mio": 21.2, "aktier_efter": 783640618, "rns_id": "9483295", "program": "unknown"}, {"dato": "2026-03-18", "antal_aktier": 520411, "gns_kurs_gbp": 3075.2, "beloeb_gbp_mio": 16.0, "aktier_efter": 783227644, "program": "unknown"}, {"dato": "2026-03-18", "antal_aktier": 508962, "gns_kurs_gbp": 3138.49, "beloeb_gbp_mio": 16.0, "aktier_efter": 784323941, "rns_id": "9481099", "program": "unknown"}, {"dato": "2026-03-17", "antal_aktier": 515297, "gns_kurs_gbp": 3105.62, "beloeb_gbp_mio": 16.0, "aktier_efter": 783748055, "program": "unknown"}, {"dato": "2026-03-13", "antal_aktier": 12064, "gns_kurs_gbp": 3130.72, "beloeb_gbp_mio": 0.4, "aktier_efter": 784263352, "program": "unknown"}, {"dato": "2026-03-13", "antal_aktier": 12064, "gns_kurs_gbp": 3130.72, "beloeb_gbp_mio": 0.4, "aktier_efter": 784832903, "rns_id": "9474483", "program": "unknown"}, {"dato": "2026-03-12", "antal_aktier": 378901, "gns_kurs_gbp": 3104.07, "beloeb_gbp_mio": 11.8, "aktier_efter": 784275416, "program": "unknown"}, {"dato": "2026-03-12", "antal_aktier": 378901, "gns_kurs_gbp": 3104.07, "beloeb_gbp_mio": 11.8, "aktier_efter": 784844967, "rns_id": "9472330", "program": "unknown"}, {"dato": "2026-03-11", "antal_aktier": 545325, "gns_kurs_gbp": 3120.5, "beloeb_gbp_mio": 17.0, "aktier_efter": 785223868, "rns_id": "9470057", "program": "unknown"}, {"dato": "2026-03-10", "antal_aktier": 169649, "gns_kurs_gbp": 3155.71, "beloeb_gbp_mio": 5.4, "aktier_efter": 784654317, "program": "unknown"}, {"dato": "2026-03-10", "antal_aktier": 169649, "gns_kurs_gbp": 3155.71, "beloeb_gbp_mio": 5.4, "aktier_efter": 785769193, "rns_id": "9469132", "program": "unknown"}, {"dato": "2026-03-09", "antal_aktier": 210773, "gns_kurs_gbp": 3154.39, "beloeb_gbp_mio": 6.6, "aktier_efter": 785938842, "rns_id": "9467054", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 765594, "gns_kurs_gbp": 3143.08, "beloeb_gbp_mio": 24.1, "aktier_efter": 786149615, "rns_id": "9463314", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 40000, "gns_kurs_gbp": 3939.5888, "beloeb_gbp_mio": 1.6, "aktier_efter": null, "rns_id": "9463313", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 11085, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463291", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 42853, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463288", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 34513, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463286", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 750000, "gns_kurs_gbp": 403.7, "beloeb_gbp_mio": 3.0, "aktier_efter": null, "rns_id": "9463278", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 109772, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463276", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 632455, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463266", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 50000, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463265", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 50000, "gns_kurs_gbp": 278.48, "beloeb_gbp_mio": 0.1, "aktier_efter": null, "rns_id": "9463257", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 313614, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463251", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 31898, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463250", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 140000, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463243", "program": "unknown"}, {"dato": "2026-03-06", "antal_aktier": 313755, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463230", "program": "unknown"}, {"dato": "2026-02-18", "antal_aktier": 425000, "gns_kurs_gbp": 3120.0, "beloeb_gbp_mio": 13.3, "aktier_efter": 784823966, "program": "unknown"}, {"dato": "2026-02-05", "antal_aktier": 380000, "gns_kurs_gbp": 3095.0, "beloeb_gbp_mio": 11.8, "aktier_efter": 785248966, "program": "unknown"}, {"dato": "2026-01-22", "antal_aktier": 450000, "gns_kurs_gbp": 3050.0, "beloeb_gbp_mio": 13.7, "aktier_efter": 785628966, "program": "unknown"}, {"dato": "2026-01-16", "antal_aktier": 20000, "gns_kurs_gbp": 630.3857, "beloeb_gbp_mio": 0.1, "aktier_efter": null, "rns_id": "9463272", "program": "unknown"}, {"dato": "2025-12-18", "antal_aktier": 395000, "gns_kurs_gbp": 3180.0, "beloeb_gbp_mio": 12.6, "aktier_efter": 786078966, "program": "unknown"}, {"dato": "2025-12-09", "antal_aktier": 148637, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463307", "program": "unknown"}, {"dato": "2025-12-01", "antal_aktier": 428728, "gns_kurs_gbp": 3242.45, "beloeb_gbp_mio": 13.9, "aktier_efter": 786473966, "program": "unknown"}, {"dato": "2025-11-15", "antal_aktier": 410000, "gns_kurs_gbp": 3215.0, "beloeb_gbp_mio": 13.2, "aktier_efter": 786902694, "program": "unknown"}, {"dato": "2025-11-12", "antal_aktier": 115000, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463304", "program": "unknown"}, {"dato": "2025-11-01", "antal_aktier": 385000, "gns_kurs_gbp": 3190.0, "beloeb_gbp_mio": 12.3, "aktier_efter": 787312694, "program": "unknown"}, {"dato": "2025-10-01", "antal_aktier": 500000, "gns_kurs_gbp": 0.0, "beloeb_gbp_mio": 0, "aktier_efter": null, "rns_id": "9463287", "program": "unknown"}, {"dato": "2025-05-15", "antal_aktier": 54538, "gns_kurs_gbp": 143.6355, "beloeb_gbp_mio": 0.1, "aktier_efter": null, "rns_id": "9463295", "program": "unknown"}, {"dato": "2007-12-28", "antal_aktier": 210000, "gns_kurs_gbp": 455.469, "beloeb_gbp_mio": 1.0, "aktier_efter": 761484727, "rns_id": "9463254", "program": "unknown"}], "kurs": {"price": 2772.0, "prev_close": 2753.0, "change": 19.0, "change_pct": 0.69, "currency": "GBp", "timestamp": "2026-04-23T20:52:09+00:00Z"}};
 
-Chart.defaults.font.family = "'JetBrains Mono', monospace";
-Chart.defaults.font.size = 10;
-Chart.defaults.color = '#8b99ad';
-Chart.defaults.borderColor = '#3d4a5c';
+// ── Utilities ──
+const fmtInt = n => n.toLocaleString('da-DK').replace(/,/g, '.');
+const fmtPence = n => n.toLocaleString('da-DK', {minimumFractionDigits:2,maximumFractionDigits:2}).replace(/,/g,'.') + 'p';
+const fmtDate = iso => {
+  const d = new Date(iso);
+  const months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  return `${d.getDate()}. ${months[d.getMonth()]} ${d.getFullYear()}`;
+};
+const fmtGbpMio = n => `£${n.toFixed(0)}M`;
 
-const gridCfg = { color: 'rgba(61,74,92,0.3)', drawBorder: false };
-const ticksCfg = { color: '#8b99ad', font: { size: 9 } };
+// ── Core: compute metrics for a selected program ──
+function computeMetrics(progKey) {
+  const prog = DATA.programmer[progKey];
+  const fund = prog.fundamentals;
+  const tx = DATA.transaktioner.filter(t => t.program === progKey);
+  tx.sort((a,b) => a.dato.localeCompare(b.dato));
 
-// Chart 1 — Købskurs vs Fair Value
-new Chart(document.getElementById('priceChart'), {
-  type: 'line',
-  data: {
-    labels: series.labels,
-    datasets: [
-      {
-        label: 'Købskurs (GBp)',
-        data: series.price,
-        borderColor: '#e8ecf2',
-        backgroundColor: 'rgba(232,236,242,0.05)',
-        borderWidth: 2,
-        pointRadius: 3,
-        pointBackgroundColor: '#e8ecf2',
-        tension: 0.2,
-        fill: false
+  const totalShares = tx.reduce((s,t) => s + t.antal_aktier, 0);
+  const totalGbpMio = tx.reduce((s,t) => s + t.beloeb_gbp_mio, 0);
+  const avgPrice = totalShares > 0 ? (totalGbpMio * 1e6 * 100) / totalShares : 0;
+
+  const pctProgram = (totalGbpMio / prog.total_gbp_mio) * 100;
+  const sharesStart = fund.aktier_ved_start;
+  const sharesNow = sharesStart - totalShares;
+  const pctReduction = sharesStart > 0 ? (totalShares / sharesStart) * 100 : 0;
+
+  const epsBase = fund.eps_adjusted_gbp;
+  const epsNew = sharesNow > 0 ? epsBase * (sharesStart / sharesNow) : epsBase;
+  const epsAccretionPct = ((epsNew / epsBase) - 1) * 100;
+  const epsUplift = epsNew - epsBase;
+
+  const fairPe = fund.fair_pe || 10;
+  const fairPricePence = epsBase * 100 * fairPe;
+  const valueCreatedMio = totalShares * (fairPricePence - avgPrice) / 100 / 1e6;
+
+  const fcfPerShare = sharesNow > 0 ? (fund.fcf_mio_gbp * 1e6 * 100) / sharesNow : 0;
+  const roicOnBuyback = avgPrice > 0 ? (fcfPerShare / avgPrice) * 100 : 0;
+
+  return {
+    prog, fund, tx,
+    totalShares, totalGbpMio, avgPrice,
+    pctProgram, sharesStart, sharesNow, pctReduction,
+    epsBase, epsNew, epsAccretionPct, epsUplift,
+    fairPe, fairPricePence, valueCreatedMio,
+    roicOnBuyback,
+    txCount: tx.length,
+  };
+}
+
+// ── Chart instances (so we can destroy/recreate on program change) ──
+let priceChart = null, epsChart = null;
+
+function renderCharts(m) {
+  const gridCfg = { color:'rgba(61,74,92,0.3)', drawBorder:false };
+  const ticksCfg = { color:'#8b99ad', font:{size:9} };
+
+  const labels = m.tx.map(t => t.dato);
+  const prices = m.tx.map(t => t.gns_kurs_gbp);
+  const fairVals = m.tx.map(() => m.fairPricePence);
+
+  // Cumulative EPS-accretion series
+  let cumShares = 0;
+  const cumAccretion = m.tx.map(t => {
+    cumShares += t.antal_aktier;
+    const sharesAfter = m.sharesStart - cumShares;
+    if (sharesAfter <= 0) return 0;
+    return ((m.sharesStart / sharesAfter) - 1) * 100;
+  });
+
+  if (priceChart) priceChart.destroy();
+  if (epsChart) epsChart.destroy();
+
+  priceChart = new Chart(document.getElementById('priceChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Købskurs (GBp)', data:prices, borderColor:'#e8ecf2',
+           backgroundColor:'rgba(232,236,242,0.05)', borderWidth:2, pointRadius:3,
+           pointBackgroundColor:'#e8ecf2', tension:0.2, fill:false },
+        { label:`Fair Value (P/E ${m.fairPe}×)`, data:fairVals, borderColor:'#10b981',
+           borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:true, position:'bottom',
+          labels: { color:'#b0bac9', boxWidth:12, boxHeight:2, font:{size:10} } },
+        tooltip: {
+          backgroundColor:'#0a0e17', titleColor:'#e8ecf2', bodyColor:'#b0bac9',
+          borderColor:'#3d4a5c', borderWidth:1,
+          callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}p` }
+        }
       },
-      {
-        label: 'Fair Value (P/E 10×)',
-        data: series.fair_value,
-        borderColor: '#10b981',
-        borderWidth: 1.5,
-        borderDash: [6, 4],
-        pointRadius: 0,
-        fill: false
+      scales: {
+        x: { grid:gridCfg, ticks:{...ticksCfg,maxRotation:0,maxTicksLimit:8} },
+        y: { grid:gridCfg, ticks:{...ticksCfg, callback:v => v.toFixed(0)+'p'} }
       }
-    ]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { display: true, position: 'bottom', labels: { color: '#b0bac9', boxWidth: 12, boxHeight: 2, font: { size: 10 } } },
-      tooltip: {
-        backgroundColor: '#0a0e17',
-        titleColor: '#e8ecf2',
-        bodyColor: '#b0bac9',
-        borderColor: '#3d4a5c',
-        borderWidth: 1,
-        callbacks: {
-          label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}p`
-        }
-      }
-    },
-    scales: {
-      x: { grid: gridCfg, ticks: { ...ticksCfg, maxRotation: 0, maxTicksLimit: 8 } },
-      y: { grid: gridCfg, ticks: { ...ticksCfg, callback: v => v.toFixed(0) + 'p' } }
     }
-  }
-});
+  });
 
-// Chart 2 — Akkumuleret EPS-accretion
-new Chart(document.getElementById('epsChart'), {
-  type: 'line',
-  data: {
-    labels: series.labels,
-    datasets: [{
-      label: 'Kumulativ EPS-accretion (%)',
-      data: series.eps_accretion,
-      borderColor: '#10b981',
-      backgroundColor: 'rgba(16,185,129,0.12)',
-      borderWidth: 2,
-      pointRadius: 3,
-      pointBackgroundColor: '#10b981',
-      tension: 0.2,
-      fill: true
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#0a0e17',
-        titleColor: '#e8ecf2',
-        bodyColor: '#b0bac9',
-        borderColor: '#3d4a5c',
-        borderWidth: 1,
-        callbacks: {
-          label: ctx => `+${ctx.parsed.y.toFixed(3)}% EPS-løft`
-        }
-      }
+  epsChart = new Chart(document.getElementById('epsChart'), {
+    type:'line',
+    data: {
+      labels,
+      datasets: [{
+        label:'Kumulativ EPS-accretion (%)', data:cumAccretion,
+        borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.12)',
+        borderWidth:2, pointRadius:3, pointBackgroundColor:'#10b981',
+        tension:0.2, fill:true
+      }]
     },
-    scales: {
-      x: { grid: gridCfg, ticks: { ...ticksCfg, maxRotation: 0, maxTicksLimit: 8 } },
-      y: { grid: gridCfg, ticks: { ...ticksCfg, callback: v => '+' + v.toFixed(2) + '%' } }
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: { display:false },
+        tooltip: {
+          backgroundColor:'#0a0e17', titleColor:'#e8ecf2', bodyColor:'#b0bac9',
+          borderColor:'#3d4a5c', borderWidth:1,
+          callbacks: { label: ctx => `+${ctx.parsed.y.toFixed(3)}% EPS-løft` }
+        }
+      },
+      scales: {
+        x: { grid:gridCfg, ticks:{...ticksCfg, maxRotation:0, maxTicksLimit:8} },
+        y: { grid:gridCfg, ticks:{...ticksCfg, callback:v => '+'+v.toFixed(2)+'%'} }
+      }
     }
-  }
-});
+  });
+}
 
-// Live kurs-opdatering fra Yahoo Finance
+// ── Main render function ──
+function render(progKey) {
+  const m = computeMetrics(progKey);
+  const p = m.prog;
+
+  // Program meta text
+  document.getElementById('progMeta').innerHTML =
+    `<strong>${p.total_gbp_mio}M</strong> £ program · ` +
+    `<strong>${fmtDate(p.annonceret)}</strong> → ` +
+    `<strong>${fmtDate(p.frist)}</strong> · ` +
+    `Status: <strong>${p.status.toUpperCase()}</strong>`;
+
+  // Banner
+  const statusClass = p.status === 'aktiv' ? 'aktiv' : 'fuldført';
+  document.getElementById('progBanner').innerHTML = `
+    <div>
+      <div class="prog-t">${p.navn}</div>
+      <div class="prog-d">Annonceret <strong>${fmtDate(p.annonceret)}</strong> · Frist <strong>${fmtDate(p.frist)}</strong>${p.maegler_t1 ? ' · Mægler: <strong>'+p.maegler_t1+'</strong>' : ''}</div>
+    </div>
+    <div class="status ${statusClass}"><div class="dot"></div><span class="status-t">${p.status.toUpperCase()}</span></div>
+  `;
+
+  // Tranches (only if program has tranches defined)
+  const tranchesEl = document.getElementById('tranches');
+  if (p.tranche_1 && p.tranche_2) {
+    tranchesEl.classList.remove('hide');
+    const t1Spent = Math.min(m.totalGbpMio, p.tranche_1.beloeb_mio);
+    const t2Spent = Math.max(0, m.totalGbpMio - p.tranche_1.beloeb_mio);
+    const t1Pct = (t1Spent / p.tranche_1.beloeb_mio) * 100;
+    const t2Pct = (t2Spent / p.tranche_2.beloeb_mio) * 100;
+    tranchesEl.innerHTML = `
+      <div class="tr">
+        <div class="tr-h">
+          <span class="tr-n">Tranche 1${p.maegler_t1 ? ' · '+p.maegler_t1 : ''}</span>
+          <span class="tr-amt">£${t1Spent.toFixed(0)}M / £${p.tranche_1.beloeb_mio}M</span>
+        </div>
+        <div class="tr-bar"><div class="tr-bar-f" style="width:${Math.min(t1Pct,100).toFixed(1)}%"></div></div>
+        <div class="tr-meta">${fmtDate(p.tranche_1.start)} → ${fmtDate(p.tranche_1.slut)} · ${t1Pct.toFixed(1)}% fuldført</div>
+      </div>
+      <div class="tr">
+        <div class="tr-h">
+          <span class="tr-n">Tranche 2${p.maegler_t2 ? ' · '+p.maegler_t2 : ''}</span>
+          <span class="tr-amt">£${t2Spent.toFixed(0)}M / £${p.tranche_2.beloeb_mio}M</span>
+        </div>
+        <div class="tr-bar"><div class="tr-bar-f" style="width:${Math.min(t2Pct,100).toFixed(1)}%"></div></div>
+        <div class="tr-meta">Start ${fmtDate(p.tranche_2.start)} · Slut ${fmtDate(p.tranche_2.slut)}</div>
+      </div>
+    `;
+  } else {
+    tranchesEl.classList.add('hide');
+  }
+
+  // KPIs
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi">
+      <div class="kpi-l">Tilbagekøbt</div>
+      <div class="kpi-v grn">£${m.totalGbpMio.toFixed(0)}M</div>
+      <div class="kpi-s">${m.pctProgram.toFixed(1)}% af £${p.total_gbp_mio}M program</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">Aktier annulleret</div>
+      <div class="kpi-v">${(m.totalShares/1e6).toFixed(2)}M</div>
+      <div class="kpi-s">${m.pctReduction.toFixed(2)}% af kapital</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">EPS-accretion</div>
+      <div class="kpi-v grn">+${m.epsAccretionPct.toFixed(2)}%</div>
+      <div class="kpi-s">£${m.epsUplift.toFixed(3)}/aktie</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">ROIC på buyback</div>
+      <div class="kpi-v grn">${m.roicOnBuyback.toFixed(1)}%</div>
+      <div class="kpi-s">FCF-yield på købte aktier</div>
+    </div>
+  `;
+
+  // Value creation flow
+  document.getElementById('vcFlow').innerHTML = `
+    <div class="vc-b">
+      <div class="vc-bl">Købt tilbage</div>
+      <div class="vc-bv">£${m.totalGbpMio.toFixed(0)}M</div>
+      <div class="vc-bs">gns. ${fmtPence(m.avgPrice)}</div>
+    </div>
+    <div class="vc-ar">→</div>
+    <div class="vc-b">
+      <div class="vc-bl">Aktier væk</div>
+      <div class="vc-bv">${(m.totalShares/1e6).toFixed(2)}M</div>
+      <div class="vc-bs">${m.pctReduction.toFixed(2)}% af kapital</div>
+    </div>
+    <div class="vc-ar">→</div>
+    <div class="vc-b">
+      <div class="vc-bl">EPS-løft</div>
+      <div class="vc-bv">+${m.epsAccretionPct.toFixed(2)}%</div>
+      <div class="vc-bs">fra £${m.epsBase.toFixed(2)} til £${m.epsNew.toFixed(3)}</div>
+    </div>
+    <div class="vc-ar">→</div>
+    <div class="vc-b end">
+      <div class="vc-bl">Værdi skabt</div>
+      <div class="vc-bv">£${m.valueCreatedMio.toFixed(0)}M</div>
+      <div class="vc-bs">ved P/E ${m.fairPe}x på EPS</div>
+    </div>
+  `;
+
+  // Chart header Fair PE label
+  document.getElementById('chFairPe').textContent = `P/E ${m.fairPe}× på ${m.fund.eps_source}`;
+
+  // Charts
+  renderCharts(m);
+
+  // Table (newest first)
+  const txDesc = [...m.tx].reverse();
+  const rows = txDesc.map((t, i) => `
+    <tr>
+      <td class="n">${txDesc.length - i}</td>
+      <td>${fmtDate(t.dato)}</td>
+      <td class="num">${fmtInt(t.antal_aktier)}</td>
+      <td class="num">${fmtPence(t.gns_kurs_gbp)}</td>
+      <td class="num">${fmtGbpMio(t.beloeb_gbp_mio)}</td>
+      <td class="num">${t.aktier_efter ? fmtInt(t.aktier_efter) : '—'}</td>
+    </tr>
+  `).join('');
+  document.getElementById('txBody').innerHTML = rows || '<tr><td colspan="6" style="text-align:center;color:#8b99ad;padding:20px">Ingen transaktioner registreret for ${progKey} endnu</td></tr>';
+  document.getElementById('txCount').textContent = `${m.txCount} filings`;
+
+  // Assumptions
+  document.getElementById('assumptions').innerHTML = `
+    <strong>Antagelser (${progKey}):</strong> EPS-base = ${m.fund.eps_source} £${m.epsBase.toFixed(2)}.
+    Fair value = P/E ${m.fairPe}× EPS = ${fmtPence(m.fairPricePence)}.
+    ROIC på buyback = FCF/aktie ÷ gns. købskurs.
+    Aktier ved programstart: ${fmtInt(m.sharesStart)}. Aktier nu: ${fmtInt(m.sharesNow)}.
+  `;
+}
+
+// ── Program selector change handler ──
+document.getElementById('progSel').addEventListener('change', e => render(e.target.value));
+
+// ── Initial render ──
+render(document.getElementById('progSel').value);
+
+// ── Live price update (optional) ──
 (async () => {
   try {
     const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/IMB.L?range=1d&interval=1d');
@@ -437,10 +505,7 @@ new Chart(document.getElementById('epsChart'), {
     chgEl.className = 'chg ' + cls;
     chgEl.textContent = `${sign}${change.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
     document.getElementById('live-ts').textContent = 'Live · ' + new Date().toLocaleString('da-DK');
-  } catch (e) {
-    // Behold server-side-rendered værdi
-    console.warn('Yahoo Finance live-kurs fejlede, bruger cached værdi', e);
-  }
+  } catch (e) { console.warn('Yahoo Finance live-kurs fejlede', e); }
 })();
 </script>
 </body>
