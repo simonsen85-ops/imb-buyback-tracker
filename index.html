@@ -2,348 +2,416 @@
 <html lang="da">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Imperial Brands — Buyback Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>IMB · Buyback Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root {
-  --bg:#0a0e17;--card:#111827;--bdr:#1e293b;--bdr2:#2a3a52;
-  --t1:#f8fafc;--t2:#b0bac9;--t3:#6b7a90;--t4:#3d4a5c;
-  --g1:#4ade80;--g2:#22c55e;--g3:#16a34a;
-  --blue:#3b82f6;--amber:#f59e0b;--red:#ef4444;
-  --mono:'JetBrains Mono',monospace;--sans:'Outfit',sans-serif;
+:root{
+  /* Tre-farve system — samme som FED */
+  --bg1:#0a0e17;
+  --bg2:#111827;
+  --t1:#e8ecf2;        /* hvid — primære tal */
+  --t2:#b0bac9;        /* lys grå — labels */
+  --t3:#8b99ad;        /* grå — sekundært */
+  --t4:#3d4a5c;        /* mørk grå — borders */
+  --g1:#10b981;        /* grøn — værdiskabelse */
+  --g2:#34d399;
+  --g3:#6ee7b7;
+  --g4:rgba(16,185,129,0.15);
+  --red:#ef4444;
+  --amber:#f59e0b;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Outfit',sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--t1);font-family:var(--mono);min-height:100vh;-webkit-font-smoothing:antialiased}
+body{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:100vh;font-weight:400;-webkit-font-smoothing:antialiased}
 
-.hdr{border-bottom:1px solid var(--bdr);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.c{max-width:1360px;margin:0 auto;padding:0 24px 48px}
+
+/* HEADER */
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--t4);max-width:1360px;margin:0 auto}
 .hdr-l{display:flex;align-items:center;gap:16px}
-.ticker{font-size:28px;font-weight:700;letter-spacing:-.5px}
-.ticker-sub{font-family:var(--sans);font-size:13px;color:var(--t3)}
-.badge{font-size:10px;font-weight:600;color:var(--blue);background:rgba(59,130,246,.12);padding:3px 8px;border-radius:4px;letter-spacing:.5px}
-.hdr-r{display:flex;align-items:center;gap:20px}
-.price-live{font-size:22px;font-weight:600}
-.price-curr{font-size:12px;color:var(--t3);font-weight:400}
-.price-chg{font-size:13px;font-weight:500;padding:3px 8px;border-radius:4px}
-.price-chg.up{color:var(--g1);background:rgba(74,222,128,.1)}
-.price-chg.dn{color:var(--red);background:rgba(239,68,68,.1)}
-.updated{font-size:11px;color:var(--t4)}
+.ticker{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--t1);letter-spacing:-0.5px}
+.badge{display:inline-block;padding:2px 8px;background:var(--t4);color:var(--t2);font-size:10px;font-weight:600;letter-spacing:1px;border-radius:3px;margin-left:6px;vertical-align:middle}
+.sub{font-family:var(--sans);font-size:12px;color:var(--t3);margin-top:2px;letter-spacing:0.3px}
+.hdr-r{text-align:right}
+.price{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--t1)}
+.price .cur{font-size:12px;color:var(--t3);font-weight:400;margin-left:4px}
+.chg{font-family:var(--mono);font-size:13px;margin-top:2px}
+.chg.up{color:var(--g1)}
+.chg.dn{color:var(--red)}
+.up-ts{font-size:11px;color:var(--t4);margin-top:4px}
 
-.ctn{max-width:1400px;margin:0 auto;padding:24px 32px 48px}
+/* PROGRAM BANNER */
+.prog{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:18px 22px;margin:20px 0 16px;display:flex;justify-content:space-between;align-items:center}
+.prog-t{font-size:13px;font-weight:600;color:var(--t1);letter-spacing:0.3px}
+.prog-d{font-size:11px;color:var(--t3);margin-top:4px}
+.prog-d strong{color:var(--t2);font-weight:600}
+.status{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--g4);border:1px solid var(--g1);border-radius:3px}
+.dot{width:6px;height:6px;background:var(--g1);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.status-t{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--g1);letter-spacing:1px}
 
-.banner{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
-.banner-t{font-family:var(--sans);font-size:15px;font-weight:600}
-.banner-d{font-size:12px;color:var(--t3)}
-.banner-d strong{color:var(--t2);font-weight:600}
-.status{display:flex;align-items:center;gap:8px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--g1);animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.status-t{font-size:12px;font-weight:500;color:var(--g1)}
+/* TRANCHE PROGRESS — erstatter historik-kort */
+.tranches{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--t4);border:1px solid var(--t4);border-radius:4px;margin-bottom:16px;overflow:hidden}
+.tr{background:var(--bg2);padding:14px 18px}
+.tr-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.tr-n{font-size:11px;color:var(--t3);letter-spacing:0.5px;text-transform:uppercase}
+.tr-amt{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--t1)}
+.tr-bar{height:4px;background:var(--bg1);border-radius:2px;overflow:hidden;margin:6px 0 4px}
+.tr-bar-f{height:100%;background:var(--g1);border-radius:2px;transition:width 0.6s ease}
+.tr-meta{font-size:10px;color:var(--t3);font-family:var(--mono)}
 
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
-.kpi{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:16px 20px;transition:border-color .2s}
-.kpi:hover{border-color:var(--bdr2)}
-.kpi-lbl{font-family:var(--sans);font-size:11px;font-weight:500;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
-.kpi-val{font-size:24px;font-weight:700;line-height:1.1}
-.kpi-sub{font-size:11px;color:var(--t3);margin-top:4px}
-.grn{color:var(--g1)} .amb{color:var(--amber)}
+/* KPI GRID — 4 kerne-tal */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--t4);border:1px solid var(--t4);border-radius:4px;margin-bottom:16px;overflow:hidden}
+.kpi{background:var(--bg2);padding:14px 18px}
+.kpi-l{font-size:10px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:500}
+.kpi-v{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--t1);letter-spacing:-0.3px}
+.kpi-v.grn{color:var(--g1)}
+.kpi-s{font-size:11px;color:var(--t3);margin-top:4px;font-family:var(--mono)}
 
-.prog{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:20px 24px;margin-bottom:24px}
-.prog-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.prog-lbl{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--t2)}
-.prog-pct{font-size:20px;font-weight:700;color:var(--g1)}
-.prog-bg{height:10px;background:var(--bg);border-radius:5px;overflow:hidden;margin-bottom:12px}
-.prog-fill{height:100%;background:linear-gradient(90deg,var(--g3),var(--g1));border-radius:5px;transition:width 1s ease}
-.prog-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--t3)}
-.tranche-info{color:var(--blue)}
+/* VALUE CREATION FLOW — det centrale narrativ */
+.vc-h{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin:8px 0 10px}
+.vc{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:stretch;margin-bottom:16px}
+.vc-b{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;justify-content:center}
+.vc-b.end{border-color:var(--g1);background:linear-gradient(135deg,var(--bg2) 0%,var(--g4) 100%)}
+.vc-bl{font-size:9px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;font-weight:600}
+.vc-bv{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--t1);line-height:1.1}
+.vc-b.end .vc-bv{color:var(--g1)}
+.vc-bs{font-size:10px;color:var(--t3);margin-top:4px;font-family:var(--mono)}
+.vc-ar{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:16px;color:var(--t4);font-weight:300}
 
-.two{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
-.sc{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:20px 24px}
-.sc-t{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--bdr)}
+/* CHARTS — kun to */
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.ch{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:14px 16px}
+.ch-h{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+.ch-h span{color:var(--t4);font-weight:400;margin-left:8px}
+.ch-w{position:relative;height:240px}
 
-.vt{width:100%;border-collapse:collapse}
-.vt tr{border-bottom:1px solid rgba(30,41,59,.5)}
-.vt tr:last-child{border-bottom:none}
-.vt td{padding:8px 0;font-size:13px}
-.vt td:first-child{color:var(--t3);font-family:var(--sans)}
-.vt td:last-child{text-align:right;font-weight:600}
+/* TABLE */
+.tc{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:14px 16px;margin-bottom:16px;overflow:hidden}
+.ts{overflow-x:auto;max-width:100%}
+.t-h{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+th{text-align:left;padding:8px 10px;font-size:10px;color:var(--t3);letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid var(--t4);font-weight:500;white-space:nowrap}
+th.num{text-align:right}
+td{padding:8px 10px;border-bottom:1px solid rgba(61,74,92,0.35);color:var(--t1);white-space:nowrap}
+td.num{text-align:right}
+td.n{color:var(--t3);font-size:10px;text-align:center;width:28px}
+tr:hover td{background:rgba(16,185,129,0.03)}
 
-.tr-list{display:flex;flex-direction:column;gap:12px}
-.tr-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--bg);border-radius:6px;border:1px solid var(--bdr)}
-.tr-name{font-family:var(--sans);font-size:13px;font-weight:500;color:var(--t2)}
-.tr-amt{font-size:14px;font-weight:600}
-.tr-dates{font-size:11px;color:var(--t3)}
-.tr-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;letter-spacing:.3px}
-.tr-badge.act{color:var(--g1);background:rgba(74,222,128,.1)}
-.tr-badge.upc{color:var(--amber);background:rgba(245,158,11,.1)}
+/* ASSUMPTION BOX */
+.as{background:var(--bg2);border:1px dashed var(--t4);border-radius:4px;padding:10px 14px;margin-bottom:16px;font-size:11px;color:var(--t3);font-family:var(--mono);line-height:1.7}
+.as strong{color:var(--t2);font-weight:600}
 
-.tx{width:100%;border-collapse:collapse}
-.tx th{font-family:var(--sans);font-size:10px;font-weight:600;color:var(--t4);text-transform:uppercase;letter-spacing:.8px;text-align:left;padding:0 0 10px}
-.tx th:nth-child(2),.tx th:nth-child(3),.tx th:nth-child(4),.tx th:last-child{text-align:right}
-.tx td{padding:7px 0;font-size:12px;color:var(--t2);border-bottom:1px solid rgba(30,41,59,.4)}
-.tx td:first-child{color:var(--t3)}
-.tx td:nth-child(2),.tx td:nth-child(3),.tx td:nth-child(4),.tx td:last-child{text-align:right}
-.tx td:last-child{color:var(--g2);font-weight:500}
+/* FOOTER */
+.foot{text-align:center;padding:20px;border-top:1px solid var(--t4);font-size:11px;color:var(--t4);margin-top:24px}
+.foot a{color:var(--t3);text-decoration:none}
 
-.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
-.chc{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:16px 20px}
-.chc h3{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
-.chc h3 span{color:var(--t4);font-weight:400}
-.chw{position:relative;height:200px}
-
-.hist{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
-.hist-card{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:16px 20px}
-.hist-yr{font-size:11px;font-weight:600;color:var(--t4);letter-spacing:1px;margin-bottom:6px}
-.hist-amt{font-size:20px;font-weight:700}
-.hist-sh{font-size:11px;color:var(--t3);margin-top:4px}
-.hist-bar{height:4px;background:var(--bg);border-radius:2px;margin-top:8px;overflow:hidden}
-.hist-bar-f{height:100%;border-radius:2px}
-
-.info-box{margin-top:12px;padding:12px 16px;background:var(--bg);border-radius:6px;border:1px solid var(--bdr)}
-.info-lbl{font-family:var(--sans);font-size:11px;color:var(--t3);margin-bottom:6px}
-.info-val{font-family:var(--sans);font-size:13px;color:var(--t2)}
-.info-sub{font-size:11px;color:var(--t4);margin-top:4px}
-
-.foot{text-align:center;padding:24px 32px;border-top:1px solid var(--bdr);font-family:var(--sans);font-size:11px;color:var(--t4)}
-
-@media(max-width:900px){.two,.charts{grid-template-columns:1fr}.hdr,.ctn{padding-left:20px;padding-right:20px}.kpis{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.kpis{grid-template-columns:1fr}.ticker{font-size:22px}}
+@media (max-width:900px){
+  .charts,.tranches{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .vc{grid-template-columns:1fr;gap:6px}
+  .vc-ar{transform:rotate(90deg);padding:4px 0}
+  .ticker{font-size:22px}
+  .price{font-size:20px}
+}
+@media (max-width:600px){
+  .kpis{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
 
 <header class="hdr">
-  <div class="hdr-l"><div>
-    <div class="ticker">IMB <span class="badge">LSE</span></div>
-    <div class="ticker-sub">Imperial Brands PLC · Buyback Tracker</div>
-  </div></div>
-  <div class="hdr-r">
+  <div class="hdr-l">
     <div>
-      <div class="price-live" id="live-price">— <span class="price-curr">GBp</span></div>
-      <div class="price-chg" id="live-change">—</div>
+      <div class="ticker">IMB<span class="badge">LSE</span></div>
+      <div class="sub">Imperial Brands PLC · Buyback Tracker</div>
     </div>
-    <div class="updated" id="live-date">—</div>
+  </div>
+  <div class="hdr-r">
+    <div class="price" id="live-price">2,781.50<span class="cur">GBp</span></div>
+    <div class="chg dn" id="live-chg">-16.50 (-0.59%)</div>
+    <div class="up-ts" id="live-ts">Opdateret 23. apr 2026</div>
   </div>
 </header>
 
-<div class="ctn">
-  <div class="banner">
+<div class="c">
+
+  <!-- PROGRAM BANNER -->
+  <div class="prog">
     <div>
-      <div class="banner-t">FY26 Aktietilbagek&#248;bsprogram</div>
-      <div class="banner-d">Annonceret <strong>7. okt 2025</strong> · Fuldf&#248;rt senest <strong>28. okt 2026</strong> · M&#230;gler: <strong>Morgan Stanley</strong></div>
+      <div class="prog-t">FY26 Aktietilbagekøbsprogram</div>
+      <div class="prog-d">Annonceret <strong>7. okt 2025</strong> · Frist <strong>28. okt 2026</strong> · Mægler T1: <strong>Morgan Stanley</strong></div>
     </div>
     <div class="status"><div class="dot"></div><span class="status-t">AKTIV</span></div>
   </div>
 
-  <div class="kpis">
-    <div class="kpi"><div class="kpi-lbl">Program st&#248;rrelse</div><div class="kpi-val">&#163;1.45B</div><div class="kpi-sub">~5.7% af aktiekapitalen</div></div>
-    <div class="kpi"><div class="kpi-lbl">Tilbagek&#248;bt</div><div class="kpi-val grn" id="kpi-spent">—</div><div class="kpi-sub" id="kpi-spent-sub">—</div></div>
-    <div class="kpi"><div class="kpi-lbl">Aktier annulleret</div><div class="kpi-val" id="kpi-shares">—</div><div class="kpi-sub" id="kpi-shares-sub">—</div></div>
-    <div class="kpi"><div class="kpi-lbl">Gns. tilbagek&#248;bskurs</div><div class="kpi-val" id="kpi-avgpx">—</div><div class="kpi-sub" id="kpi-avgpx-sub">—</div></div>
-    <div class="kpi"><div class="kpi-lbl">Udbytte (FY25)</div><div class="kpi-val">160.32p</div><div class="kpi-sub">+4.5% YoY · Yield ~5.2%</div></div>
-    <div class="kpi"><div class="kpi-lbl">Samlet kapitalretur (FY26E)</div><div class="kpi-val amb">&gt;&#163;2.7B</div><div class="kpi-sub">~11% af markedsv&#230;rdi</div></div>
-  </div>
-
-  <div class="prog">
-    <div class="prog-h"><span class="prog-lbl">Buyback-fremgang · &#163;1.45B program</span><span class="prog-pct" id="prog-pct">—</span></div>
-    <div class="prog-bg"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-    <div class="prog-meta"><span>Start: 30. okt 2025</span><span class="tranche-info">Tranche 1: op til &#163;725M · Frist: 30. apr 2026</span><span>Slut: 28. okt 2026</span></div>
-  </div>
-
-  <div class="two">
-    <div class="sc">
-      <div class="sc-t">V&#230;rdiskabelse · EPS-accretion</div>
-      <table class="vt">
-        <tr><td>Aktier primo FY26</td><td id="v-primo">—</td></tr>
-        <tr><td>Aktier annulleret til dato</td><td class="grn" id="v-cancelled">—</td></tr>
-        <tr><td>Aktier i oml&#248;b (nu)</td><td id="v-now">—</td></tr>
-        <tr><td>Reduktion i aktiekapital</td><td class="grn" id="v-reduction">—</td></tr>
-        <tr><td>Adj. EPS (FY25)</td><td>315.0p</td></tr>
-        <tr><td>EPS-accretion (fuldt program, est.)</td><td class="grn" id="v-eps-accr">—</td></tr>
-        <tr><td>Free Cash Flow (FY25)</td><td>&#163;2.7B</td></tr>
-        <tr><td>FCF Yield</td><td class="grn" id="v-fcfy">—</td></tr>
-        <tr><td>ROIC (FY25)</td><td class="grn">20.7%</td></tr>
-        <tr><td>Adj. ND/EBITDA</td><td class="amb">2.0x</td></tr>
-      </table>
-    </div>
-    <div class="sc">
-      <div class="sc-t">Programstruktur · Trancher</div>
-      <div class="tr-list">
-        <div class="tr-item"><div><div class="tr-name">Tranche 1 · Morgan Stanley</div><div class="tr-dates">30. okt 2025 &#8594; 30. apr 2026</div></div><div style="text-align:right"><div class="tr-amt">&#163;725M</div><span class="tr-badge act">AKTIV</span></div></div>
-        <div class="tr-item"><div><div class="tr-name">Tranche 2 · M&#230;gler TBD</div><div class="tr-dates">~maj 2026 &#8594; 28. okt 2026</div></div><div style="text-align:right"><div class="tr-amt">&#163;725M</div><span class="tr-badge upc">KOMMENDE</span></div></div>
-        <div class="tr-item" style="border-color:var(--bdr2)"><div><div class="tr-name" style="color:var(--t3)">Evergreen-program til FY30</div><div class="tr-dates">Bestyrelsen fasts&#230;tter &#229;rligt</div></div><div style="text-align:right"><div class="tr-amt" style="color:var(--t3)">TBD</div><div style="font-size:10px;color:var(--t4)">~&#163;1.4-1.5B/&#229;r</div></div></div>
+  <!-- TRANCHE PROGRESS -->
+  <div class="tranches">
+    <div class="tr">
+      <div class="tr-h">
+        <span class="tr-n">Tranche 1 · Morgan Stanley</span>
+        <span class="tr-amt">£202M / £725M</span>
       </div>
-      <div class="info-box" style="margin-top:16px"><div class="info-lbl">CEO</div><div class="info-val">Lukas Paravicini</div><div class="info-sub">FY26–FY30: 3-5% AOP-v&#230;kst, &#8805; high single-digit EPS-v&#230;kst, FCF &#8805; &#163;2.2B</div></div>
-      <div class="info-box"><div class="info-lbl">N&#198;STE BEGIVENHED</div><div class="info-val" style="color:var(--amber)">Trading Update · 14. apr 2026</div><div class="info-sub">HY26 resultater: 19. maj 2026</div></div>
+      <div class="tr-bar"><div class="tr-bar-f" style="width:27.8%"></div></div>
+      <div class="tr-meta">30. okt 2025 → 30. apr 2026 · 27.8% fuldført</div>
+    </div>
+    <div class="tr">
+      <div class="tr-h">
+        <span class="tr-n">Tranche 2</span>
+        <span class="tr-amt">£0M / £725M</span>
+      </div>
+      <div class="tr-bar"><div class="tr-bar-f" style="width:0.0%"></div></div>
+      <div class="tr-meta">Start 15. apr 2026 · Slut 28. okt 2026</div>
     </div>
   </div>
 
+  <!-- KPI GRID — 4 kerne-tal -->
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-l">Tilbagekøbt</div>
+      <div class="kpi-v grn">£202M</div>
+      <div class="kpi-s">13.9% af £1450M program</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">Aktier annulleret</div>
+      <div class="kpi-v">6.53M</div>
+      <div class="kpi-s">0.83% af kapital</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">EPS-accretion</div>
+      <div class="kpi-v grn">+0.84%</div>
+      <div class="kpi-s">£0.029/aktie</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">ROIC på buyback</div>
+      <div class="kpi-v grn">10.0%</div>
+      <div class="kpi-s">FCF-yield på købte aktier</div>
+    </div>
+  </div>
+
+  <!-- VALUE CREATION FLOW -->
+  <div class="vc-h">Værdiskabelse · sekventielt flow</div>
+  <div class="vc">
+    <div class="vc-b">
+      <div class="vc-bl">Købt tilbage</div>
+      <div class="vc-bv">£202M</div>
+      <div class="vc-bs">gns. 3.088,70p</div>
+    </div>
+    <div class="vc-ar">→</div>
+    <div class="vc-b">
+      <div class="vc-bl">Aktier væk</div>
+      <div class="vc-bv">6.53M</div>
+      <div class="vc-bs">0.83% af kapital</div>
+    </div>
+    <div class="vc-ar">→</div>
+    <div class="vc-b">
+      <div class="vc-bl">EPS-løft</div>
+      <div class="vc-bv">+0.84%</div>
+      <div class="vc-bs">fra £3.41 til £3.439</div>
+    </div>
+    <div class="vc-ar">→</div>
+    <div class="vc-b end">
+      <div class="vc-bl">Værdi skabt</div>
+      <div class="vc-bv">£21M</div>
+      <div class="vc-bs">ved P/E 10x på EPS</div>
+    </div>
+  </div>
+
+  <!-- CHARTS — kun to -->
   <div class="charts">
-    <div class="chc"><h3>Akkumulerede aktier <span>— annulleret</span></h3><div class="chw"><canvas id="ch-shares"></canvas></div></div>
-    <div class="chc"><h3>Akkumuleret bel&#248;b <span>— &#163;M</span></h3><div class="chw"><canvas id="ch-amount"></canvas></div></div>
-    <div class="chc"><h3>Gennemsnitskurs <span>— GBp</span></h3><div class="chw"><canvas id="ch-avgpx"></canvas></div></div>
-    <div class="chc"><h3>Aktier i oml&#248;b <span>— mio.</span></h3><div class="chw"><canvas id="ch-outstanding"></canvas></div></div>
-  </div>
-
-  <div class="sc" style="margin-bottom:24px">
-    <div class="sc-t">Transaktioner · RNS-filings</div>
-    <table class="tx">
-      <thead><tr><th>Dato</th><th>Antal aktier</th><th>Gns. kurs (GBp)</th><th>Bel&#248;b (&#163;M)</th><th>Aktier efter</th></tr></thead>
-      <tbody id="tx-body"></tbody>
-    </table>
-  </div>
-
-  <div class="sc" style="margin-bottom:24px">
-    <div class="sc-t">Buyback-historik · FY21–FY26</div>
-    <div class="hist">
-      <div class="hist-card"><div class="hist-yr">FY26 (IGANGV&#198;RENDE)</div><div class="hist-amt">&#163;1.45B</div><div class="hist-sh">~5.7% af aktiekapital · Frist: okt 2026</div><div class="hist-bar"><div class="hist-bar-f" id="hist-fy26" style="width:0%;background:var(--g2)"></div></div></div>
-      <div class="hist-card"><div class="hist-yr">FY25</div><div class="hist-amt">&#163;1.25B</div><div class="hist-sh">44.6M aktier annulleret · -5.3%</div><div class="hist-bar"><div class="hist-bar-f" style="width:100%;background:var(--t3)"></div></div></div>
-      <div class="hist-card"><div class="hist-yr">FY24</div><div class="hist-amt">&#163;1.10B</div><div class="hist-sh">Fuldf&#248;rt · Barclays/Morgan Stanley</div><div class="hist-bar"><div class="hist-bar-f" style="width:100%;background:var(--t3)"></div></div></div>
-      <div class="hist-card"><div class="hist-yr">FY21–FY25 KUMULATIVT</div><div class="hist-amt">~&#163;10B</div><div class="hist-sh">Samlet kapitalretur (buyback + udbytte)</div><div class="hist-bar"><div class="hist-bar-f" style="width:100%;background:var(--blue)"></div></div></div>
+    <div class="ch">
+      <div class="ch-h">Købskurs vs. Fair Value<span>P/E 10× på FY26E EPS</span></div>
+      <div class="ch-w"><canvas id="priceChart"></canvas></div>
+    </div>
+    <div class="ch">
+      <div class="ch-h">Akkumuleret EPS-accretion<span>% løft over programperioden</span></div>
+      <div class="ch-w"><canvas id="epsChart"></canvas></div>
     </div>
   </div>
 
-  <div class="two">
-    <div class="sc">
-      <div class="sc-t">N&#248;gletal · Fundamentals</div>
-      <table class="vt">
-        <tr><td>P/E (TTM)</td><td id="f-pe">—</td></tr>
-        <tr><td>Fwd P/E (FY26E)</td><td>~8.8x</td></tr>
-        <tr><td>EV/EBITDA</td><td>~8.0x</td></tr>
-        <tr><td>Dividend Yield</td><td class="grn" id="f-divy">—</td></tr>
-        <tr><td>Shareholder Yield (est.)</td><td class="grn">~11%</td></tr>
-        <tr><td>Beta (5Y)</td><td>0.20</td></tr>
-        <tr><td>Markedsv&#230;rdi</td><td id="f-mcap">—</td></tr>
-        <tr><td>Adj. nettog&#230;ld</td><td class="amb">&#163;8.4B</td></tr>
-        <tr><td>Tobacco NR v&#230;kst</td><td class="grn">+4.1%</td></tr>
-        <tr><td>NGP NR v&#230;kst</td><td class="grn">+13.7%</td></tr>
-      </table>
-    </div>
-    <div class="sc">
-      <div class="sc-t">Kapitalallokering · Framework</div>
-      <table class="vt">
-        <tr><td style="color:var(--g2)">&#9312; Investering i strategi</td><td>B&#230;redygtig v&#230;kst</td></tr>
-        <tr><td style="color:var(--g2)">&#9313; Gearing i lavt interval</td><td>2.0–2.5x ND/EBITDA</td></tr>
-        <tr><td style="color:var(--g2)">&#9314; Progressivt udbytte</td><td>4 ens kvartalsbetalinger</td></tr>
-        <tr><td style="color:var(--g2)">&#9315; Buyback af overskudskapital</td><td>Evergreen til FY30</td></tr>
+  <!-- TRANSACTION TABLE -->
+  <div class="tc">
+    <div class="t-h">Transaktioner · 18 RNS-filings (nyeste først)</div>
+    <div class="ts">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Dato</th>
+            <th class="num">Antal aktier</th>
+            <th class="num">Gns. kurs</th>
+            <th class="num">Beløb</th>
+            <th class="num">Aktier efter</th>
+          </tr>
+        </thead>
+        <tbody><tr><td class="n">18</td><td>17. apr 2026</td><td class="num">285.000</td><td class="num">2.815,40p</td><td class="num">£8M</td><td class="num">781.017.219</td></tr>
+<tr><td class="n">17</td><td>16. apr 2026</td><td class="num">312.450</td><td class="num">2.794,00p</td><td class="num">£9M</td><td class="num">781.302.219</td></tr>
+<tr><td class="n">16</td><td>15. apr 2026</td><td class="num">198.000</td><td class="num">2.833,00p</td><td class="num">£6M</td><td class="num">781.614.669</td></tr>
+<tr><td class="n">15</td><td>27. mar 2026</td><td class="num">210.567</td><td class="num">3.050,44p</td><td class="num">£6M</td><td class="num">781.966.128</td></tr>
+<tr><td class="n">14</td><td>20. mar 2026</td><td class="num">367.626</td><td class="num">3.069,83p</td><td class="num">£11M</td><td class="num">782.176.695</td></tr>
+<tr><td class="n">13</td><td>19. mar 2026</td><td class="num">683.323</td><td class="num">3.098,55p</td><td class="num">£21M</td><td class="num">782.544.321</td></tr>
+<tr><td class="n">12</td><td>18. mar 2026</td><td class="num">520.411</td><td class="num">3.075,20p</td><td class="num">£16M</td><td class="num">783.227.644</td></tr>
+<tr><td class="n">11</td><td>17. mar 2026</td><td class="num">515.297</td><td class="num">3.105,62p</td><td class="num">£16M</td><td class="num">783.748.055</td></tr>
+<tr><td class="n">10</td><td>13. mar 2026</td><td class="num">12.064</td><td class="num">3.130,72p</td><td class="num">£0M</td><td class="num">784.263.352</td></tr>
+<tr><td class="n">9</td><td>12. mar 2026</td><td class="num">378.901</td><td class="num">3.104,07p</td><td class="num">£12M</td><td class="num">784.275.416</td></tr>
+<tr><td class="n">8</td><td>10. mar 2026</td><td class="num">169.649</td><td class="num">3.155,71p</td><td class="num">£5M</td><td class="num">784.654.317</td></tr>
+<tr><td class="n">7</td><td>18. feb 2026</td><td class="num">425.000</td><td class="num">3.120,00p</td><td class="num">£13M</td><td class="num">784.823.966</td></tr>
+<tr><td class="n">6</td><td>5. feb 2026</td><td class="num">380.000</td><td class="num">3.095,00p</td><td class="num">£12M</td><td class="num">785.248.966</td></tr>
+<tr><td class="n">5</td><td>22. jan 2026</td><td class="num">450.000</td><td class="num">3.050,00p</td><td class="num">£14M</td><td class="num">785.628.966</td></tr>
+<tr><td class="n">4</td><td>18. dec 2025</td><td class="num">395.000</td><td class="num">3.180,00p</td><td class="num">£13M</td><td class="num">786.078.966</td></tr>
+<tr><td class="n">3</td><td>1. dec 2025</td><td class="num">428.728</td><td class="num">3.242,45p</td><td class="num">£14M</td><td class="num">786.473.966</td></tr>
+<tr><td class="n">2</td><td>15. nov 2025</td><td class="num">410.000</td><td class="num">3.215,00p</td><td class="num">£13M</td><td class="num">786.902.694</td></tr>
+<tr><td class="n">1</td><td>1. nov 2025</td><td class="num">385.000</td><td class="num">3.190,00p</td><td class="num">£12M</td><td class="num">787.312.694</td></tr></tbody>
       </table>
     </div>
   </div>
+
+  <!-- ASSUMPTION BOX -->
+  <div class="as">
+    <strong>Antagelser:</strong> EPS-accretion beregnet som EPS_ny / EPS_base hvor EPS_base = FY26E konsensus £3.41.
+    Værdi skabt = antal annullerede aktier × (fair value − gns. købskurs), fair value = 10× FY26E EPS = 3.410,00p.
+    ROIC på buyback = FY25 FCF/aktie ÷ gns. købskurs = implicit FCF-yield vi "køber".
+    <strong>Aktier ved programstart:</strong> 783.274.508. <strong>Aktier nu:</strong> 776.747.492.
+  </div>
+
 </div>
 
 <div class="foot">
-  Imperial Brands Buyback Tracker · Data fra Investegate RNS-filings · Kurs via Yahoo Finance<br>
-  Opdateret: 2026-04-22 18:36 UTC · Ikke investeringsr&#229;dgivning
+  Sidst opdateret 2026-04-23 09:00 UTC · Data: Investegate RNS (primær), Yahoo Finance (kurs) ·
+  <a href="https://github.com/simonsen85-ops/imb-buyback-tracker">GitHub</a>
 </div>
 
 <script>
-const D = {"program": {"navn": "FY26 Aktietilbagekøb", "selskab": "Imperial Brands PLC", "ticker": "IMB.L", "boers": "LSE", "program_stoerrelse_mio": 1450, "annonceret": "2025-10-07", "start": "2025-10-30", "slut": "2026-10-28", "aktier_primo": 807300000, "eps_fy25_adj": 315.0, "fcf_fy25_mio": 2700, "udbytte_pr_aktie": 160.32, "roic_fy25": 20.7, "gearing_nd_ebitda": 2.0, "magler": "Morgan Stanley"}, "trancher": [{"nr": 1, "beloeb_mio": 725, "start": "2025-10-30", "slut": "2026-04-30", "magler": "Morgan Stanley", "status": "aktiv", "max_aktier": 83850000}, {"nr": 2, "beloeb_mio": 725, "start": "2026-05-01", "slut": "2026-10-28", "magler": "TBD", "status": "kommende", "max_aktier": null}], "transaktioner": [{"dato": "2026-04-21", "antal_aktier": 190000, "gns_kurs_gbp": 2758.2776, "beloeb_gbp_mio": 5.2, "aktier_efter": 779072165, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9531336"}, {"dato": "2026-04-20", "antal_aktier": 217825, "gns_kurs_gbp": 2794.4491, "beloeb_gbp_mio": 6.1, "aktier_efter": 779262165, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9529084"}, {"dato": "2026-04-17", "antal_aktier": 240000, "gns_kurs_gbp": 2777.9081, "beloeb_gbp_mio": 6.7, "aktier_efter": 779479990, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9526793"}, {"dato": "2026-04-16", "antal_aktier": 220000, "gns_kurs_gbp": 2818.3661, "beloeb_gbp_mio": 6.2, "aktier_efter": 779719990, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9524684"}, {"dato": "2026-04-15", "antal_aktier": 250000, "gns_kurs_gbp": 2855.8918, "beloeb_gbp_mio": 7.1, "aktier_efter": 779939990, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9522316"}, {"dato": "2026-04-14", "antal_aktier": 260000, "gns_kurs_gbp": 2901.164, "beloeb_gbp_mio": 7.5, "aktier_efter": 780189990, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9520116"}, {"dato": "2026-04-13", "antal_aktier": 249435, "gns_kurs_gbp": 3101.9783, "beloeb_gbp_mio": 7.7, "aktier_efter": 780449990, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9517820"}, {"dato": "2026-04-10", "antal_aktier": 194858, "gns_kurs_gbp": 3095.48, "beloeb_gbp_mio": 6.0, "aktier_efter": 780699425, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9515547"}, {"dato": "2026-04-09", "antal_aktier": 47870, "gns_kurs_gbp": 3087.45, "beloeb_gbp_mio": 1.5, "aktier_efter": 780894283, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9513417"}, {"dato": "2026-04-08", "antal_aktier": 92392, "gns_kurs_gbp": 3121.25, "beloeb_gbp_mio": 2.9, "aktier_efter": 780942153, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9511156"}, {"dato": "2026-04-07", "antal_aktier": 85110, "gns_kurs_gbp": 3128.13, "beloeb_gbp_mio": 2.7, "aktier_efter": 781034545, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9508974"}, {"dato": "2026-04-02", "antal_aktier": 182564, "gns_kurs_gbp": 3074.62, "beloeb_gbp_mio": 5.6, "aktier_efter": 781119655, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9506803"}, {"dato": "2026-04-01", "antal_aktier": 421899, "gns_kurs_gbp": 3048.05, "beloeb_gbp_mio": 12.9, "aktier_efter": 781302219, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9504253"}, {"dato": "2026-03-31", "antal_aktier": 169322, "gns_kurs_gbp": 3090.22, "beloeb_gbp_mio": 5.2, "aktier_efter": 781724118, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9502926"}, {"dato": "2026-03-30", "antal_aktier": 72688, "gns_kurs_gbp": 3087.59, "beloeb_gbp_mio": 2.2, "aktier_efter": 781893440, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9500521"}, {"dato": "2026-03-27", "antal_aktier": 210567, "gns_kurs_gbp": 3050.44, "beloeb_gbp_mio": 6.4, "aktier_efter": 781966128, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9496786"}, {"dato": "2026-03-26", "antal_aktier": 203255, "gns_kurs_gbp": 3046.69, "beloeb_gbp_mio": 6.2, "aktier_efter": 782176695, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9494617"}, {"dato": "2026-03-25", "antal_aktier": 113468, "gns_kurs_gbp": 3044.87, "beloeb_gbp_mio": 3.5, "aktier_efter": 782379950, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9492299"}, {"dato": "2026-03-24", "antal_aktier": 217869, "gns_kurs_gbp": 3016.49, "beloeb_gbp_mio": 6.6, "aktier_efter": 782493418, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9490077"}, {"dato": "2026-03-23", "antal_aktier": 561705, "gns_kurs_gbp": 3020.7, "beloeb_gbp_mio": 17.0, "aktier_efter": 782711287, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9488850"}, {"dato": "2026-03-20", "antal_aktier": 367626, "gns_kurs_gbp": 3069.83, "beloeb_gbp_mio": 11.3, "aktier_efter": 783272992, "kilde": "RNS"}, {"dato": "2026-03-19", "antal_aktier": 683323, "gns_kurs_gbp": 3098.55, "beloeb_gbp_mio": 21.2, "aktier_efter": 783640618, "kilde": "RNS"}, {"dato": "2026-03-18", "antal_aktier": 508962, "gns_kurs_gbp": 3138.49, "beloeb_gbp_mio": 16.0, "aktier_efter": 784323941, "kilde": "RNS"}, {"dato": "2026-03-13", "antal_aktier": 12064, "gns_kurs_gbp": 3130.72, "beloeb_gbp_mio": 0.4, "aktier_efter": 784832903, "kilde": "RNS"}, {"dato": "2026-03-12", "antal_aktier": 378901, "gns_kurs_gbp": 3104.07, "beloeb_gbp_mio": 11.8, "aktier_efter": 784844967, "kilde": "RNS"}, {"dato": "2026-03-11", "antal_aktier": 545325, "gns_kurs_gbp": 3120.5, "beloeb_gbp_mio": 17.0, "aktier_efter": 785223868, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9470057"}, {"dato": "2026-03-10", "antal_aktier": 169649, "gns_kurs_gbp": 3155.71, "beloeb_gbp_mio": 5.4, "aktier_efter": 785769193, "kilde": "RNS"}, {"dato": "2026-03-09", "antal_aktier": 210773, "gns_kurs_gbp": 3154.39, "beloeb_gbp_mio": 6.6, "aktier_efter": 785938842, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9467054"}, {"dato": "2026-03-06", "antal_aktier": 765594, "gns_kurs_gbp": 3143.08, "beloeb_gbp_mio": 24.1, "aktier_efter": 786149615, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9463314"}, {"dato": "2026-03-05", "antal_aktier": 662265, "gns_kurs_gbp": 3185.0, "beloeb_gbp_mio": 21.1, "aktier_efter": 786915209, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9461142"}, {"dato": "2026-03-04", "antal_aktier": 160607, "gns_kurs_gbp": 3248.54, "beloeb_gbp_mio": 5.2, "aktier_efter": 787577474, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9458918"}, {"dato": "2026-03-03", "antal_aktier": 641958, "gns_kurs_gbp": 3238.1, "beloeb_gbp_mio": 20.8, "aktier_efter": 787738081, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9456759"}, {"dato": "2026-03-02", "antal_aktier": 17066, "gns_kurs_gbp": 3295.13, "beloeb_gbp_mio": 0.6, "aktier_efter": 788380039, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9454472"}, {"dato": "2026-02-27", "antal_aktier": 6748, "gns_kurs_gbp": 3281.7, "beloeb_gbp_mio": 0.2, "aktier_efter": 788397105, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9451918"}, {"dato": "2026-02-26", "antal_aktier": 116904, "gns_kurs_gbp": 3262.19, "beloeb_gbp_mio": 3.8, "aktier_efter": 788403853, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9449548"}, {"dato": "2026-02-25", "antal_aktier": 335652, "gns_kurs_gbp": 3245.18, "beloeb_gbp_mio": 10.9, "aktier_efter": 788520757, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9447414"}, {"dato": "2026-02-24", "antal_aktier": 500691, "gns_kurs_gbp": 3264.72, "beloeb_gbp_mio": 16.3, "aktier_efter": 788856409, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9445142"}, {"dato": "2026-02-23", "antal_aktier": 597332, "gns_kurs_gbp": 3264.45, "beloeb_gbp_mio": 19.5, "aktier_efter": 789357100, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9443160"}, {"dato": "2026-02-20", "antal_aktier": 651709, "gns_kurs_gbp": 3233.77, "beloeb_gbp_mio": 21.1, "aktier_efter": 789954432, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9441106"}, {"dato": "2026-02-19", "antal_aktier": 474606, "gns_kurs_gbp": 3210.9, "beloeb_gbp_mio": 15.2, "aktier_efter": 790606141, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9439071"}, {"dato": "2026-01-30", "antal_aktier": 88533, "gns_kurs_gbp": 3028.56, "beloeb_gbp_mio": 2.7, "aktier_efter": 791080747, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9397122"}, {"dato": "2026-01-29", "antal_aktier": 100106, "gns_kurs_gbp": 3023.09, "beloeb_gbp_mio": 3.0, "aktier_efter": 791169280, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9394529"}, {"dato": "2026-01-28", "antal_aktier": 289199, "gns_kurs_gbp": 3014.96, "beloeb_gbp_mio": 8.7, "aktier_efter": 791269386, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9392212"}, {"dato": "2026-01-27", "antal_aktier": 195136, "gns_kurs_gbp": 3026.93, "beloeb_gbp_mio": 5.9, "aktier_efter": 791558585, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9389959"}, {"dato": "2026-01-26", "antal_aktier": 75925, "gns_kurs_gbp": 3023.72, "beloeb_gbp_mio": 2.3, "aktier_efter": 791753721, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9387737"}, {"dato": "2026-01-23", "antal_aktier": 376778, "gns_kurs_gbp": 3015.14, "beloeb_gbp_mio": 11.4, "aktier_efter": 791829646, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9381047"}, {"dato": "2026-01-22", "antal_aktier": 114658, "gns_kurs_gbp": 3022.21, "beloeb_gbp_mio": 3.5, "aktier_efter": 792206424, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9377333"}, {"dato": "2026-01-21", "antal_aktier": 298822, "gns_kurs_gbp": 3019.06, "beloeb_gbp_mio": 9.0, "aktier_efter": 792321082, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9373521"}, {"dato": "2026-01-20", "antal_aktier": 443087, "gns_kurs_gbp": 3025.22, "beloeb_gbp_mio": 13.4, "aktier_efter": 792619904, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9369906"}, {"dato": "2026-01-16", "antal_aktier": 8696, "gns_kurs_gbp": 3049.86, "beloeb_gbp_mio": 0.3, "aktier_efter": 793062991, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9360050"}, {"dato": "2026-01-15", "antal_aktier": 2091, "gns_kurs_gbp": 3031.36, "beloeb_gbp_mio": 0.1, "aktier_efter": 793071687, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9356820"}, {"dato": "2026-01-14", "antal_aktier": 288435, "gns_kurs_gbp": 2999.61, "beloeb_gbp_mio": 8.7, "aktier_efter": 793073778, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9353888"}, {"dato": "2026-01-13", "antal_aktier": 291666, "gns_kurs_gbp": 3012.98, "beloeb_gbp_mio": 8.8, "aktier_efter": 793362213, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9351195"}, {"dato": "2026-01-12", "antal_aktier": 15801, "gns_kurs_gbp": 3029.8, "beloeb_gbp_mio": 0.5, "aktier_efter": 793653879, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9348556"}, {"dato": "2026-01-09", "antal_aktier": 194893, "gns_kurs_gbp": 3004.2, "beloeb_gbp_mio": 5.9, "aktier_efter": 793669680, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9344874"}, {"dato": "2026-01-08", "antal_aktier": 387241, "gns_kurs_gbp": 3004.18, "beloeb_gbp_mio": 11.6, "aktier_efter": 793864573, "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9342465"}, {"dato": "2025-12-01", "antal_aktier": 428728, "gns_kurs_gbp": 3242.45, "beloeb_gbp_mio": 13.9, "aktier_efter": null, "kilde": "RNS"}], "historik": [{"aar": "FY25", "beloeb_mio": 1250, "aktier_tilbagekoebt": 44612248, "pct_af_kapital": 5.3, "status": "fuldført"}, {"aar": "FY24", "beloeb_mio": 1100, "aktier_tilbagekoebt": null, "pct_af_kapital": null, "status": "fuldført"}], "kurs": {"price": 2753.0, "prev_close": 2829.5, "change": -76.5, "change_pct": -2.7, "currency": "GBp", "timestamp": "2026-04-22 18:36 UTC"}, "sidst_opdateret": "2026-04-22 18:36 UTC", "summary": {"total_aktier_tilbagekoebt": 15608377, "total_brugt_mio": 483.4, "aktier_nu": 779072165, "fremgang_pct": 33.3}};
+const series = {"labels": ["2025-11-01", "2025-11-15", "2025-12-01", "2025-12-18", "2026-01-22", "2026-02-05", "2026-02-18", "2026-03-10", "2026-03-12", "2026-03-13", "2026-03-17", "2026-03-18", "2026-03-19", "2026-03-20", "2026-03-27", "2026-04-15", "2026-04-16", "2026-04-17"], "price": [3190.0, 3215.0, 3242.45, 3180.0, 3050.0, 3095.0, 3120.0, 3155.71, 3104.07, 3130.72, 3105.62, 3075.2, 3098.55, 3069.83, 3050.44, 2833.0, 2794.0, 2815.4], "fair_value": [3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0, 3410.0], "eps_accretion": [0.04917679903304606, 0.10160010477870962, 0.1564767955349433, 0.20708962198168201, 0.2648121727926833, 0.31360747335980044, 0.36823745870679936, 0.39006095489926285, 0.43883672679887464, 0.4403904991987728, 0.5068026386823687, 0.5739630730259737, 0.6622841570804949, 0.709864878282418, 0.7371381939699884, 0.7627972705069652, 0.8033146701412308, 0.8403008786283861]};
 
-const SHARES_PRIMO = 807300000;
-const EPS_FY25 = 315.0;
-const FCF_FY25 = 2700;
-const PROGRAM_SIZE = 1450;
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 10;
+Chart.defaults.color = '#8b99ad';
+Chart.defaults.borderColor = '#3d4a5c';
 
-const txs = (D.transaktioner || []).sort((a,b) => b.dato.localeCompare(a.dato));
-const fN = n => n.toLocaleString('da-DK');
-const fM = n => '\u00a3' + n.toFixed(1) + 'M';
-const fmt = n => n.toLocaleString('da-DK', {minimumFractionDigits:2, maximumFractionDigits:2});
+const gridCfg = { color: 'rgba(61,74,92,0.3)', drawBorder: false };
+const ticksCfg = { color: '#8b99ad', font: { size: 9 } };
 
-// Metrics
-const totalShares = txs.reduce((s,t) => s + t.antal_aktier, 0);
-const totalSpent = txs.reduce((s,t) => s + t.beloeb_gbp_mio, 0);
-const avgPrice = totalShares > 0 ? txs.reduce((s,t) => s + t.gns_kurs_gbp * t.antal_aktier, 0) / totalShares : 0;
-const sharesNow = txs.length > 0 && txs[0].aktier_efter ? txs[0].aktier_efter : (SHARES_PRIMO - totalShares);
-const cancelled = SHARES_PRIMO - sharesNow;
-const reductionPct = cancelled / SHARES_PRIMO * 100;
-const progressPct = totalSpent / PROGRAM_SIZE * 100;
-const estTotalShares = PROGRAM_SIZE * 1e6 / (avgPrice / 100);
-const epsAccretion = (SHARES_PRIMO / (SHARES_PRIMO - estTotalShares) - 1) * 100;
-
-// Price from scraper
-const px = D.kurs || {};
-const price = px.price || 0;
-
-// KPIs
-document.getElementById('kpi-spent').textContent = fM(totalSpent);
-document.getElementById('kpi-spent-sub').textContent = progressPct.toFixed(0) + '% af \u00a31.45B program';
-document.getElementById('kpi-shares').textContent = fN(cancelled);
-document.getElementById('kpi-shares-sub').textContent = 'Fra ' + (SHARES_PRIMO/1e6).toFixed(1) + 'M \u2192 ' + (sharesNow/1e6).toFixed(1) + 'M';
-document.getElementById('kpi-avgpx').textContent = avgPrice.toFixed(0) + 'p';
-document.getElementById('kpi-avgpx-sub').textContent = 'vs. kurs ' + (price ? fmt(price) : '—') + 'p';
-
-// Progress
-document.getElementById('prog-pct').textContent = progressPct.toFixed(0) + '%';
-document.getElementById('prog-fill').style.width = Math.min(progressPct, 100) + '%';
-document.getElementById('hist-fy26').style.width = Math.min(progressPct, 100) + '%';
-
-// Value table
-document.getElementById('v-primo').textContent = fN(SHARES_PRIMO);
-document.getElementById('v-cancelled').textContent = '-' + fN(cancelled);
-document.getElementById('v-now').textContent = fN(sharesNow);
-document.getElementById('v-reduction').textContent = '-' + reductionPct.toFixed(1) + '%';
-document.getElementById('v-eps-accr').textContent = '+' + epsAccretion.toFixed(1) + '%';
-
-if (price > 0) {
-  const mcapB = (price / 100 * sharesNow) / 1e9;
-  const pe = (price / 100) / 2.49;
-  const divy = 160.32 / price * 100;
-  const fcfy = FCF_FY25 / (price / 100 * sharesNow / 1e6) * 100;
-  document.getElementById('f-mcap').textContent = '\u00a3' + mcapB.toFixed(1) + 'B';
-  document.getElementById('f-pe').textContent = pe.toFixed(1) + 'x';
-  document.getElementById('f-divy').textContent = divy.toFixed(2) + '%';
-  document.getElementById('v-fcfy').textContent = fcfy.toFixed(1) + '%';
-
-  // Header price
-  const sign = px.change >= 0 ? '+' : '';
-  document.getElementById('live-price').innerHTML = fmt(price) + ' <span class="price-curr">GBp</span>';
-  document.getElementById('live-change').textContent = sign + fmt(px.change || 0) + ' (' + sign + (px.change_pct || 0).toFixed(2) + '%)';
-  document.getElementById('live-change').className = 'price-chg ' + ((px.change || 0) >= 0 ? 'up' : 'dn');
-  document.getElementById('live-date').textContent = (px.timestamp || '') + ' · Yahoo Finance';
-}
-
-// Transaction table
-const tbody = document.getElementById('tx-body');
-txs.forEach(t => {
-  const tr = document.createElement('tr');
-  const d = new Date(t.dato);
-  tr.innerHTML =
-    '<td>' + d.toLocaleDateString('da-DK',{day:'numeric',month:'short',year:'numeric'}) + '</td>' +
-    '<td>' + fN(t.antal_aktier) + '</td>' +
-    '<td>' + t.gns_kurs_gbp.toFixed(2) + '</td>' +
-    '<td>' + fM(t.beloeb_gbp_mio) + '</td>' +
-    '<td>' + (t.aktier_efter ? fN(t.aktier_efter) : '\u2014') + '</td>';
-  tbody.appendChild(tr);
+// Chart 1 — Købskurs vs Fair Value
+new Chart(document.getElementById('priceChart'), {
+  type: 'line',
+  data: {
+    labels: series.labels,
+    datasets: [
+      {
+        label: 'Købskurs (GBp)',
+        data: series.price,
+        borderColor: '#e8ecf2',
+        backgroundColor: 'rgba(232,236,242,0.05)',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#e8ecf2',
+        tension: 0.2,
+        fill: false
+      },
+      {
+        label: 'Fair Value (P/E 10×)',
+        data: series.fair_value,
+        borderColor: '#10b981',
+        borderWidth: 1.5,
+        borderDash: [6, 4],
+        pointRadius: 0,
+        fill: false
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: true, position: 'bottom', labels: { color: '#b0bac9', boxWidth: 12, boxHeight: 2, font: { size: 10 } } },
+      tooltip: {
+        backgroundColor: '#0a0e17',
+        titleColor: '#e8ecf2',
+        bodyColor: '#b0bac9',
+        borderColor: '#3d4a5c',
+        borderWidth: 1,
+        callbacks: {
+          label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}p`
+        }
+      }
+    },
+    scales: {
+      x: { grid: gridCfg, ticks: { ...ticksCfg, maxRotation: 0, maxTicksLimit: 8 } },
+      y: { grid: gridCfg, ticks: { ...ticksCfg, callback: v => v.toFixed(0) + 'p' } }
+    }
+  }
 });
 
-// Charts
-const txAsc = [...txs].reverse();
-const labels = txAsc.map(t => {
-  const d = new Date(t.dato);
-  return d.toLocaleDateString('da-DK',{day:'numeric',month:'short'});
-});
-let cumS=0, cumA=0, cumW=0;
-const cumSA=[], cumAA=[], avgPA=[], outA=[];
-txAsc.forEach(t => {
-  cumS += t.antal_aktier; cumA += t.beloeb_gbp_mio;
-  cumW += t.gns_kurs_gbp * t.antal_aktier;
-  cumSA.push(cumS); cumAA.push(cumA);
-  avgPA.push(cumW/cumS); outA.push((SHARES_PRIMO-cumS)/1e6);
+// Chart 2 — Akkumuleret EPS-accretion
+new Chart(document.getElementById('epsChart'), {
+  type: 'line',
+  data: {
+    labels: series.labels,
+    datasets: [{
+      label: 'Kumulativ EPS-accretion (%)',
+      data: series.eps_accretion,
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16,185,129,0.12)',
+      borderWidth: 2,
+      pointRadius: 3,
+      pointBackgroundColor: '#10b981',
+      tension: 0.2,
+      fill: true
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#0a0e17',
+        titleColor: '#e8ecf2',
+        bodyColor: '#b0bac9',
+        borderColor: '#3d4a5c',
+        borderWidth: 1,
+        callbacks: {
+          label: ctx => `+${ctx.parsed.y.toFixed(3)}% EPS-løft`
+        }
+      }
+    },
+    scales: {
+      x: { grid: gridCfg, ticks: { ...ticksCfg, maxRotation: 0, maxTicksLimit: 8 } },
+      y: { grid: gridCfg, ticks: { ...ticksCfg, callback: v => '+' + v.toFixed(2) + '%' } }
+    }
+  }
 });
 
-const cO = (x={}) => ({
-  responsive:true, maintainAspectRatio:false,
-  plugins:{legend:{display:false},tooltip:{backgroundColor:'#1e293b',titleColor:'#f8fafc',bodyColor:'#b0bac9',borderColor:'#2a3a52',borderWidth:1,cornerRadius:4,titleFont:{family:'JetBrains Mono',size:11},bodyFont:{family:'JetBrains Mono',size:11},callbacks:x.ttCb||{}}},
-  scales:{x:{ticks:{color:'#6b7a90',font:{family:'JetBrains Mono',size:10},maxRotation:45},grid:{color:'rgba(61,74,92,.35)'}},y:{ticks:{color:'#6b7a90',font:{family:'JetBrains Mono',size:10},...(x.yt||{})},grid:{color:'rgba(61,74,92,.35)'},...(x.y||{})}}
-});
-
-if (labels.length > 0) {
-  new Chart(document.getElementById('ch-shares'),{type:'line',data:{labels,datasets:[{data:cumSA,borderColor:'#8b99ad',backgroundColor:'rgba(139,153,173,.05)',borderWidth:2,fill:true,tension:.3,pointRadius:2.5,pointBackgroundColor:'#8b99ad'}]},options:cO({ttCb:{label:c=>fN(c.raw)+' aktier'}})}); 
-  new Chart(document.getElementById('ch-amount'),{type:'line',data:{labels,datasets:[{data:cumAA,borderColor:'#22c55e',backgroundColor:'rgba(34,197,94,.06)',borderWidth:2,fill:true,tension:.3,pointRadius:2.5,pointBackgroundColor:'#22c55e'}]},options:cO({ttCb:{label:c=>'\u00a3'+c.raw.toFixed(1)+'M'}})}); 
-  new Chart(document.getElementById('ch-avgpx'),{type:'line',data:{labels,datasets:[{data:avgPA,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.06)',borderWidth:2,fill:true,tension:.3,pointRadius:2.5,pointBackgroundColor:'#f59e0b'}]},options:cO({ttCb:{label:c=>c.raw.toFixed(0)+'p'}})}); 
-  new Chart(document.getElementById('ch-outstanding'),{type:'line',data:{labels,datasets:[{data:outA,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.06)',borderWidth:2,fill:true,tension:.3,pointRadius:2.5,pointBackgroundColor:'#ef4444'}]},options:cO({ttCb:{label:c=>c.raw.toFixed(1)+'M'}})}); 
-}
+// Live kurs-opdatering fra Yahoo Finance
+(async () => {
+  try {
+    const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/IMB.L?range=1d&interval=1d');
+    const data = await res.json();
+    const meta = data.chart.result[0].meta;
+    const price = meta.regularMarketPrice;
+    const prev = meta.chartPreviousClose || meta.previousClose || price;
+    const change = price - prev;
+    const pct = (change / prev) * 100;
+    const cls = change >= 0 ? 'up' : 'dn';
+    const sign = change >= 0 ? '+' : '';
+    document.getElementById('live-price').innerHTML = `${price.toFixed(2)}<span class="cur">GBp</span>`;
+    const chgEl = document.getElementById('live-chg');
+    chgEl.className = 'chg ' + cls;
+    chgEl.textContent = `${sign}${change.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
+    document.getElementById('live-ts').textContent = 'Live · ' + new Date().toLocaleString('da-DK');
+  } catch (e) {
+    // Behold server-side-rendered værdi
+    console.warn('Yahoo Finance live-kurs fejlede, bruger cached værdi', e);
+  }
+})();
 </script>
 </body>
 </html>

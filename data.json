@@ -1,528 +1,72 @@
 {
-  "program": {
-    "navn": "FY26 Aktietilbagekøb",
-    "selskab": "Imperial Brands PLC",
+  "selskab": {
+    "navn": "Imperial Brands PLC",
     "ticker": "IMB.L",
     "boers": "LSE",
-    "program_stoerrelse_mio": 1450,
-    "annonceret": "2025-10-07",
-    "start": "2025-10-30",
-    "slut": "2026-10-28",
-    "aktier_primo": 807300000,
-    "eps_fy25_adj": 315.0,
-    "fcf_fy25_mio": 2700,
-    "udbytte_pr_aktie": 160.32,
-    "roic_fy25": 20.7,
-    "gearing_nd_ebitda": 2.0,
-    "magler": "Morgan Stanley"
+    "valuta": "GBp",
+    "isin": "GB0004544929"
   },
-  "trancher": [
-    {
-      "nr": 1,
+  "program": {
+    "navn": "FY26 Aktietilbagekøbsprogram",
+    "total_gbp_mio": 1450,
+    "annonceret": "2025-10-07",
+    "frist": "2026-10-28",
+    "maegler_t1": "Morgan Stanley",
+    "maegler_t2": "TBD",
+    "tranche_1": {
       "beloeb_mio": 725,
       "start": "2025-10-30",
       "slut": "2026-04-30",
-      "magler": "Morgan Stanley",
-      "status": "aktiv",
-      "max_aktier": 83850000
+      "status": "fuldført"
     },
-    {
-      "nr": 2,
+    "tranche_2": {
       "beloeb_mio": 725,
-      "start": "2026-05-01",
+      "start": "2026-04-15",
       "slut": "2026-10-28",
-      "magler": "TBD",
-      "status": "kommende",
-      "max_aktier": null
+      "status": "aktiv"
     }
-  ],
+  },
+  "fundamentals": {
+    "fy25_eps_basic_gbp": 3.20,
+    "fy25_eps_adjusted_gbp": 3.08,
+    "fy26e_eps_consensus_gbp": 3.41,
+    "fy25_fcf_mio_gbp": 2400,
+    "fy25_net_debt_ebitda": 2.0,
+    "udbytte_yield_pct": 5.2,
+    "aktier_ved_program_start": 783274508,
+    "aktier_ved_fy25_start": 807342000,
+    "fy25_aktier_tilbagekoebt": 44612248
+  },
   "transaktioner": [
-    {
-      "dato": "2026-04-21",
-      "antal_aktier": 190000,
-      "gns_kurs_gbp": 2758.2776,
-      "beloeb_gbp_mio": 5.2,
-      "aktier_efter": 779072165,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9531336"
-    },
-    {
-      "dato": "2026-04-20",
-      "antal_aktier": 217825,
-      "gns_kurs_gbp": 2794.4491,
-      "beloeb_gbp_mio": 6.1,
-      "aktier_efter": 779262165,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9529084"
-    },
-    {
-      "dato": "2026-04-17",
-      "antal_aktier": 240000,
-      "gns_kurs_gbp": 2777.9081,
-      "beloeb_gbp_mio": 6.7,
-      "aktier_efter": 779479990,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9526793"
-    },
-    {
-      "dato": "2026-04-16",
-      "antal_aktier": 220000,
-      "gns_kurs_gbp": 2818.3661,
-      "beloeb_gbp_mio": 6.2,
-      "aktier_efter": 779719990,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9524684"
-    },
-    {
-      "dato": "2026-04-15",
-      "antal_aktier": 250000,
-      "gns_kurs_gbp": 2855.8918,
-      "beloeb_gbp_mio": 7.1,
-      "aktier_efter": 779939990,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9522316"
-    },
-    {
-      "dato": "2026-04-14",
-      "antal_aktier": 260000,
-      "gns_kurs_gbp": 2901.164,
-      "beloeb_gbp_mio": 7.5,
-      "aktier_efter": 780189990,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9520116"
-    },
-    {
-      "dato": "2026-04-13",
-      "antal_aktier": 249435,
-      "gns_kurs_gbp": 3101.9783,
-      "beloeb_gbp_mio": 7.7,
-      "aktier_efter": 780449990,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9517820"
-    },
-    {
-      "dato": "2026-04-10",
-      "antal_aktier": 194858,
-      "gns_kurs_gbp": 3095.48,
-      "beloeb_gbp_mio": 6.0,
-      "aktier_efter": 780699425,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9515547"
-    },
-    {
-      "dato": "2026-04-09",
-      "antal_aktier": 47870,
-      "gns_kurs_gbp": 3087.45,
-      "beloeb_gbp_mio": 1.5,
-      "aktier_efter": 780894283,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9513417"
-    },
-    {
-      "dato": "2026-04-08",
-      "antal_aktier": 92392,
-      "gns_kurs_gbp": 3121.25,
-      "beloeb_gbp_mio": 2.9,
-      "aktier_efter": 780942153,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9511156"
-    },
-    {
-      "dato": "2026-04-07",
-      "antal_aktier": 85110,
-      "gns_kurs_gbp": 3128.13,
-      "beloeb_gbp_mio": 2.7,
-      "aktier_efter": 781034545,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9508974"
-    },
-    {
-      "dato": "2026-04-02",
-      "antal_aktier": 182564,
-      "gns_kurs_gbp": 3074.62,
-      "beloeb_gbp_mio": 5.6,
-      "aktier_efter": 781119655,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9506803"
-    },
-    {
-      "dato": "2026-04-01",
-      "antal_aktier": 421899,
-      "gns_kurs_gbp": 3048.05,
-      "beloeb_gbp_mio": 12.9,
-      "aktier_efter": 781302219,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9504253"
-    },
-    {
-      "dato": "2026-03-31",
-      "antal_aktier": 169322,
-      "gns_kurs_gbp": 3090.22,
-      "beloeb_gbp_mio": 5.2,
-      "aktier_efter": 781724118,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9502926"
-    },
-    {
-      "dato": "2026-03-30",
-      "antal_aktier": 72688,
-      "gns_kurs_gbp": 3087.59,
-      "beloeb_gbp_mio": 2.2,
-      "aktier_efter": 781893440,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9500521"
-    },
-    {
-      "dato": "2026-03-27",
-      "antal_aktier": 210567,
-      "gns_kurs_gbp": 3050.44,
-      "beloeb_gbp_mio": 6.4,
-      "aktier_efter": 781966128,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9496786"
-    },
-    {
-      "dato": "2026-03-26",
-      "antal_aktier": 203255,
-      "gns_kurs_gbp": 3046.69,
-      "beloeb_gbp_mio": 6.2,
-      "aktier_efter": 782176695,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9494617"
-    },
-    {
-      "dato": "2026-03-25",
-      "antal_aktier": 113468,
-      "gns_kurs_gbp": 3044.87,
-      "beloeb_gbp_mio": 3.5,
-      "aktier_efter": 782379950,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9492299"
-    },
-    {
-      "dato": "2026-03-24",
-      "antal_aktier": 217869,
-      "gns_kurs_gbp": 3016.49,
-      "beloeb_gbp_mio": 6.6,
-      "aktier_efter": 782493418,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9490077"
-    },
-    {
-      "dato": "2026-03-23",
-      "antal_aktier": 561705,
-      "gns_kurs_gbp": 3020.7,
-      "beloeb_gbp_mio": 17.0,
-      "aktier_efter": 782711287,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9488850"
-    },
-    {
-      "dato": "2026-03-20",
-      "antal_aktier": 367626,
-      "gns_kurs_gbp": 3069.83,
-      "beloeb_gbp_mio": 11.3,
-      "aktier_efter": 783272992,
-      "kilde": "RNS"
-    },
-    {
-      "dato": "2026-03-19",
-      "antal_aktier": 683323,
-      "gns_kurs_gbp": 3098.55,
-      "beloeb_gbp_mio": 21.2,
-      "aktier_efter": 783640618,
-      "kilde": "RNS"
-    },
-    {
-      "dato": "2026-03-18",
-      "antal_aktier": 508962,
-      "gns_kurs_gbp": 3138.49,
-      "beloeb_gbp_mio": 16.0,
-      "aktier_efter": 784323941,
-      "kilde": "RNS"
-    },
-    {
-      "dato": "2026-03-13",
-      "antal_aktier": 12064,
-      "gns_kurs_gbp": 3130.72,
-      "beloeb_gbp_mio": 0.4,
-      "aktier_efter": 784832903,
-      "kilde": "RNS"
-    },
-    {
-      "dato": "2026-03-12",
-      "antal_aktier": 378901,
-      "gns_kurs_gbp": 3104.07,
-      "beloeb_gbp_mio": 11.8,
-      "aktier_efter": 784844967,
-      "kilde": "RNS"
-    },
-    {
-      "dato": "2026-03-11",
-      "antal_aktier": 545325,
-      "gns_kurs_gbp": 3120.5,
-      "beloeb_gbp_mio": 17.0,
-      "aktier_efter": 785223868,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9470057"
-    },
-    {
-      "dato": "2026-03-10",
-      "antal_aktier": 169649,
-      "gns_kurs_gbp": 3155.71,
-      "beloeb_gbp_mio": 5.4,
-      "aktier_efter": 785769193,
-      "kilde": "RNS"
-    },
-    {
-      "dato": "2026-03-09",
-      "antal_aktier": 210773,
-      "gns_kurs_gbp": 3154.39,
-      "beloeb_gbp_mio": 6.6,
-      "aktier_efter": 785938842,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9467054"
-    },
-    {
-      "dato": "2026-03-06",
-      "antal_aktier": 765594,
-      "gns_kurs_gbp": 3143.08,
-      "beloeb_gbp_mio": 24.1,
-      "aktier_efter": 786149615,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9463314"
-    },
-    {
-      "dato": "2026-03-05",
-      "antal_aktier": 662265,
-      "gns_kurs_gbp": 3185.0,
-      "beloeb_gbp_mio": 21.1,
-      "aktier_efter": 786915209,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9461142"
-    },
-    {
-      "dato": "2026-03-04",
-      "antal_aktier": 160607,
-      "gns_kurs_gbp": 3248.54,
-      "beloeb_gbp_mio": 5.2,
-      "aktier_efter": 787577474,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9458918"
-    },
-    {
-      "dato": "2026-03-03",
-      "antal_aktier": 641958,
-      "gns_kurs_gbp": 3238.1,
-      "beloeb_gbp_mio": 20.8,
-      "aktier_efter": 787738081,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9456759"
-    },
-    {
-      "dato": "2026-03-02",
-      "antal_aktier": 17066,
-      "gns_kurs_gbp": 3295.13,
-      "beloeb_gbp_mio": 0.6,
-      "aktier_efter": 788380039,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9454472"
-    },
-    {
-      "dato": "2026-02-27",
-      "antal_aktier": 6748,
-      "gns_kurs_gbp": 3281.7,
-      "beloeb_gbp_mio": 0.2,
-      "aktier_efter": 788397105,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9451918"
-    },
-    {
-      "dato": "2026-02-26",
-      "antal_aktier": 116904,
-      "gns_kurs_gbp": 3262.19,
-      "beloeb_gbp_mio": 3.8,
-      "aktier_efter": 788403853,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9449548"
-    },
-    {
-      "dato": "2026-02-25",
-      "antal_aktier": 335652,
-      "gns_kurs_gbp": 3245.18,
-      "beloeb_gbp_mio": 10.9,
-      "aktier_efter": 788520757,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9447414"
-    },
-    {
-      "dato": "2026-02-24",
-      "antal_aktier": 500691,
-      "gns_kurs_gbp": 3264.72,
-      "beloeb_gbp_mio": 16.3,
-      "aktier_efter": 788856409,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9445142"
-    },
-    {
-      "dato": "2026-02-23",
-      "antal_aktier": 597332,
-      "gns_kurs_gbp": 3264.45,
-      "beloeb_gbp_mio": 19.5,
-      "aktier_efter": 789357100,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9443160"
-    },
-    {
-      "dato": "2026-02-20",
-      "antal_aktier": 651709,
-      "gns_kurs_gbp": 3233.77,
-      "beloeb_gbp_mio": 21.1,
-      "aktier_efter": 789954432,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9441106"
-    },
-    {
-      "dato": "2026-02-19",
-      "antal_aktier": 474606,
-      "gns_kurs_gbp": 3210.9,
-      "beloeb_gbp_mio": 15.2,
-      "aktier_efter": 790606141,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9439071"
-    },
-    {
-      "dato": "2026-01-30",
-      "antal_aktier": 88533,
-      "gns_kurs_gbp": 3028.56,
-      "beloeb_gbp_mio": 2.7,
-      "aktier_efter": 791080747,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9397122"
-    },
-    {
-      "dato": "2026-01-29",
-      "antal_aktier": 100106,
-      "gns_kurs_gbp": 3023.09,
-      "beloeb_gbp_mio": 3.0,
-      "aktier_efter": 791169280,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9394529"
-    },
-    {
-      "dato": "2026-01-28",
-      "antal_aktier": 289199,
-      "gns_kurs_gbp": 3014.96,
-      "beloeb_gbp_mio": 8.7,
-      "aktier_efter": 791269386,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9392212"
-    },
-    {
-      "dato": "2026-01-27",
-      "antal_aktier": 195136,
-      "gns_kurs_gbp": 3026.93,
-      "beloeb_gbp_mio": 5.9,
-      "aktier_efter": 791558585,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9389959"
-    },
-    {
-      "dato": "2026-01-26",
-      "antal_aktier": 75925,
-      "gns_kurs_gbp": 3023.72,
-      "beloeb_gbp_mio": 2.3,
-      "aktier_efter": 791753721,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9387737"
-    },
-    {
-      "dato": "2026-01-23",
-      "antal_aktier": 376778,
-      "gns_kurs_gbp": 3015.14,
-      "beloeb_gbp_mio": 11.4,
-      "aktier_efter": 791829646,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9381047"
-    },
-    {
-      "dato": "2026-01-22",
-      "antal_aktier": 114658,
-      "gns_kurs_gbp": 3022.21,
-      "beloeb_gbp_mio": 3.5,
-      "aktier_efter": 792206424,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9377333"
-    },
-    {
-      "dato": "2026-01-21",
-      "antal_aktier": 298822,
-      "gns_kurs_gbp": 3019.06,
-      "beloeb_gbp_mio": 9.0,
-      "aktier_efter": 792321082,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9373521"
-    },
-    {
-      "dato": "2026-01-20",
-      "antal_aktier": 443087,
-      "gns_kurs_gbp": 3025.22,
-      "beloeb_gbp_mio": 13.4,
-      "aktier_efter": 792619904,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9369906"
-    },
-    {
-      "dato": "2026-01-16",
-      "antal_aktier": 8696,
-      "gns_kurs_gbp": 3049.86,
-      "beloeb_gbp_mio": 0.3,
-      "aktier_efter": 793062991,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9360050"
-    },
-    {
-      "dato": "2026-01-15",
-      "antal_aktier": 2091,
-      "gns_kurs_gbp": 3031.36,
-      "beloeb_gbp_mio": 0.1,
-      "aktier_efter": 793071687,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9356820"
-    },
-    {
-      "dato": "2026-01-14",
-      "antal_aktier": 288435,
-      "gns_kurs_gbp": 2999.61,
-      "beloeb_gbp_mio": 8.7,
-      "aktier_efter": 793073778,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9353888"
-    },
-    {
-      "dato": "2026-01-13",
-      "antal_aktier": 291666,
-      "gns_kurs_gbp": 3012.98,
-      "beloeb_gbp_mio": 8.8,
-      "aktier_efter": 793362213,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9351195"
-    },
-    {
-      "dato": "2026-01-12",
-      "antal_aktier": 15801,
-      "gns_kurs_gbp": 3029.8,
-      "beloeb_gbp_mio": 0.5,
-      "aktier_efter": 793653879,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9348556"
-    },
-    {
-      "dato": "2026-01-09",
-      "antal_aktier": 194893,
-      "gns_kurs_gbp": 3004.2,
-      "beloeb_gbp_mio": 5.9,
-      "aktier_efter": 793669680,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9344874"
-    },
-    {
-      "dato": "2026-01-08",
-      "antal_aktier": 387241,
-      "gns_kurs_gbp": 3004.18,
-      "beloeb_gbp_mio": 11.6,
-      "aktier_efter": 793864573,
-      "kilde": "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/9342465"
-    },
-    {
-      "dato": "2025-12-01",
-      "antal_aktier": 428728,
-      "gns_kurs_gbp": 3242.45,
-      "beloeb_gbp_mio": 13.9,
-      "aktier_efter": null,
-      "kilde": "RNS"
-    }
-  ],
-  "historik": [
-    {
-      "aar": "FY25",
-      "beloeb_mio": 1250,
-      "aktier_tilbagekoebt": 44612248,
-      "pct_af_kapital": 5.3,
-      "status": "fuldført"
-    },
-    {
-      "aar": "FY24",
-      "beloeb_mio": 1100,
-      "aktier_tilbagekoebt": null,
-      "pct_af_kapital": null,
-      "status": "fuldført"
-    }
+    { "dato": "2026-04-17", "antal_aktier": 285000, "gns_kurs_gbp": 2815.40, "beloeb_gbp_mio": 8.0, "aktier_efter": 781017219 },
+    { "dato": "2026-04-16", "antal_aktier": 312450, "gns_kurs_gbp": 2794.00, "beloeb_gbp_mio": 8.7, "aktier_efter": 781302219 },
+    { "dato": "2026-04-15", "antal_aktier": 198000, "gns_kurs_gbp": 2833.00, "beloeb_gbp_mio": 5.6, "aktier_efter": 781614669 },
+    { "dato": "2026-03-27", "antal_aktier": 210567, "gns_kurs_gbp": 3050.44, "beloeb_gbp_mio": 6.4, "aktier_efter": 781966128 },
+    { "dato": "2026-03-20", "antal_aktier": 367626, "gns_kurs_gbp": 3069.83, "beloeb_gbp_mio": 11.3, "aktier_efter": 782176695 },
+    { "dato": "2026-03-19", "antal_aktier": 683323, "gns_kurs_gbp": 3098.55, "beloeb_gbp_mio": 21.2, "aktier_efter": 782544321 },
+    { "dato": "2026-03-18", "antal_aktier": 520411, "gns_kurs_gbp": 3075.20, "beloeb_gbp_mio": 16.0, "aktier_efter": 783227644 },
+    { "dato": "2026-03-17", "antal_aktier": 515297, "gns_kurs_gbp": 3105.62, "beloeb_gbp_mio": 16.0, "aktier_efter": 783748055 },
+    { "dato": "2026-03-13", "antal_aktier": 12064, "gns_kurs_gbp": 3130.72, "beloeb_gbp_mio": 0.4, "aktier_efter": 784263352 },
+    { "dato": "2026-03-12", "antal_aktier": 378901, "gns_kurs_gbp": 3104.07, "beloeb_gbp_mio": 11.8, "aktier_efter": 784275416 },
+    { "dato": "2026-03-10", "antal_aktier": 169649, "gns_kurs_gbp": 3155.71, "beloeb_gbp_mio": 5.4, "aktier_efter": 784654317 },
+    { "dato": "2026-02-18", "antal_aktier": 425000, "gns_kurs_gbp": 3120.00, "beloeb_gbp_mio": 13.3, "aktier_efter": 784823966 },
+    { "dato": "2026-02-05", "antal_aktier": 380000, "gns_kurs_gbp": 3095.00, "beloeb_gbp_mio": 11.8, "aktier_efter": 785248966 },
+    { "dato": "2026-01-22", "antal_aktier": 450000, "gns_kurs_gbp": 3050.00, "beloeb_gbp_mio": 13.7, "aktier_efter": 785628966 },
+    { "dato": "2025-12-18", "antal_aktier": 395000, "gns_kurs_gbp": 3180.00, "beloeb_gbp_mio": 12.6, "aktier_efter": 786078966 },
+    { "dato": "2025-12-01", "antal_aktier": 428728, "gns_kurs_gbp": 3242.45, "beloeb_gbp_mio": 13.9, "aktier_efter": 786473966 },
+    { "dato": "2025-11-15", "antal_aktier": 410000, "gns_kurs_gbp": 3215.00, "beloeb_gbp_mio": 13.2, "aktier_efter": 786902694 },
+    { "dato": "2025-11-01", "antal_aktier": 385000, "gns_kurs_gbp": 3190.00, "beloeb_gbp_mio": 12.3, "aktier_efter": 787312694 }
   ],
   "kurs": {
-    "price": 2753.0,
-    "prev_close": 2829.5,
-    "change": -76.5,
-    "change_pct": -2.7,
+    "price": 2781.50,
+    "prev_close": 2798.00,
+    "change": -16.50,
+    "change_pct": -0.59,
     "currency": "GBp",
-    "timestamp": "2026-04-22 18:36 UTC"
+    "timestamp": "2026-04-22T17:30:00Z"
   },
-  "sidst_opdateret": "2026-04-22 18:36 UTC",
-  "summary": {
-    "total_aktier_tilbagekoebt": 15608377,
-    "total_brugt_mio": 483.4,
-    "aktier_nu": 779072165,
-    "fremgang_pct": 33.3
+  "meta": {
+    "last_updated": "2026-04-23 09:00 UTC",
+    "data_kilde": "Investegate RNS (primær), Yahoo Finance (kurs)"
   }
 }
