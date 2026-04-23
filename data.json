@@ -27,7 +27,7 @@
     }
   },
   "fundamentals": {
-    "fy25_eps_basic_gbp": 3.20,
+    "fy25_eps_basic_gbp": 3.2,
     "fy25_eps_adjusted_gbp": 3.08,
     "fy26e_eps_consensus_gbp": 3.41,
     "fy25_fcf_mio_gbp": 2400,
@@ -38,35 +38,143 @@
     "fy25_aktier_tilbagekoebt": 44612248
   },
   "transaktioner": [
-    { "dato": "2026-04-17", "antal_aktier": 285000, "gns_kurs_gbp": 2815.40, "beloeb_gbp_mio": 8.0, "aktier_efter": 781017219 },
-    { "dato": "2026-04-16", "antal_aktier": 312450, "gns_kurs_gbp": 2794.00, "beloeb_gbp_mio": 8.7, "aktier_efter": 781302219 },
-    { "dato": "2026-04-15", "antal_aktier": 198000, "gns_kurs_gbp": 2833.00, "beloeb_gbp_mio": 5.6, "aktier_efter": 781614669 },
-    { "dato": "2026-03-27", "antal_aktier": 210567, "gns_kurs_gbp": 3050.44, "beloeb_gbp_mio": 6.4, "aktier_efter": 781966128 },
-    { "dato": "2026-03-20", "antal_aktier": 367626, "gns_kurs_gbp": 3069.83, "beloeb_gbp_mio": 11.3, "aktier_efter": 782176695 },
-    { "dato": "2026-03-19", "antal_aktier": 683323, "gns_kurs_gbp": 3098.55, "beloeb_gbp_mio": 21.2, "aktier_efter": 782544321 },
-    { "dato": "2026-03-18", "antal_aktier": 520411, "gns_kurs_gbp": 3075.20, "beloeb_gbp_mio": 16.0, "aktier_efter": 783227644 },
-    { "dato": "2026-03-17", "antal_aktier": 515297, "gns_kurs_gbp": 3105.62, "beloeb_gbp_mio": 16.0, "aktier_efter": 783748055 },
-    { "dato": "2026-03-13", "antal_aktier": 12064, "gns_kurs_gbp": 3130.72, "beloeb_gbp_mio": 0.4, "aktier_efter": 784263352 },
-    { "dato": "2026-03-12", "antal_aktier": 378901, "gns_kurs_gbp": 3104.07, "beloeb_gbp_mio": 11.8, "aktier_efter": 784275416 },
-    { "dato": "2026-03-10", "antal_aktier": 169649, "gns_kurs_gbp": 3155.71, "beloeb_gbp_mio": 5.4, "aktier_efter": 784654317 },
-    { "dato": "2026-02-18", "antal_aktier": 425000, "gns_kurs_gbp": 3120.00, "beloeb_gbp_mio": 13.3, "aktier_efter": 784823966 },
-    { "dato": "2026-02-05", "antal_aktier": 380000, "gns_kurs_gbp": 3095.00, "beloeb_gbp_mio": 11.8, "aktier_efter": 785248966 },
-    { "dato": "2026-01-22", "antal_aktier": 450000, "gns_kurs_gbp": 3050.00, "beloeb_gbp_mio": 13.7, "aktier_efter": 785628966 },
-    { "dato": "2025-12-18", "antal_aktier": 395000, "gns_kurs_gbp": 3180.00, "beloeb_gbp_mio": 12.6, "aktier_efter": 786078966 },
-    { "dato": "2025-12-01", "antal_aktier": 428728, "gns_kurs_gbp": 3242.45, "beloeb_gbp_mio": 13.9, "aktier_efter": 786473966 },
-    { "dato": "2025-11-15", "antal_aktier": 410000, "gns_kurs_gbp": 3215.00, "beloeb_gbp_mio": 13.2, "aktier_efter": 786902694 },
-    { "dato": "2025-11-01", "antal_aktier": 385000, "gns_kurs_gbp": 3190.00, "beloeb_gbp_mio": 12.3, "aktier_efter": 787312694 }
+    {
+      "dato": "2026-04-17",
+      "antal_aktier": 285000,
+      "gns_kurs_gbp": 2815.4,
+      "beloeb_gbp_mio": 8.0,
+      "aktier_efter": 781017219
+    },
+    {
+      "dato": "2026-04-16",
+      "antal_aktier": 312450,
+      "gns_kurs_gbp": 2794.0,
+      "beloeb_gbp_mio": 8.7,
+      "aktier_efter": 781302219
+    },
+    {
+      "dato": "2026-04-15",
+      "antal_aktier": 198000,
+      "gns_kurs_gbp": 2833.0,
+      "beloeb_gbp_mio": 5.6,
+      "aktier_efter": 781614669
+    },
+    {
+      "dato": "2026-03-27",
+      "antal_aktier": 210567,
+      "gns_kurs_gbp": 3050.44,
+      "beloeb_gbp_mio": 6.4,
+      "aktier_efter": 781966128
+    },
+    {
+      "dato": "2026-03-20",
+      "antal_aktier": 367626,
+      "gns_kurs_gbp": 3069.83,
+      "beloeb_gbp_mio": 11.3,
+      "aktier_efter": 782176695
+    },
+    {
+      "dato": "2026-03-19",
+      "antal_aktier": 683323,
+      "gns_kurs_gbp": 3098.55,
+      "beloeb_gbp_mio": 21.2,
+      "aktier_efter": 782544321
+    },
+    {
+      "dato": "2026-03-18",
+      "antal_aktier": 520411,
+      "gns_kurs_gbp": 3075.2,
+      "beloeb_gbp_mio": 16.0,
+      "aktier_efter": 783227644
+    },
+    {
+      "dato": "2026-03-17",
+      "antal_aktier": 515297,
+      "gns_kurs_gbp": 3105.62,
+      "beloeb_gbp_mio": 16.0,
+      "aktier_efter": 783748055
+    },
+    {
+      "dato": "2026-03-13",
+      "antal_aktier": 12064,
+      "gns_kurs_gbp": 3130.72,
+      "beloeb_gbp_mio": 0.4,
+      "aktier_efter": 784263352
+    },
+    {
+      "dato": "2026-03-12",
+      "antal_aktier": 378901,
+      "gns_kurs_gbp": 3104.07,
+      "beloeb_gbp_mio": 11.8,
+      "aktier_efter": 784275416
+    },
+    {
+      "dato": "2026-03-10",
+      "antal_aktier": 169649,
+      "gns_kurs_gbp": 3155.71,
+      "beloeb_gbp_mio": 5.4,
+      "aktier_efter": 784654317
+    },
+    {
+      "dato": "2026-02-18",
+      "antal_aktier": 425000,
+      "gns_kurs_gbp": 3120.0,
+      "beloeb_gbp_mio": 13.3,
+      "aktier_efter": 784823966
+    },
+    {
+      "dato": "2026-02-05",
+      "antal_aktier": 380000,
+      "gns_kurs_gbp": 3095.0,
+      "beloeb_gbp_mio": 11.8,
+      "aktier_efter": 785248966
+    },
+    {
+      "dato": "2026-01-22",
+      "antal_aktier": 450000,
+      "gns_kurs_gbp": 3050.0,
+      "beloeb_gbp_mio": 13.7,
+      "aktier_efter": 785628966
+    },
+    {
+      "dato": "2025-12-18",
+      "antal_aktier": 395000,
+      "gns_kurs_gbp": 3180.0,
+      "beloeb_gbp_mio": 12.6,
+      "aktier_efter": 786078966
+    },
+    {
+      "dato": "2025-12-01",
+      "antal_aktier": 428728,
+      "gns_kurs_gbp": 3242.45,
+      "beloeb_gbp_mio": 13.9,
+      "aktier_efter": 786473966
+    },
+    {
+      "dato": "2025-11-15",
+      "antal_aktier": 410000,
+      "gns_kurs_gbp": 3215.0,
+      "beloeb_gbp_mio": 13.2,
+      "aktier_efter": 786902694
+    },
+    {
+      "dato": "2025-11-01",
+      "antal_aktier": 385000,
+      "gns_kurs_gbp": 3190.0,
+      "beloeb_gbp_mio": 12.3,
+      "aktier_efter": 787312694
+    }
   ],
   "kurs": {
-    "price": 2781.50,
-    "prev_close": 2798.00,
-    "change": -16.50,
-    "change_pct": -0.59,
+    "price": 2762.0,
+    "prev_close": 2753.0,
+    "change": 9.0,
+    "change_pct": 0.33,
     "currency": "GBp",
-    "timestamp": "2026-04-22T17:30:00Z"
+    "timestamp": "2026-04-23T09:23:11+00:00Z"
   },
   "meta": {
-    "last_updated": "2026-04-23 09:00 UTC",
+    "last_updated": "2026-04-23 09:23 UTC",
     "data_kilde": "Investegate RNS (primær), Yahoo Finance (kurs)"
   }
 }
