@@ -46,19 +46,23 @@ def fetch_html(url: str, timeout: int = 20, retries: int = 2) -> Optional[str]:
         try:
             req = urllib.request.Request(url, headers=HEADERS)
             with urllib.request.urlopen(req, timeout=timeout) as resp:
-                return resp.read().decode("utf-8", errors="replace")
+                body = resp.read().decode("utf-8", errors="replace")
+                if len(body) < 500:
+                    print(f"    ⚠ Suspiciously short response ({len(body)} chars) from {url}")
+                return body
         except urllib.error.HTTPError as e:
             if e.code == 404:
-                return None  # Expected for non-existent IDs during enumeration
+                return None  # Expected during ID enumeration
             if e.code in (429, 503) and attempt < retries:
-                time.sleep(2 ** attempt)  # Exponential backoff
+                time.sleep(2 ** attempt)
                 continue
-            print(f"    ! HTTP {e.code} for {url}")
+            # Log 403 and other errors loudly — they're the ones we can't ignore
+            print(f"    ✗ HTTP {e.code} ({e.reason}) for {url}")
             return None
         except Exception as e:
             if attempt < retries:
                 time.sleep(1)
                 continue
-            print(f"    ! {type(e).__name__}: {e}")
+            print(f"    ✗ {type(e).__name__}: {e} for {url}")
             return None
     return None

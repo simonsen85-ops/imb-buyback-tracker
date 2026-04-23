@@ -35,10 +35,43 @@ def get_latest_rns_ids(max_ids: int = 30) -> list[int]:
         print("  ✗ Could not fetch Investegate company page")
         return []
 
-    # Match any /transaction-in-own-shares/NNNN link
+    print(f"  Fetched {len(html):,} chars from {COMPANY_URL}")
+
+    # Try primary pattern (slash-separated with --imb slug)
     pattern = r'/announcement/rns/imperial-brands--imb/transaction-in-own-shares/(\d+)'
     matches = re.findall(pattern, html, re.IGNORECASE)
-    # Dedup and sort newest first (highest ID)
+
+    # If no matches with primary pattern, try fallback patterns
+    if not matches:
+        print("  ⚠ Primary URL pattern found 0 matches — trying fallbacks")
+        # Fallback 1: any RNS link mentioning transaction-in-own-shares
+        fallback1 = re.findall(r'transaction-in-own-shares[/-](\d{7,})', html, re.IGNORECASE)
+        # Fallback 2: broader RNS link for imperial-brands
+        fallback2 = re.findall(r'imperial-brands[^"\']*?/(\d{7,})', html, re.IGNORECASE)
+        # Diagnostic: count how many /announcement/ links in total
+        all_announcements = re.findall(r'/announcement/rns/([^"\']+)', html, re.IGNORECASE)
+
+        print(f"    Fallback 1 (transaction-in-own-shares): {len(fallback1)} matches")
+        print(f"    Fallback 2 (imperial-brands/ID): {len(fallback2)} matches")
+        print(f"    Any /announcement/rns/ links: {len(all_announcements)} matches")
+
+        if all_announcements:
+            # Show first 3 for debugging
+            print(f"    Sample announcement paths:")
+            for sample in all_announcements[:3]:
+                print(f"      /announcement/rns/{sample[:80]}")
+
+        # Use best fallback available
+        matches = fallback1 or fallback2 or []
+
+    if not matches:
+        # Final diagnostic: what does the HTML actually contain?
+        has_imb = "IMB" in html or "imperial" in html.lower()
+        has_rns = "RNS" in html or "announcement" in html.lower()
+        has_cookie_wall = "cookie" in html.lower() and "accept" in html.lower()
+        has_captcha = "captcha" in html.lower() or "cloudflare" in html.lower()
+        print(f"    HTML content check: IMB={has_imb}, RNS={has_rns}, cookie_wall={has_cookie_wall}, captcha={has_captcha}")
+
     unique = sorted({int(m) for m in matches}, reverse=True)
     return unique[:max_ids]
 
@@ -152,22 +185,43 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
     )
 
 
+def probe_recent_ids(start_id: int = 9535000, window: int = 50) -> list[int]:
+    """
+    Fallback when listing page fails: probe a range of recent IDs directly.
+    We know IDs are sequential (~9534918 at 22/4-2026), so probing
+    start_id-window..start_id finds recent transaction-in-own-shares filings.
+    """
+    print(f"  Probing IDs {start_id-window}..{start_id} directly...")
+    found_ids = []
+    for rns_id in range(start_id, start_id - window, -1):
+        url = ANNOUNCEMENT_URL.format(id=rns_id)
+        html = fetch_html(url)
+        if html and ("transaction in own shares" in html.lower() or "purchased for cancellation" in html.lower()):
+            found_ids.append(rns_id)
+    print(f"    Probe found {len(found_ids)} buyback filings in window")
+    return found_ids
+
+
 def scrape_new_filings(last_known_id: Optional[int] = None,
                         max_lookback: int = 200) -> list[Announcement]:
     """
     Scrape IMB buyback RNS filings newer than `last_known_id`.
-
-    If last_known_id is None (first run): fetch all ~30 from company page listing.
-    Otherwise: enumerate backwards from newest visible ID to last_known_id.
-
-    max_lookback caps total IDs to try (safety for first run).
     """
     latest_ids = get_latest_rns_ids(max_ids=30)
+
+    # Fallback: probe recent IDs if listing failed
     if not latest_ids:
+        print("  ⚠ Listing page gave nothing — falling back to ID probing")
+        # Start probe at a known-good recent ID + some headroom for newer filings
+        probe_start = max(last_known_id + 30, 9535000) if last_known_id else 9535000
+        latest_ids = probe_recent_ids(start_id=probe_start, window=100)
+
+    if not latest_ids:
+        print("  ✗ No RNS IDs discovered by any method")
         return []
 
     newest = latest_ids[0]
-    print(f"  Newest RNS ID on Investegate: {newest}")
+    print(f"  Newest RNS ID discovered: {newest}")
 
     if last_known_id and last_known_id >= newest:
         print(f"  Already up-to-date (last known: {last_known_id})")
