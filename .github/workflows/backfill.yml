@@ -1,0 +1,35 @@
+name: Backfill Historical IMB Buyback Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      num_ids:
+        description: 'Number of RNS IDs to enumerate backwards (400-500 per run)'
+        required: true
+        default: '500'
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run historical backfill
+        run: python scripts/scraper.py --backfill ${{ github.event.inputs.num_ids }}
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.json index.html
+          git diff --staged --quiet || git commit -m "🔙 Backfill ${{ github.event.inputs.num_ids }} historic RNS IDs $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push

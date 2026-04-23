@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """
-IMB Buyback Tracker — HTML Generator
-Genererer index.html fra data.json med alle beregninger bagt ind server-side.
-Samme mønster som FED-trackeren.
+IMB Buyback Tracker — HTML Generator v2
+Multi-program dashboard with client-side filtering.
 
-Kør lokalt: python scripts/build_html.py
-Kører også automatisk i GitHub Actions efter scraper.py.
+Key changes vs v1:
+- Reads data.json with programmer{} dict (not single program{})
+- Embeds ALL transactions (tagged with program) + ALL fundamentals in HTML
+- Renders program selector dropdown — switches view without reload
+- KPI's, charts, table, value flow all recompute in JS on selector change
 """
 
 import json
@@ -16,182 +18,45 @@ ROOT = Path(__file__).parent.parent
 DATA = json.loads((ROOT / "data.json").read_text(encoding="utf-8"))
 
 
-# ═══════════════════════════════════════════════════════════════
-# BEREGNINGER — alt computeres server-side, bages ind i HTML
-# ═══════════════════════════════════════════════════════════════
-
-def compute_metrics(data: dict) -> dict:
-    """Beregn alle key metrics for dashboardet."""
-    tx = sorted(data["transaktioner"], key=lambda t: t["dato"])
-    prog = data["program"]
-    fund = data["fundamentals"]
-
-    # Grundtal
-    total_shares = sum(t["antal_aktier"] for t in tx)
-    total_gbp_mio = sum(t["beloeb_gbp_mio"] for t in tx)
-    # Gns. købskurs i GBp (pence): total £M × 100 (→ pence-mio) × 1e6 (→ pence) / antal aktier
-    avg_price = (total_gbp_mio * 1e6 * 100) / total_shares if total_shares else 0  # GBp
-
-    # Program progress
-    pct_program = (total_gbp_mio / prog["total_gbp_mio"]) * 100
-
-    # Shares outstanding
-    shares_start = fund["aktier_ved_program_start"]
-    shares_now = shares_start - total_shares
-    pct_reduction = (total_shares / shares_start) * 100
-
-    # EPS-accretion (det centrale tal for brugeren)
-    # Modellen: EPS_ny = EPS * (shares_start / shares_now)
-    eps_base = fund["fy26e_eps_consensus_gbp"]
-    eps_new = eps_base * (shares_start / shares_now)
-    eps_accretion_pct = ((eps_new / eps_base) - 1) * 100
-    eps_uplift_gbp = eps_new - eps_base
-
-    # Værdi skabt pr. aktie (i pence) = EPS-løft × 10 × P/E
-    # Men vi bruger den enkle: EPS-løft × antal aktier = total værdi skabt
-    # Værdi skabt i £M = EPS_uplift_pence × shares_now / 1e6 / 100
-    # Nej — værdi skabt = aktier annulleret × fair value pr. aktie
-    # Fair value proxy: FCF pr. aktie × implicit multiple
-    # Simpelt mål: købspris → hvis aktierne havde P/E = 15, er værdi skabt = antal × (15×EPS×100 - avg_price)
-    # Værdi skabt pr. aktie = (fair value − købspris) × antal aktier
-    # Fair value = P/E × EPS. For tobacco er 10× et realistisk mid-cycle multipel.
-    # Aktuel P/E (ved £3.41 EPS og 2.781p): ~8.2× — markedet priser betydelig risiko ind.
-    fair_pe = 10  # konservativt tobacco mid-cycle multipel
-    fair_price_pence = (eps_base * 100) * fair_pe  # £3.41 × 100 = 341p × 10 = 3.410p
-    value_created_mio = total_shares * (fair_price_pence - avg_price) / 100 / 1e6
-
-    # ROIC på buyback = FCF yield på købte aktier
-    # Annual FCF per share = FY25 FCF / shares_now
-    fcf_per_share = (fund["fy25_fcf_mio_gbp"] * 1e6 * 100) / shares_now  # pence
-    roic_on_buyback = (fcf_per_share / avg_price) * 100 if avg_price else 0
-
-    # Live kurs analyse
-    live_price = data["kurs"]["price"]
-    price_vs_avg = ((live_price / avg_price) - 1) * 100 if avg_price else 0
-
-    # Tranche progress
-    t1_spent = min(total_gbp_mio, prog["tranche_1"]["beloeb_mio"])
-    t2_spent = max(0, total_gbp_mio - prog["tranche_1"]["beloeb_mio"])
-    t1_pct = (t1_spent / prog["tranche_1"]["beloeb_mio"]) * 100
-    t2_pct = (t2_spent / prog["tranche_2"]["beloeb_mio"]) * 100
-
-    return {
-        "total_shares": total_shares,
-        "total_gbp_mio": total_gbp_mio,
-        "avg_price_pence": avg_price,
-        "pct_program": pct_program,
-        "shares_start": shares_start,
-        "shares_now": shares_now,
-        "pct_reduction": pct_reduction,
-        "eps_base": eps_base,
-        "eps_new": eps_new,
-        "eps_accretion_pct": eps_accretion_pct,
-        "eps_uplift_gbp": eps_uplift_gbp,
-        "value_created_mio": value_created_mio,
-        "fair_price_pence": fair_price_pence,
-        "fair_pe": fair_pe,
-        "roic_on_buyback": roic_on_buyback,
-        "live_price": live_price,
-        "price_vs_avg": price_vs_avg,
-        "t1_spent": t1_spent,
-        "t2_spent": t2_spent,
-        "t1_pct": t1_pct,
-        "t2_pct": t2_pct,
-        "tx_count": len(tx),
-    }
-
-
-def build_chart_series(data: dict, metrics: dict) -> dict:
-    """Forbered tidsserier til de to charts."""
-    tx = sorted(data["transaktioner"], key=lambda t: t["dato"])
-    fund = data["fundamentals"]
-
-    labels = []
-    price_series = []  # købskurs ved hver transaktion
-    fair_value_series = []  # konstant fair value
-    cumulative_eps_accretion = []  # % akkumuleret EPS-løft
-
-    cum_shares = 0
-    shares_start = fund["aktier_ved_program_start"]
-
-    for t in tx:
-        labels.append(t["dato"])
-        price_series.append(t["gns_kurs_gbp"])
-        fair_value_series.append(metrics["fair_price_pence"])
-
-        cum_shares += t["antal_aktier"]
-        shares_after = shares_start - cum_shares
-        eps_factor = shares_start / shares_after
-        cum_accretion = (eps_factor - 1) * 100
-        cumulative_eps_accretion.append(cum_accretion)
-
-    return {
-        "labels": labels,
-        "price": price_series,
-        "fair_value": fair_value_series,
-        "eps_accretion": cumulative_eps_accretion,
-    }
-
-
-# ═══════════════════════════════════════════════════════════════
-# HTML RENDERING
-# ═══════════════════════════════════════════════════════════════
-
-def fmt_int(n: int) -> str:
-    """1.234.567"""
-    return f"{n:,}".replace(",", ".")
-
-
-def fmt_gbp_mio(n: float) -> str:
-    """£1.234M"""
-    return f"£{n:,.0f}M".replace(",", ".")
-
-
-def fmt_pct(n: float, decimals: int = 2) -> str:
-    return f"{n:+.{decimals}f}%" if n != 0 else f"{n:.{decimals}f}%"
-
-
-def fmt_pence(n: float) -> str:
-    """3.050,44p (dansk format)"""
-    return f"{n:,.2f}p".replace(",", "X").replace(".", ",").replace("X", ".")
-
-
 def fmt_date_da(iso: str) -> str:
-    """2026-03-27 → 27. mar 2026"""
-    d = datetime.fromisoformat(iso)
+    try:
+        d = datetime.fromisoformat(iso[:10])
+    except Exception:
+        return iso
     months = ["jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"]
     return f"{d.day}. {months[d.month - 1]} {d.year}"
 
 
 def render_html(data: dict) -> str:
-    m = compute_metrics(data)
-    series = build_chart_series(data, m)
-    prog = data["program"]
+    programs = data.get("programmer", {})
+    default_prog = data.get("aktuel_program", "FY26")
     kurs = data["kurs"]
+    transactions = data.get("transaktioner", [])
 
-    # Tabel-rows (nyeste først)
-    tx_sorted = sorted(data["transaktioner"], key=lambda t: t["dato"], reverse=True)
-    tx_rows = []
-    for i, t in enumerate(tx_sorted):
-        tx_rows.append(
-            f'<tr>'
-            f'<td class="n">{len(tx_sorted) - i}</td>'
-            f'<td>{fmt_date_da(t["dato"])}</td>'
-            f'<td class="num">{fmt_int(t["antal_aktier"])}</td>'
-            f'<td class="num">{fmt_pence(t["gns_kurs_gbp"])}</td>'
-            f'<td class="num">{fmt_gbp_mio(t["beloeb_gbp_mio"])}</td>'
-            f'<td class="num">{fmt_int(t["aktier_efter"])}</td>'
-            f'</tr>'
-        )
-    tx_table_html = "\n".join(tx_rows)
-
-    # Live price badge klasser
     change_class = "up" if kurs["change"] >= 0 else "dn"
     change_sign = "+" if kurs["change"] >= 0 else ""
 
-    # Price vs avg badge
-    vs_avg_class = "dn" if m["price_vs_avg"] < 0 else "up"
-    vs_avg_label = "UNDER" if m["price_vs_avg"] < 0 else "OVER"
+    # Sort programs: active first, then by year descending
+    prog_order = sorted(
+        programs.keys(),
+        key=lambda k: (programs[k]["status"] != "aktiv", -int(k.replace("FY", "")))
+    )
+
+    # Build program options for dropdown
+    prog_options = ""
+    for p in prog_order:
+        status = programs[p]["status"]
+        badge = " (aktiv)" if status == "aktiv" else f" ({status})"
+        selected = " selected" if p == default_prog else ""
+        prog_options += f'<option value="{p}"{selected}>{p}{badge}</option>\n'
+
+    # Embed data for JS
+    embedded_data = {
+        "programmer": programs,
+        "transaktioner": transactions,
+        "kurs": kurs,
+    }
+    embedded_json = json.dumps(embedded_data, ensure_ascii=False)
 
     html = f"""<!DOCTYPE html>
 <html lang="da">
@@ -205,52 +70,58 @@ def render_html(data: dict) -> str:
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{{
-  /* Tre-farve system — samme som FED */
-  --bg1:#0a0e17;
-  --bg2:#111827;
-  --t1:#e8ecf2;        /* hvid — primære tal */
-  --t2:#b0bac9;        /* lys grå — labels */
-  --t3:#8b99ad;        /* grå — sekundært */
-  --t4:#3d4a5c;        /* mørk grå — borders */
-  --g1:#10b981;        /* grøn — værdiskabelse */
-  --g2:#34d399;
-  --g3:#6ee7b7;
-  --g4:rgba(16,185,129,0.15);
-  --red:#ef4444;
-  --amber:#f59e0b;
+  --bg1:#0a0e17; --bg2:#111827;
+  --t1:#e8ecf2; --t2:#b0bac9; --t3:#8b99ad; --t4:#3d4a5c;
+  --g1:#10b981; --g2:#34d399; --g3:#6ee7b7; --g4:rgba(16,185,129,0.15);
+  --red:#ef4444; --amber:#f59e0b;
   --mono:'JetBrains Mono',monospace;
   --sans:'Outfit',sans-serif;
 }}
 *{{margin:0;padding:0;box-sizing:border-box}}
 body{{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:100vh;font-weight:400;-webkit-font-smoothing:antialiased}}
-
 .c{{max-width:1360px;margin:0 auto;padding:0 24px 48px}}
 
 /* HEADER */
 .hdr{{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;border-bottom:1px solid var(--t4);max-width:1360px;margin:0 auto}}
-.hdr-l{{display:flex;align-items:center;gap:16px}}
 .ticker{{font-family:var(--mono);font-size:26px;font-weight:700;color:var(--t1);letter-spacing:-0.5px}}
 .badge{{display:inline-block;padding:2px 8px;background:var(--t4);color:var(--t2);font-size:10px;font-weight:600;letter-spacing:1px;border-radius:3px;margin-left:6px;vertical-align:middle}}
-.sub{{font-family:var(--sans);font-size:12px;color:var(--t3);margin-top:2px;letter-spacing:0.3px}}
+.sub{{font-size:12px;color:var(--t3);margin-top:2px;letter-spacing:0.3px}}
 .hdr-r{{text-align:right}}
 .price{{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--t1)}}
 .price .cur{{font-size:12px;color:var(--t3);font-weight:400;margin-left:4px}}
 .chg{{font-family:var(--mono);font-size:13px;margin-top:2px}}
-.chg.up{{color:var(--g1)}}
-.chg.dn{{color:var(--red)}}
+.chg.up{{color:var(--g1)}} .chg.dn{{color:var(--red)}}
 .up-ts{{font-size:11px;color:var(--t4);margin-top:4px}}
 
+/* PROGRAM SELECTOR */
+.ps-bar{{display:flex;gap:12px;align-items:center;padding:16px 0 12px;border-bottom:1px solid var(--t4);margin-bottom:20px}}
+.ps-lbl{{font-size:11px;color:var(--t3);letter-spacing:1.2px;text-transform:uppercase;font-weight:600}}
+.ps-sel{{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:8px 36px 8px 14px;color:var(--t1);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b99ad' stroke-width='2.5'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat;background-position:right 12px center;background-size:10px}}
+.ps-sel:focus{{outline:none;border-color:var(--g1)}}
+.ps-sel:hover{{border-color:var(--t3)}}
+.ps-meta{{font-size:11px;color:var(--t3);font-family:var(--mono)}}
+.ps-meta strong{{color:var(--t2)}}
+
 /* PROGRAM BANNER */
-.prog{{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:18px 22px;margin:20px 0 16px;display:flex;justify-content:space-between;align-items:center}}
+.prog{{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:18px 22px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}}
 .prog-t{{font-size:13px;font-weight:600;color:var(--t1);letter-spacing:0.3px}}
 .prog-d{{font-size:11px;color:var(--t3);margin-top:4px}}
 .prog-d strong{{color:var(--t2);font-weight:600}}
-.status{{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--g4);border:1px solid var(--g1);border-radius:3px}}
-.dot{{width:6px;height:6px;background:var(--g1);border-radius:50%;animation:pulse 2s infinite}}
+.status{{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:3px}}
+.status.aktiv{{background:var(--g4);border:1px solid var(--g1)}}
+.status.fuldført{{background:rgba(139,153,173,0.1);border:1px solid var(--t4)}}
+.dot{{width:6px;height:6px;border-radius:50%;animation:pulse 2s infinite}}
+.status.aktiv .dot{{background:var(--g1)}}
+.status.fuldført .dot{{background:var(--t3);animation:none}}
 @keyframes pulse{{0%,100%{{opacity:1}}50%{{opacity:0.4}}}}
-.status-t{{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--g1);letter-spacing:1px}}
+.status-t{{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1px}}
+.status.aktiv .status-t{{color:var(--g1)}}
+.status.fuldført .status-t{{color:var(--t3)}}
 
-/* TRANCHE PROGRESS — erstatter historik-kort */
+/* TRANCHES (kun for FY26) */
 .tranches{{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--t4);border:1px solid var(--t4);border-radius:4px;margin-bottom:16px;overflow:hidden}}
 .tr{{background:var(--bg2);padding:14px 18px}}
 .tr-h{{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}}
@@ -259,8 +130,9 @@ body{{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:1
 .tr-bar{{height:4px;background:var(--bg1);border-radius:2px;overflow:hidden;margin:6px 0 4px}}
 .tr-bar-f{{height:100%;background:var(--g1);border-radius:2px;transition:width 0.6s ease}}
 .tr-meta{{font-size:10px;color:var(--t3);font-family:var(--mono)}}
+.tranches.hide{{display:none}}
 
-/* KPI GRID — 4 kerne-tal */
+/* KPI GRID */
 .kpis{{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--t4);border:1px solid var(--t4);border-radius:4px;margin-bottom:16px;overflow:hidden}}
 .kpi{{background:var(--bg2);padding:14px 18px}}
 .kpi-l{{font-size:10px;color:var(--t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:500}}
@@ -268,7 +140,7 @@ body{{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:1
 .kpi-v.grn{{color:var(--g1)}}
 .kpi-s{{font-size:11px;color:var(--t3);margin-top:4px;font-family:var(--mono)}}
 
-/* VALUE CREATION FLOW — det centrale narrativ */
+/* VALUE CREATION FLOW */
 .vc-h{{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin:8px 0 10px}}
 .vc{{display:grid;grid-template-columns:1fr auto 1fr auto 1fr auto 1fr;gap:8px;align-items:stretch;margin-bottom:16px}}
 .vc-b{{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;justify-content:center}}
@@ -279,7 +151,7 @@ body{{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:1
 .vc-bs{{font-size:10px;color:var(--t3);margin-top:4px;font-family:var(--mono)}}
 .vc-ar{{display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:16px;color:var(--t4);font-weight:300}}
 
-/* CHARTS — kun to */
+/* CHARTS */
 .charts{{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}}
 .ch{{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:14px 16px}}
 .ch-h{{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}}
@@ -289,7 +161,8 @@ body{{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:1
 /* TABLE */
 .tc{{background:var(--bg2);border:1px solid var(--t4);border-radius:4px;padding:14px 16px;margin-bottom:16px;overflow:hidden}}
 .ts{{overflow-x:auto;max-width:100%}}
-.t-h{{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px}}
+.t-h{{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}}
+.t-h span{{color:var(--t4);font-weight:400}}
 table{{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}}
 th{{text-align:left;padding:8px 10px;font-size:10px;color:var(--t3);letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid var(--t4);font-weight:500;white-space:nowrap}}
 th.num{{text-align:right}}
@@ -311,8 +184,7 @@ tr:hover td{{background:rgba(16,185,129,0.03)}}
   .kpis{{grid-template-columns:repeat(2,1fr)}}
   .vc{{grid-template-columns:1fr;gap:6px}}
   .vc-ar{{transform:rotate(90deg);padding:4px 0}}
-  .ticker{{font-size:22px}}
-  .price{{font-size:20px}}
+  .ticker{{font-size:22px}} .price{{font-size:20px}}
 }}
 @media (max-width:600px){{
   .kpis{{grid-template-columns:1fr}}
@@ -322,11 +194,9 @@ tr:hover td{{background:rgba(16,185,129,0.03)}}
 <body>
 
 <header class="hdr">
-  <div class="hdr-l">
-    <div>
-      <div class="ticker">IMB<span class="badge">LSE</span></div>
-      <div class="sub">Imperial Brands PLC · Buyback Tracker</div>
-    </div>
+  <div>
+    <div class="ticker">IMB<span class="badge">LSE</span></div>
+    <div class="sub">Imperial Brands PLC · Buyback Tracker</div>
   </div>
   <div class="hdr-r">
     <div class="price" id="live-price">{kurs["price"]:,.2f}<span class="cur">GBp</span></div>
@@ -337,91 +207,32 @@ tr:hover td{{background:rgba(16,185,129,0.03)}}
 
 <div class="c">
 
+  <!-- PROGRAM SELECTOR -->
+  <div class="ps-bar">
+    <span class="ps-lbl">Program</span>
+    <select class="ps-sel" id="progSel">
+      {prog_options}
+    </select>
+    <span class="ps-meta" id="progMeta"></span>
+  </div>
+
   <!-- PROGRAM BANNER -->
-  <div class="prog">
-    <div>
-      <div class="prog-t">{prog["navn"]}</div>
-      <div class="prog-d">Annonceret <strong>{fmt_date_da(prog["annonceret"])}</strong> · Frist <strong>{fmt_date_da(prog["frist"])}</strong> · Mægler T1: <strong>{prog["maegler_t1"]}</strong></div>
-    </div>
-    <div class="status"><div class="dot"></div><span class="status-t">AKTIV</span></div>
-  </div>
+  <div class="prog" id="progBanner"></div>
 
-  <!-- TRANCHE PROGRESS -->
-  <div class="tranches">
-    <div class="tr">
-      <div class="tr-h">
-        <span class="tr-n">Tranche 1 · Morgan Stanley</span>
-        <span class="tr-amt">£{m["t1_spent"]:.0f}M / £{prog["tranche_1"]["beloeb_mio"]}M</span>
-      </div>
-      <div class="tr-bar"><div class="tr-bar-f" style="width:{min(m["t1_pct"],100):.1f}%"></div></div>
-      <div class="tr-meta">{fmt_date_da(prog["tranche_1"]["start"])} → {fmt_date_da(prog["tranche_1"]["slut"])} · {m["t1_pct"]:.1f}% fuldført</div>
-    </div>
-    <div class="tr">
-      <div class="tr-h">
-        <span class="tr-n">Tranche 2</span>
-        <span class="tr-amt">£{m["t2_spent"]:.0f}M / £{prog["tranche_2"]["beloeb_mio"]}M</span>
-      </div>
-      <div class="tr-bar"><div class="tr-bar-f" style="width:{min(m["t2_pct"],100):.1f}%"></div></div>
-      <div class="tr-meta">Start {fmt_date_da(prog["tranche_2"]["start"])} · Slut {fmt_date_da(prog["tranche_2"]["slut"])}</div>
-    </div>
-  </div>
+  <!-- TRANCHE PROGRESS (kun FY26) -->
+  <div class="tranches" id="tranches"></div>
 
-  <!-- KPI GRID — 4 kerne-tal -->
-  <div class="kpis">
-    <div class="kpi">
-      <div class="kpi-l">Tilbagekøbt</div>
-      <div class="kpi-v grn">£{m["total_gbp_mio"]:.0f}M</div>
-      <div class="kpi-s">{m["pct_program"]:.1f}% af £{prog["total_gbp_mio"]}M program</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-l">Aktier annulleret</div>
-      <div class="kpi-v">{m["total_shares"]/1e6:.2f}M</div>
-      <div class="kpi-s">{m["pct_reduction"]:.2f}% af kapital</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-l">EPS-accretion</div>
-      <div class="kpi-v grn">+{m["eps_accretion_pct"]:.2f}%</div>
-      <div class="kpi-s">£{m["eps_uplift_gbp"]:.3f}/aktie</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-l">ROIC på buyback</div>
-      <div class="kpi-v grn">{m["roic_on_buyback"]:.1f}%</div>
-      <div class="kpi-s">FCF-yield på købte aktier</div>
-    </div>
-  </div>
+  <!-- KPI GRID -->
+  <div class="kpis" id="kpis"></div>
 
   <!-- VALUE CREATION FLOW -->
   <div class="vc-h">Værdiskabelse · sekventielt flow</div>
-  <div class="vc">
-    <div class="vc-b">
-      <div class="vc-bl">Købt tilbage</div>
-      <div class="vc-bv">£{m["total_gbp_mio"]:.0f}M</div>
-      <div class="vc-bs">gns. {fmt_pence(m["avg_price_pence"])}</div>
-    </div>
-    <div class="vc-ar">→</div>
-    <div class="vc-b">
-      <div class="vc-bl">Aktier væk</div>
-      <div class="vc-bv">{m["total_shares"]/1e6:.2f}M</div>
-      <div class="vc-bs">{m["pct_reduction"]:.2f}% af kapital</div>
-    </div>
-    <div class="vc-ar">→</div>
-    <div class="vc-b">
-      <div class="vc-bl">EPS-løft</div>
-      <div class="vc-bv">+{m["eps_accretion_pct"]:.2f}%</div>
-      <div class="vc-bs">fra £{m["eps_base"]:.2f} til £{m["eps_new"]:.3f}</div>
-    </div>
-    <div class="vc-ar">→</div>
-    <div class="vc-b end">
-      <div class="vc-bl">Værdi skabt</div>
-      <div class="vc-bv">£{m["value_created_mio"]:.0f}M</div>
-      <div class="vc-bs">ved P/E {m["fair_pe"]}x på EPS</div>
-    </div>
-  </div>
+  <div class="vc" id="vcFlow"></div>
 
-  <!-- CHARTS — kun to -->
+  <!-- CHARTS -->
   <div class="charts">
     <div class="ch">
-      <div class="ch-h">Købskurs vs. Fair Value<span>P/E {m["fair_pe"]}× på FY26E EPS</span></div>
+      <div class="ch-h">Købskurs vs. Fair Value<span id="chFairPe"></span></div>
       <div class="ch-w"><canvas id="priceChart"></canvas></div>
     </div>
     <div class="ch">
@@ -432,7 +243,10 @@ tr:hover td{{background:rgba(16,185,129,0.03)}}
 
   <!-- TRANSACTION TABLE -->
   <div class="tc">
-    <div class="t-h">Transaktioner · {m["tx_count"]} RNS-filings (nyeste først)</div>
+    <div class="t-h">
+      <span>Transaktioner · RNS-filings</span>
+      <span id="txCount"></span>
+    </div>
     <div class="ts">
       <table>
         <thead>
@@ -445,130 +259,296 @@ tr:hover td{{background:rgba(16,185,129,0.03)}}
             <th class="num">Aktier efter</th>
           </tr>
         </thead>
-        <tbody>{tx_table_html}</tbody>
+        <tbody id="txBody"></tbody>
       </table>
     </div>
   </div>
 
   <!-- ASSUMPTION BOX -->
-  <div class="as">
-    <strong>Antagelser:</strong> EPS-accretion beregnet som EPS_ny / EPS_base hvor EPS_base = FY26E konsensus £{m["eps_base"]:.2f}.
-    Værdi skabt = antal annullerede aktier × (fair value − gns. købskurs), fair value = {m["fair_pe"]}× FY26E EPS = {fmt_pence(m["fair_price_pence"])}.
-    ROIC på buyback = FY25 FCF/aktie ÷ gns. købskurs = implicit FCF-yield vi "køber".
-    <strong>Aktier ved programstart:</strong> {fmt_int(m["shares_start"])}. <strong>Aktier nu:</strong> {fmt_int(m["shares_now"])}.
-  </div>
+  <div class="as" id="assumptions"></div>
 
 </div>
 
 <div class="foot">
-  Sidst opdateret {data["meta"]["last_updated"]} · Data: {data["meta"]["data_kilde"]} ·
+  Sidst opdateret {data["meta"]["last_updated"]} · Data: {data["meta"].get("data_kilde","")} ·
   <a href="https://github.com/simonsen85-ops/imb-buyback-tracker">GitHub</a>
 </div>
 
 <script>
-const series = {json.dumps(series)};
+const DATA = {embedded_json};
 
-Chart.defaults.font.family = "'JetBrains Mono', monospace";
-Chart.defaults.font.size = 10;
-Chart.defaults.color = '#8b99ad';
-Chart.defaults.borderColor = '#3d4a5c';
+// ── Utilities ──
+const fmtInt = n => n.toLocaleString('da-DK').replace(/,/g, '.');
+const fmtPence = n => n.toLocaleString('da-DK', {{minimumFractionDigits:2,maximumFractionDigits:2}}).replace(/,/g,'.') + 'p';
+const fmtDate = iso => {{
+  const d = new Date(iso);
+  const months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  return `${{d.getDate()}}. ${{months[d.getMonth()]}} ${{d.getFullYear()}}`;
+}};
+const fmtGbpMio = n => `£${{n.toFixed(0)}}M`;
 
-const gridCfg = {{ color: 'rgba(61,74,92,0.3)', drawBorder: false }};
-const ticksCfg = {{ color: '#8b99ad', font: {{ size: 9 }} }};
+// ── Core: compute metrics for a selected program ──
+function computeMetrics(progKey) {{
+  const prog = DATA.programmer[progKey];
+  const fund = prog.fundamentals;
+  const tx = DATA.transaktioner.filter(t => t.program === progKey);
+  tx.sort((a,b) => a.dato.localeCompare(b.dato));
 
-// Chart 1 — Købskurs vs Fair Value
-new Chart(document.getElementById('priceChart'), {{
-  type: 'line',
-  data: {{
-    labels: series.labels,
-    datasets: [
-      {{
-        label: 'Købskurs (GBp)',
-        data: series.price,
-        borderColor: '#e8ecf2',
-        backgroundColor: 'rgba(232,236,242,0.05)',
-        borderWidth: 2,
-        pointRadius: 3,
-        pointBackgroundColor: '#e8ecf2',
-        tension: 0.2,
-        fill: false
+  const totalShares = tx.reduce((s,t) => s + t.antal_aktier, 0);
+  const totalGbpMio = tx.reduce((s,t) => s + t.beloeb_gbp_mio, 0);
+  const avgPrice = totalShares > 0 ? (totalGbpMio * 1e6 * 100) / totalShares : 0;
+
+  const pctProgram = (totalGbpMio / prog.total_gbp_mio) * 100;
+  const sharesStart = fund.aktier_ved_start;
+  const sharesNow = sharesStart - totalShares;
+  const pctReduction = sharesStart > 0 ? (totalShares / sharesStart) * 100 : 0;
+
+  const epsBase = fund.eps_adjusted_gbp;
+  const epsNew = sharesNow > 0 ? epsBase * (sharesStart / sharesNow) : epsBase;
+  const epsAccretionPct = ((epsNew / epsBase) - 1) * 100;
+  const epsUplift = epsNew - epsBase;
+
+  const fairPe = fund.fair_pe || 10;
+  const fairPricePence = epsBase * 100 * fairPe;
+  const valueCreatedMio = totalShares * (fairPricePence - avgPrice) / 100 / 1e6;
+
+  const fcfPerShare = sharesNow > 0 ? (fund.fcf_mio_gbp * 1e6 * 100) / sharesNow : 0;
+  const roicOnBuyback = avgPrice > 0 ? (fcfPerShare / avgPrice) * 100 : 0;
+
+  return {{
+    prog, fund, tx,
+    totalShares, totalGbpMio, avgPrice,
+    pctProgram, sharesStart, sharesNow, pctReduction,
+    epsBase, epsNew, epsAccretionPct, epsUplift,
+    fairPe, fairPricePence, valueCreatedMio,
+    roicOnBuyback,
+    txCount: tx.length,
+  }};
+}}
+
+// ── Chart instances (so we can destroy/recreate on program change) ──
+let priceChart = null, epsChart = null;
+
+function renderCharts(m) {{
+  const gridCfg = {{ color:'rgba(61,74,92,0.3)', drawBorder:false }};
+  const ticksCfg = {{ color:'#8b99ad', font:{{size:9}} }};
+
+  const labels = m.tx.map(t => t.dato);
+  const prices = m.tx.map(t => t.gns_kurs_gbp);
+  const fairVals = m.tx.map(() => m.fairPricePence);
+
+  // Cumulative EPS-accretion series
+  let cumShares = 0;
+  const cumAccretion = m.tx.map(t => {{
+    cumShares += t.antal_aktier;
+    const sharesAfter = m.sharesStart - cumShares;
+    if (sharesAfter <= 0) return 0;
+    return ((m.sharesStart / sharesAfter) - 1) * 100;
+  }});
+
+  if (priceChart) priceChart.destroy();
+  if (epsChart) epsChart.destroy();
+
+  priceChart = new Chart(document.getElementById('priceChart'), {{
+    type: 'line',
+    data: {{
+      labels,
+      datasets: [
+        {{ label:'Købskurs (GBp)', data:prices, borderColor:'#e8ecf2',
+           backgroundColor:'rgba(232,236,242,0.05)', borderWidth:2, pointRadius:3,
+           pointBackgroundColor:'#e8ecf2', tension:0.2, fill:false }},
+        {{ label:`Fair Value (P/E ${{m.fairPe}}×)`, data:fairVals, borderColor:'#10b981',
+           borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }}
+      ]
+    }},
+    options: {{
+      responsive:true, maintainAspectRatio:false,
+      interaction: {{ mode:'index', intersect:false }},
+      plugins: {{
+        legend: {{ display:true, position:'bottom',
+          labels: {{ color:'#b0bac9', boxWidth:12, boxHeight:2, font:{{size:10}} }} }},
+        tooltip: {{
+          backgroundColor:'#0a0e17', titleColor:'#e8ecf2', bodyColor:'#b0bac9',
+          borderColor:'#3d4a5c', borderWidth:1,
+          callbacks: {{ label: ctx => `${{ctx.dataset.label}}: ${{ctx.parsed.y.toFixed(2)}}p` }}
+        }}
       }},
-      {{
-        label: 'Fair Value (P/E {m["fair_pe"]}×)',
-        data: series.fair_value,
-        borderColor: '#10b981',
-        borderWidth: 1.5,
-        borderDash: [6, 4],
-        pointRadius: 0,
-        fill: false
+      scales: {{
+        x: {{ grid:gridCfg, ticks:{{...ticksCfg,maxRotation:0,maxTicksLimit:8}} }},
+        y: {{ grid:gridCfg, ticks:{{...ticksCfg, callback:v => v.toFixed(0)+'p'}} }}
       }}
-    ]
-  }},
-  options: {{
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {{ mode: 'index', intersect: false }},
-    plugins: {{
-      legend: {{ display: true, position: 'bottom', labels: {{ color: '#b0bac9', boxWidth: 12, boxHeight: 2, font: {{ size: 10 }} }} }},
-      tooltip: {{
-        backgroundColor: '#0a0e17',
-        titleColor: '#e8ecf2',
-        bodyColor: '#b0bac9',
-        borderColor: '#3d4a5c',
-        borderWidth: 1,
-        callbacks: {{
-          label: ctx => `${{ctx.dataset.label}}: ${{ctx.parsed.y.toFixed(2)}}p`
-        }}
-      }}
-    }},
-    scales: {{
-      x: {{ grid: gridCfg, ticks: {{ ...ticksCfg, maxRotation: 0, maxTicksLimit: 8 }} }},
-      y: {{ grid: gridCfg, ticks: {{ ...ticksCfg, callback: v => v.toFixed(0) + 'p' }} }}
     }}
-  }}
-}});
+  }});
 
-// Chart 2 — Akkumuleret EPS-accretion
-new Chart(document.getElementById('epsChart'), {{
-  type: 'line',
-  data: {{
-    labels: series.labels,
-    datasets: [{{
-      label: 'Kumulativ EPS-accretion (%)',
-      data: series.eps_accretion,
-      borderColor: '#10b981',
-      backgroundColor: 'rgba(16,185,129,0.12)',
-      borderWidth: 2,
-      pointRadius: 3,
-      pointBackgroundColor: '#10b981',
-      tension: 0.2,
-      fill: true
-    }}]
-  }},
-  options: {{
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {{
-      legend: {{ display: false }},
-      tooltip: {{
-        backgroundColor: '#0a0e17',
-        titleColor: '#e8ecf2',
-        bodyColor: '#b0bac9',
-        borderColor: '#3d4a5c',
-        borderWidth: 1,
-        callbacks: {{
-          label: ctx => `+${{ctx.parsed.y.toFixed(3)}}% EPS-løft`
-        }}
-      }}
+  epsChart = new Chart(document.getElementById('epsChart'), {{
+    type:'line',
+    data: {{
+      labels,
+      datasets: [{{
+        label:'Kumulativ EPS-accretion (%)', data:cumAccretion,
+        borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.12)',
+        borderWidth:2, pointRadius:3, pointBackgroundColor:'#10b981',
+        tension:0.2, fill:true
+      }}]
     }},
-    scales: {{
-      x: {{ grid: gridCfg, ticks: {{ ...ticksCfg, maxRotation: 0, maxTicksLimit: 8 }} }},
-      y: {{ grid: gridCfg, ticks: {{ ...ticksCfg, callback: v => '+' + v.toFixed(2) + '%' }} }}
+    options: {{
+      responsive:true, maintainAspectRatio:false,
+      plugins: {{
+        legend: {{ display:false }},
+        tooltip: {{
+          backgroundColor:'#0a0e17', titleColor:'#e8ecf2', bodyColor:'#b0bac9',
+          borderColor:'#3d4a5c', borderWidth:1,
+          callbacks: {{ label: ctx => `+${{ctx.parsed.y.toFixed(3)}}% EPS-løft` }}
+        }}
+      }},
+      scales: {{
+        x: {{ grid:gridCfg, ticks:{{...ticksCfg, maxRotation:0, maxTicksLimit:8}} }},
+        y: {{ grid:gridCfg, ticks:{{...ticksCfg, callback:v => '+'+v.toFixed(2)+'%'}} }}
+      }}
     }}
-  }}
-}});
+  }});
+}}
 
-// Live kurs-opdatering fra Yahoo Finance
+// ── Main render function ──
+function render(progKey) {{
+  const m = computeMetrics(progKey);
+  const p = m.prog;
+
+  // Program meta text
+  document.getElementById('progMeta').innerHTML =
+    `<strong>${{p.total_gbp_mio}}M</strong> £ program · ` +
+    `<strong>${{fmtDate(p.annonceret)}}</strong> → ` +
+    `<strong>${{fmtDate(p.frist)}}</strong> · ` +
+    `Status: <strong>${{p.status.toUpperCase()}}</strong>`;
+
+  // Banner
+  const statusClass = p.status === 'aktiv' ? 'aktiv' : 'fuldført';
+  document.getElementById('progBanner').innerHTML = `
+    <div>
+      <div class="prog-t">${{p.navn}}</div>
+      <div class="prog-d">Annonceret <strong>${{fmtDate(p.annonceret)}}</strong> · Frist <strong>${{fmtDate(p.frist)}}</strong>${{p.maegler_t1 ? ' · Mægler: <strong>'+p.maegler_t1+'</strong>' : ''}}</div>
+    </div>
+    <div class="status ${{statusClass}}"><div class="dot"></div><span class="status-t">${{p.status.toUpperCase()}}</span></div>
+  `;
+
+  // Tranches (only if program has tranches defined)
+  const tranchesEl = document.getElementById('tranches');
+  if (p.tranche_1 && p.tranche_2) {{
+    tranchesEl.classList.remove('hide');
+    const t1Spent = Math.min(m.totalGbpMio, p.tranche_1.beloeb_mio);
+    const t2Spent = Math.max(0, m.totalGbpMio - p.tranche_1.beloeb_mio);
+    const t1Pct = (t1Spent / p.tranche_1.beloeb_mio) * 100;
+    const t2Pct = (t2Spent / p.tranche_2.beloeb_mio) * 100;
+    tranchesEl.innerHTML = `
+      <div class="tr">
+        <div class="tr-h">
+          <span class="tr-n">Tranche 1${{p.maegler_t1 ? ' · '+p.maegler_t1 : ''}}</span>
+          <span class="tr-amt">£${{t1Spent.toFixed(0)}}M / £${{p.tranche_1.beloeb_mio}}M</span>
+        </div>
+        <div class="tr-bar"><div class="tr-bar-f" style="width:${{Math.min(t1Pct,100).toFixed(1)}}%"></div></div>
+        <div class="tr-meta">${{fmtDate(p.tranche_1.start)}} → ${{fmtDate(p.tranche_1.slut)}} · ${{t1Pct.toFixed(1)}}% fuldført</div>
+      </div>
+      <div class="tr">
+        <div class="tr-h">
+          <span class="tr-n">Tranche 2${{p.maegler_t2 ? ' · '+p.maegler_t2 : ''}}</span>
+          <span class="tr-amt">£${{t2Spent.toFixed(0)}}M / £${{p.tranche_2.beloeb_mio}}M</span>
+        </div>
+        <div class="tr-bar"><div class="tr-bar-f" style="width:${{Math.min(t2Pct,100).toFixed(1)}}%"></div></div>
+        <div class="tr-meta">Start ${{fmtDate(p.tranche_2.start)}} · Slut ${{fmtDate(p.tranche_2.slut)}}</div>
+      </div>
+    `;
+  }} else {{
+    tranchesEl.classList.add('hide');
+  }}
+
+  // KPIs
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi">
+      <div class="kpi-l">Tilbagekøbt</div>
+      <div class="kpi-v grn">£${{m.totalGbpMio.toFixed(0)}}M</div>
+      <div class="kpi-s">${{m.pctProgram.toFixed(1)}}% af £${{p.total_gbp_mio}}M program</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">Aktier annulleret</div>
+      <div class="kpi-v">${{(m.totalShares/1e6).toFixed(2)}}M</div>
+      <div class="kpi-s">${{m.pctReduction.toFixed(2)}}% af kapital</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">EPS-accretion</div>
+      <div class="kpi-v grn">+${{m.epsAccretionPct.toFixed(2)}}%</div>
+      <div class="kpi-s">£${{m.epsUplift.toFixed(3)}}/aktie</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-l">ROIC på buyback</div>
+      <div class="kpi-v grn">${{m.roicOnBuyback.toFixed(1)}}%</div>
+      <div class="kpi-s">FCF-yield på købte aktier</div>
+    </div>
+  `;
+
+  // Value creation flow
+  document.getElementById('vcFlow').innerHTML = `
+    <div class="vc-b">
+      <div class="vc-bl">Købt tilbage</div>
+      <div class="vc-bv">£${{m.totalGbpMio.toFixed(0)}}M</div>
+      <div class="vc-bs">gns. ${{fmtPence(m.avgPrice)}}</div>
+    </div>
+    <div class="vc-ar">→</div>
+    <div class="vc-b">
+      <div class="vc-bl">Aktier væk</div>
+      <div class="vc-bv">${{(m.totalShares/1e6).toFixed(2)}}M</div>
+      <div class="vc-bs">${{m.pctReduction.toFixed(2)}}% af kapital</div>
+    </div>
+    <div class="vc-ar">→</div>
+    <div class="vc-b">
+      <div class="vc-bl">EPS-løft</div>
+      <div class="vc-bv">+${{m.epsAccretionPct.toFixed(2)}}%</div>
+      <div class="vc-bs">fra £${{m.epsBase.toFixed(2)}} til £${{m.epsNew.toFixed(3)}}</div>
+    </div>
+    <div class="vc-ar">→</div>
+    <div class="vc-b end">
+      <div class="vc-bl">Værdi skabt</div>
+      <div class="vc-bv">£${{m.valueCreatedMio.toFixed(0)}}M</div>
+      <div class="vc-bs">ved P/E ${{m.fairPe}}x på EPS</div>
+    </div>
+  `;
+
+  // Chart header Fair PE label
+  document.getElementById('chFairPe').textContent = `P/E ${{m.fairPe}}× på ${{m.fund.eps_source}}`;
+
+  // Charts
+  renderCharts(m);
+
+  // Table (newest first)
+  const txDesc = [...m.tx].reverse();
+  const rows = txDesc.map((t, i) => `
+    <tr>
+      <td class="n">${{txDesc.length - i}}</td>
+      <td>${{fmtDate(t.dato)}}</td>
+      <td class="num">${{fmtInt(t.antal_aktier)}}</td>
+      <td class="num">${{fmtPence(t.gns_kurs_gbp)}}</td>
+      <td class="num">${{fmtGbpMio(t.beloeb_gbp_mio)}}</td>
+      <td class="num">${{t.aktier_efter ? fmtInt(t.aktier_efter) : '—'}}</td>
+    </tr>
+  `).join('');
+  document.getElementById('txBody').innerHTML = rows || '<tr><td colspan="6" style="text-align:center;color:#8b99ad;padding:20px">Ingen transaktioner registreret for ${{progKey}} endnu</td></tr>';
+  document.getElementById('txCount').textContent = `${{m.txCount}} filings`;
+
+  // Assumptions
+  document.getElementById('assumptions').innerHTML = `
+    <strong>Antagelser (${{progKey}}):</strong> EPS-base = ${{m.fund.eps_source}} £${{m.epsBase.toFixed(2)}}.
+    Fair value = P/E ${{m.fairPe}}× EPS = ${{fmtPence(m.fairPricePence)}}.
+    ROIC på buyback = FCF/aktie ÷ gns. købskurs.
+    Aktier ved programstart: ${{fmtInt(m.sharesStart)}}. Aktier nu: ${{fmtInt(m.sharesNow)}}.
+  `;
+}}
+
+// ── Program selector change handler ──
+document.getElementById('progSel').addEventListener('change', e => render(e.target.value));
+
+// ── Initial render ──
+render(document.getElementById('progSel').value);
+
+// ── Live price update (optional) ──
 (async () => {{
   try {{
     const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/IMB.L?range=1d&interval=1d');
@@ -585,10 +565,7 @@ new Chart(document.getElementById('epsChart'), {{
     chgEl.className = 'chg ' + cls;
     chgEl.textContent = `${{sign}}${{change.toFixed(2)}} (${{sign}}${{pct.toFixed(2)}}%)`;
     document.getElementById('live-ts').textContent = 'Live · ' + new Date().toLocaleString('da-DK');
-  }} catch (e) {{
-    // Behold server-side-rendered værdi
-    console.warn('Yahoo Finance live-kurs fejlede, bruger cached værdi', e);
-  }}
+  }} catch (e) {{ console.warn('Yahoo Finance live-kurs fejlede', e); }}
 }})();
 </script>
 </body>
@@ -596,10 +573,6 @@ new Chart(document.getElementById('epsChart'), {{
 """
     return html
 
-
-# ═══════════════════════════════════════════════════════════════
-# MAIN
-# ═══════════════════════════════════════════════════════════════
 
 def main():
     html = render_html(DATA)
