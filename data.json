@@ -166,15 +166,15 @@
     }
   ],
   "kurs": {
-    "price": 2762.0,
+    "price": 2772.5,
     "prev_close": 2753.0,
-    "change": 9.0,
-    "change_pct": 0.33,
+    "change": 19.5,
+    "change_pct": 0.71,
     "currency": "GBp",
-    "timestamp": "2026-04-23T09:23:11+00:00Z"
+    "timestamp": "2026-04-23T14:47:20+00:00Z"
   },
   "meta": {
-    "last_updated": "2026-04-23 09:23 UTC",
+    "last_updated": "2026-04-23 14:47 UTC",
     "data_kilde": "Investegate RNS (primær), Yahoo Finance (kurs)"
   }
 }
