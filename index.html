@@ -52,17 +52,17 @@ body{font-family:var(--sans);background:var(--bg1);color:var(--t1);min-height:10
 .prog-d strong{color:var(--t2);font-weight:600}
 .status{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:3px}
 .status.aktiv{background:var(--g4);border:1px solid var(--g1)}
-.status.fuldført{background:rgba(139,153,173,0.1);border:1px solid var(--t4)}
+.status.fuldført, .status.samlet{background:rgba(139,153,173,0.1);border:1px solid var(--t4)}
 .dot{width:6px;height:6px;border-radius:50%;animation:pulse 2s infinite}
 .status.aktiv .dot{background:var(--g1)}
-.status.fuldført .dot{background:var(--t3);animation:none}
+.status.fuldført .dot, .status.samlet .dot{background:var(--t3);animation:none}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 .status-t{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:1px}
 .status.aktiv .status-t{color:var(--g1)}
-.status.fuldført .status-t{color:var(--t3)}
+.status.fuldført .status-t, .status.samlet .status-t{color:var(--t3)}
 
-/* TRANCHES (kun for FY26) */
-.tranches{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--t4);border:1px solid var(--t4);border-radius:4px;margin-bottom:16px;overflow:hidden}
+/* TRANCHES (også brugt til per-program breakdown i ALL-mode) */
+.tranches{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--t4);border:1px solid var(--t4);border-radius:4px;margin-bottom:16px;overflow:hidden}
 .tr{background:var(--bg2);padding:14px 18px}
 .tr-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
 .tr-n{font-size:11px;color:var(--t3);letter-spacing:0.5px;text-transform:uppercase}
@@ -154,6 +154,7 @@ tr:hover td{background:rgba(16,185,129,0.03)}
       <option value="FY26" selected>FY26 (aktiv)</option>
 <option value="FY25">FY25 (fuldført)</option>
 <option value="FY24">FY24 (fuldført)</option>
+<option value="ALL">Alle programmer (samlet)</option>
 
     </select>
     <span class="ps-meta" id="progMeta"></span>
@@ -240,6 +241,11 @@ const fmtGbpMio = n => `£${n.toFixed(0)}M`;
 
 // ── Core: compute metrics for a selected program ──
 function computeMetrics(progKey) {
+  // ── ALL-aggregate: compute across all programs ──
+  if (progKey === "ALL") {
+    return computeMetricsAll();
+  }
+
   const prog = DATA.programmer[progKey];
   const fund = prog.fundamentals;
   const tx = DATA.transaktioner.filter(t => t.program === progKey);
@@ -268,12 +274,104 @@ function computeMetrics(progKey) {
 
   return {
     prog, fund, tx,
+    isAll: false,
     totalShares, totalGbpMio, avgPrice,
     pctProgram, sharesStart, sharesNow, pctReduction,
     epsBase, epsNew, epsAccretionPct, epsUplift,
     fairPe, fairPricePence, valueCreatedMio,
     roicOnBuyback,
     txCount: tx.length,
+  };
+}
+
+// ── Aggregate ALL programs together ──
+// KPI model: pure buyback-effect EPS-accretion (Option B): sum of per-program %
+// Uses FY26's fundamentals as reference for Fair Value charts / projection basis
+function computeMetricsAll() {
+  // Sort program keys chronologically (oldest first) by start date
+  const progKeys = Object.keys(DATA.programmer).sort((a,b) =>
+    DATA.programmer[a].start.localeCompare(DATA.programmer[b].start)
+  );
+
+  // Per-program sub-metrics (reuse single-program logic)
+  const subMetrics = progKeys.map(k => {
+    const prog = DATA.programmer[k];
+    const fund = prog.fundamentals;
+    const tx = DATA.transaktioner.filter(t => t.program === k).sort((a,b) => a.dato.localeCompare(b.dato));
+    const totalShares = tx.reduce((s,t) => s + t.antal_aktier, 0);
+    const totalGbpMio = tx.reduce((s,t) => s + t.beloeb_gbp_mio, 0);
+    const sharesStart = fund.aktier_ved_start;
+    const sharesNow = sharesStart - totalShares;
+    const epsBase = fund.eps_adjusted_gbp;
+    const epsAccretionPct = sharesNow > 0 ? ((sharesStart / sharesNow) - 1) * 100 : 0;
+    return {
+      key: k, prog, fund, tx,
+      totalShares, totalGbpMio, sharesStart, sharesNow, epsBase, epsAccretionPct
+    };
+  });
+
+  // Aggregated KPIs
+  const allTx = subMetrics.flatMap(s => s.tx.map(t => ({...t, _prog: s.key})));
+  allTx.sort((a,b) => a.dato.localeCompare(b.dato));
+
+  const totalShares = subMetrics.reduce((s, x) => s + x.totalShares, 0);
+  const totalGbpMio = subMetrics.reduce((s, x) => s + x.totalGbpMio, 0);
+  const avgPrice = totalShares > 0 ? (totalGbpMio * 1e6 * 100) / totalShares : 0;
+
+  // First program = earliest start → use its aktier_ved_start as reference
+  const firstSharesStart = subMetrics[0].sharesStart;
+  const pctReduction = firstSharesStart > 0 ? (totalShares / firstSharesStart) * 100 : 0;
+
+  // Option B: sum of per-program accretion percentages (pure buyback-effect)
+  const epsAccretionPct = subMetrics.reduce((s, x) => s + x.epsAccretionPct, 0);
+
+  // Total program budget
+  const totalProgramBudget = subMetrics.reduce((s, x) => s + x.prog.total_gbp_mio, 0);
+  const pctProgram = (totalGbpMio / totalProgramBudget) * 100;
+
+  // Use FY26's fundamentals as reference (for fair value chart + EPS projection)
+  const fy26 = DATA.programmer["FY26"] || subMetrics[subMetrics.length - 1].prog;
+  const refFund = fy26.fundamentals;
+  const epsBase = refFund.eps_adjusted_gbp;
+  const epsNew = epsBase * (1 + epsAccretionPct / 100);
+  const epsUplift = epsNew - epsBase;
+
+  const fairPe = refFund.fair_pe || 10;
+  const fairPricePence = epsBase * 100 * fairPe;
+  const valueCreatedMio = totalShares * (fairPricePence - avgPrice) / 100 / 1e6;
+
+  // Weighted ROIC: sum(FCF_per_program × weight) ÷ avg_price, weighted by £ spent per program
+  let weightedFcfPerShare = 0;
+  for (const s of subMetrics) {
+    if (totalGbpMio > 0 && s.sharesNow > 0) {
+      const fcfPS = (s.fund.fcf_mio_gbp * 1e6 * 100) / s.sharesNow;
+      weightedFcfPerShare += fcfPS * (s.totalGbpMio / totalGbpMio);
+    }
+  }
+  const roicOnBuyback = avgPrice > 0 ? (weightedFcfPerShare / avgPrice) * 100 : 0;
+
+  // Synthetic "prog" object for banner/tranches rendering
+  const aggProg = {
+    navn: "Alle programmer (FY24 + FY25 + FY26)",
+    total_gbp_mio: totalProgramBudget,
+    annonceret: subMetrics[0].prog.annonceret,
+    frist: subMetrics[subMetrics.length - 1].prog.frist,
+    status: "samlet",
+    maegler_t1: null,
+    // No tranches for aggregate view
+  };
+
+  return {
+    prog: aggProg, fund: refFund, tx: allTx,
+    isAll: true,
+    subMetrics,
+    totalShares, totalGbpMio, avgPrice,
+    pctProgram, sharesStart: firstSharesStart,
+    sharesNow: firstSharesStart - totalShares, pctReduction,
+    epsBase, epsNew, epsAccretionPct, epsUplift,
+    fairPe, fairPricePence, valueCreatedMio,
+    roicOnBuyback,
+    txCount: allTx.length,
   };
 }
 
@@ -453,7 +551,7 @@ function render(progKey) {
     `Status: <strong>${p.status.toUpperCase()}</strong>`;
 
   // Banner
-  const statusClass = p.status === 'aktiv' ? 'aktiv' : 'fuldført';
+  const statusClass = p.status === 'aktiv' ? 'aktiv' : (p.status === 'samlet' ? 'samlet' : 'fuldført');
   document.getElementById('progBanner').innerHTML = `
     <div>
       <div class="prog-t">${p.navn}</div>
@@ -462,9 +560,25 @@ function render(progKey) {
     <div class="status ${statusClass}"><div class="dot"></div><span class="status-t">${p.status.toUpperCase()}</span></div>
   `;
 
-  // Tranches (only if program has tranches defined)
+  // Tranches (only if single program has tranches defined)
+  // In ALL mode: replace tranche panel with per-program breakdown cards
   const tranchesEl = document.getElementById('tranches');
-  if (p.tranche_1 && p.tranche_2) {
+  if (m.isAll) {
+    tranchesEl.classList.remove('hide');
+    tranchesEl.innerHTML = m.subMetrics.map(s => {
+      const pct = (s.totalGbpMio / s.prog.total_gbp_mio) * 100;
+      return `
+        <div class="tr">
+          <div class="tr-h">
+            <span class="tr-n">${s.key} · ${s.prog.status}</span>
+            <span class="tr-amt">£${s.totalGbpMio.toFixed(0)}M / £${s.prog.total_gbp_mio}M</span>
+          </div>
+          <div class="tr-bar"><div class="tr-bar-f" style="width:${Math.min(pct,100).toFixed(1)}%"></div></div>
+          <div class="tr-meta">${s.tx.length} filings · ${(s.totalShares/1e6).toFixed(2)}M aktier · +${s.epsAccretionPct.toFixed(2)}% EPS</div>
+        </div>
+      `;
+    }).join('');
+  } else if (p.tranche_1 && p.tranche_2) {
     tranchesEl.classList.remove('hide');
     const t1Spent = Math.min(m.totalGbpMio, p.tranche_1.beloeb_mio);
     const t2Spent = Math.max(0, m.totalGbpMio - p.tranche_1.beloeb_mio);
