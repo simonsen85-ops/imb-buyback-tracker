@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       num_ids:
-        description: 'Number of RNS IDs to enumerate backwards (400-500 per run)'
+        description: 'Number of RNS IDs to enumerate backwards (30 recommended to avoid WAF block)'
         required: true
-        default: '500'
+        default: '30'
         type: string
 
 permissions:

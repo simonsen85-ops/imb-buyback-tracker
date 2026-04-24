@@ -88,12 +88,13 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
         return None
 
     # CRITICAL: Verify this is Imperial Brands, not another issuer.
-    # Investegate renders ANY RNS page regardless of URL slug — we must check the actual content.
-    # Accept if page mentions "imperial brands" (case-insensitive) OR IMB's LEI.
+    # Investegate renders ANY RNS page regardless of URL slug — content must confirm issuer.
+    # Use LEI + ISIN as primary (regulatory identifiers), fall back to full company name.
     html_lower = html.lower()
     is_imperial = (
-        "imperial brands" in html_lower
-        or "549300dfvpob67jl3a42" in html_lower  # IMB LEI
+        "549300dfvpob67jl3a42" in html_lower  # IMB LEI (ISO 17442)
+        or "gb0004544929" in html_lower        # IMB ISIN
+        or "imperial brands plc" in html_lower  # Full legal name (fallback)
     )
     if not is_imperial:
         return None
@@ -209,10 +210,6 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
 
     # Require a valid price — reject rather than save garbage data.
     if gns_kurs == 0:
-        return None
-
-    # Final sanity: IMB FY24-FY26 price range is 1800-3500p. Reject outside.
-    if not (1800 < gns_kurs < 3500):
         return None
 
     return Announcement(

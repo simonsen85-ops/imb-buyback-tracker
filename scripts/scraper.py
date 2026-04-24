@@ -110,7 +110,13 @@ def backfill_scrape(data: dict, n: int) -> list:
     """
     Backward scrape: enumerate N IDs backwards from the lowest known ID.
     Used for one-off historical data recovery.
+
+    Rate limiting: 1.5 sec delay between requests to avoid triggering
+    Investegate's bot-detection. Stops early if we hit consecutive 403's,
+    which signals the WAF has blocked us.
     """
+    import time
+
     lowest = get_lowest_known_id(data)
     if not lowest:
         print("   No existing data — use normal mode first to establish baseline")
@@ -119,21 +125,33 @@ def backfill_scrape(data: dict, n: int) -> list:
     start = lowest - 1      # start one below lowest known
     end = max(1, start - n) # go back N IDs
     print(f"   Backfill: enumerating IDs {end}..{start} ({start - end + 1} candidates)")
+    print(f"   Rate limit: 1.5s per request → est. {(start - end + 1) * 1.5 / 60:.1f} minutes")
 
-    # Use probe_recent_ids in reverse direction by iterating manually
     announcements = []
     hits = 0
     misses = 0
+    consecutive_fails = 0  # Track 403/None streak to detect blocking
     total = start - end + 1
     for i, rns_id in enumerate(range(start, end - 1, -1)):
         ann = investegate.parse_rns_page(rns_id)
         if ann:
             announcements.append(ann)
             hits += 1
+            consecutive_fails = 0  # Reset on successful parse
             print(f"    ✓ {rns_id}: {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
         else:
             misses += 1
-        if (i + 1) % 50 == 0:
+            consecutive_fails += 1
+            # If we see many consecutive fails AND no hits yet, we're probably blocked
+            if consecutive_fails >= 10 and hits == 0 and i > 10:
+                print(f"    ⚠ {consecutive_fails} consecutive fails with 0 hits — likely blocked by WAF")
+                print(f"    Stopping early. Try again in an hour or reduce --backfill N")
+                break
+
+        # Rate limit: wait between requests to avoid triggering bot-detection
+        time.sleep(1.5)
+
+        if (i + 1) % 20 == 0:
             print(f"    [{i+1}/{total}] {hits} hits, {misses} misses")
 
     print(f"  Backfill parsed {hits} buyback filings ({misses} skipped)")
