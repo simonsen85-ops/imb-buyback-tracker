@@ -184,15 +184,6 @@
       "program": "FY26"
     },
     {
-      "dato": "2026-03-27",
-      "antal_aktier": 210567,
-      "gns_kurs_gbp": 3050.44,
-      "beloeb_gbp_mio": 6.4,
-      "aktier_efter": 781966128,
-      "rns_id": "9496786",
-      "program": "FY26"
-    },
-    {
       "dato": "2026-03-26",
       "antal_aktier": 203255,
       "gns_kurs_gbp": 3046.69,
@@ -237,29 +228,11 @@
       "program": "FY26"
     },
     {
-      "dato": "2026-03-20",
-      "antal_aktier": 367626,
-      "gns_kurs_gbp": 3069.83,
-      "beloeb_gbp_mio": 11.3,
-      "aktier_efter": 783272992,
-      "rns_id": "9485473",
-      "program": "FY26"
-    },
-    {
       "dato": "2026-03-19",
       "antal_aktier": 683323,
       "gns_kurs_gbp": 3098.55,
       "beloeb_gbp_mio": 21.2,
       "aktier_efter": 782544321,
-      "program": "FY26"
-    },
-    {
-      "dato": "2026-03-19",
-      "antal_aktier": 683323,
-      "gns_kurs_gbp": 3098.55,
-      "beloeb_gbp_mio": 21.2,
-      "aktier_efter": 783640618,
-      "rns_id": "9483295",
       "program": "FY26"
     },
     {
@@ -296,29 +269,11 @@
       "program": "FY26"
     },
     {
-      "dato": "2026-03-13",
-      "antal_aktier": 12064,
-      "gns_kurs_gbp": 3130.72,
-      "beloeb_gbp_mio": 0.4,
-      "aktier_efter": 784832903,
-      "rns_id": "9474483",
-      "program": "FY26"
-    },
-    {
       "dato": "2026-03-12",
       "antal_aktier": 378901,
       "gns_kurs_gbp": 3104.07,
       "beloeb_gbp_mio": 11.8,
       "aktier_efter": 784275416,
-      "program": "FY26"
-    },
-    {
-      "dato": "2026-03-12",
-      "antal_aktier": 378901,
-      "gns_kurs_gbp": 3104.07,
-      "beloeb_gbp_mio": 11.8,
-      "aktier_efter": 784844967,
-      "rns_id": "9472330",
       "program": "FY26"
     },
     {
@@ -336,15 +291,6 @@
       "gns_kurs_gbp": 3155.71,
       "beloeb_gbp_mio": 5.4,
       "aktier_efter": 784654317,
-      "program": "FY26"
-    },
-    {
-      "dato": "2026-03-10",
-      "antal_aktier": 169649,
-      "gns_kurs_gbp": 3155.71,
-      "beloeb_gbp_mio": 5.4,
-      "aktier_efter": 785769193,
-      "rns_id": "9469132",
       "program": "FY26"
     },
     {
@@ -375,24 +321,6 @@
       "program": "FY26"
     },
     {
-      "dato": "2026-03-06",
-      "antal_aktier": 750000,
-      "gns_kurs_gbp": 403.7,
-      "beloeb_gbp_mio": 3.0,
-      "aktier_efter": null,
-      "rns_id": "9463278",
-      "program": "FY26"
-    },
-    {
-      "dato": "2026-03-06",
-      "antal_aktier": 50000,
-      "gns_kurs_gbp": 278.48,
-      "beloeb_gbp_mio": 0.1,
-      "aktier_efter": null,
-      "rns_id": "9463257",
-      "program": "FY26"
-    },
-    {
       "dato": "2026-02-18",
       "antal_aktier": 425000,
       "gns_kurs_gbp": 3120.0,
@@ -414,15 +342,6 @@
       "gns_kurs_gbp": 3050.0,
       "beloeb_gbp_mio": 13.7,
       "aktier_efter": 785628966,
-      "program": "FY26"
-    },
-    {
-      "dato": "2026-01-16",
-      "antal_aktier": 20000,
-      "gns_kurs_gbp": 630.3857,
-      "beloeb_gbp_mio": 0.1,
-      "aktier_efter": null,
-      "rns_id": "9463272",
       "program": "FY26"
     },
     {
@@ -456,24 +375,6 @@
       "beloeb_gbp_mio": 12.3,
       "aktier_efter": 787312694,
       "program": "FY26"
-    },
-    {
-      "dato": "2025-05-15",
-      "antal_aktier": 54538,
-      "gns_kurs_gbp": 143.6355,
-      "beloeb_gbp_mio": 0.1,
-      "aktier_efter": null,
-      "rns_id": "9463295",
-      "program": "FY25"
-    },
-    {
-      "dato": "2007-12-28",
-      "antal_aktier": 210000,
-      "gns_kurs_gbp": 455.469,
-      "beloeb_gbp_mio": 1.0,
-      "aktier_efter": 761484727,
-      "rns_id": "9463254",
-      "program": "unknown"
     }
   ],
   "kurs": {
