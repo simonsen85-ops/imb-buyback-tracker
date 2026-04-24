@@ -87,6 +87,17 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
     if "transaction in own shares" not in html.lower() and "purchased for cancellation" not in html.lower():
         return None
 
+    # CRITICAL: Verify this is Imperial Brands, not another issuer.
+    # Investegate renders ANY RNS page regardless of URL slug — we must check the actual content.
+    # Accept if page mentions "imperial brands" (case-insensitive) OR IMB's LEI.
+    html_lower = html.lower()
+    is_imperial = (
+        "imperial brands" in html_lower
+        or "549300dfvpob67jl3a42" in html_lower  # IMB LEI
+    )
+    if not is_imperial:
+        return None
+
     # Strip HTML for cleaner regex matching
     text = re.sub(r"<[^>]+>", " ", html)
     text = re.sub(r"\s+", " ", text)
@@ -176,6 +187,7 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
         r"shares\s+in\s+issue.*?(\d{3}[\d,]+)",
     ]
     aktier_efter = None
+    any_shares_in_issue = None  # Track if we found ANY number that looked like share count
     for pat in after_patterns:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
@@ -184,14 +196,23 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
                 if 500_000_000 < n < 1_000_000_000:  # Sanity: IMB ~780M shares
                     aktier_efter = n
                     break
+                else:
+                    any_shares_in_issue = n  # Found a share count, but wrong magnitude
             except ValueError:
                 continue
+
+    # If we found a share count but it's not IMB-sized, this is another issuer. Reject.
+    if any_shares_in_issue is not None and aktier_efter is None:
+        return None
 
     beloeb = round(antal * gns_kurs / 100 / 1e6, 1) if gns_kurs else 0
 
     # Require a valid price — reject rather than save garbage data.
-    # Historical backfill will log the rejection so we know what we missed.
     if gns_kurs == 0:
+        return None
+
+    # Final sanity: IMB FY24-FY26 price range is 1800-3500p. Reject outside.
+    if not (1800 < gns_kurs < 3500):
         return None
 
     return Announcement(
