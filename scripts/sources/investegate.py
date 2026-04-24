@@ -137,20 +137,35 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
         return None
 
     # ── AVERAGE PRICE (GBp) ──
+    # Try many patterns — RNS formatting has evolved over years
     price_patterns = [
+        # Modern (2024+): "average price paid per share was 3050.44 pence"
         r"average\s+price\s+(?:paid\s+)?(?:per\s+share\s+)?(?:was\s+)?(?:of\s+)?(?:GBp?\s*)?(\d[\d,]*\.\d+)",
-        r"GBp\s+(\d[\d,]*\.\d+)",
-        r"pence\s+per\s+share\s+(?:was|of)?\s+(\d[\d,]*\.\d+)",
+        # Table format: "Weighted average price (pence) | 3050.44"
+        r"weighted\s+average\s+price\s*\([^)]+\)\s*[:\|]?\s*(\d[\d,]*\.\d+)",
+        # Older format: "at an average price of 3050.44 pence"
+        r"at\s+an?\s+average\s+price\s+of\s+(\d[\d,]*\.\d+)\s*(?:pence|GBp|p\b)",
+        # "volume weighted average price of 3050.44p"
+        r"volume\s+weighted\s+average\s+price\s+of\s+(\d[\d,]*\.\d+)",
+        # "price per share: 3050.44"
+        r"price\s+per\s+share\s*[:\-]?\s*(?:GBp\s+)?(\d[\d,]*\.\d+)",
+        # Prefix: "GBp 3050.44" or "GBX 3050.44"
+        r"GB[pPxX]\s+(\d[\d,]*\.\d+)",
+        # Suffix: "3050.44 pence per share"
+        r"(\d[\d,]*\.\d+)\s*(?:pence|p)\s+per\s+(?:ordinary\s+)?share",
+        # Fallback: "3050.44p" near "average"
+        r"average[^.]{0,80}?(\d[\d,]*\.\d+)\s*p\b",
     ]
     gns_kurs = 0.0
     for pat in price_patterns:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
             try:
-                gns_kurs = float(m.group(1).replace(",", ""))
-                if 100 < gns_kurs < 10000:  # Sanity: IMB trades 2000-4000p
+                cand = float(m.group(1).replace(",", ""))
+                # Sanity check: IMB trades historically between 1500-4500p
+                if 1000 < cand < 5000:
+                    gns_kurs = cand
                     break
-                gns_kurs = 0.0
             except ValueError:
                 continue
 
@@ -173,6 +188,11 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
                 continue
 
     beloeb = round(antal * gns_kurs / 100 / 1e6, 1) if gns_kurs else 0
+
+    # Require a valid price — reject rather than save garbage data.
+    # Historical backfill will log the rejection so we know what we missed.
+    if gns_kurs == 0:
+        return None
 
     return Announcement(
         dato=dato,
