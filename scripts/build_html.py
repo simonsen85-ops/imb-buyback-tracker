@@ -229,7 +229,7 @@ tr:hover td{{background:rgba(16,185,129,0.03)}}
   <div class="vc-h">Værdiskabelse · sekventielt flow</div>
   <div class="vc" id="vcFlow"></div>
 
-  <!-- CHARTS -->
+  <!-- CHARTS — 2x2 grid -->
   <div class="charts">
     <div class="ch">
       <div class="ch-h">Købskurs vs. Fair Value<span id="chFairPe"></span></div>
@@ -238,6 +238,14 @@ tr:hover td{{background:rgba(16,185,129,0.03)}}
     <div class="ch">
       <div class="ch-h">Akkumuleret EPS-accretion<span>% løft over programperioden</span></div>
       <div class="ch-w"><canvas id="epsChart"></canvas></div>
+    </div>
+    <div class="ch">
+      <div class="ch-h">Aktier i omløb<span>trappekurve · løbende annullering</span></div>
+      <div class="ch-w"><canvas id="sharesChart"></canvas></div>
+    </div>
+    <div class="ch">
+      <div class="ch-h">EPS-projection<span id="chEpsProj"></span></div>
+      <div class="ch-w"><canvas id="projEpsChart"></canvas></div>
     </div>
   </div>
 
@@ -327,7 +335,7 @@ function computeMetrics(progKey) {{
 }}
 
 // ── Chart instances (so we can destroy/recreate on program change) ──
-let priceChart = null, epsChart = null;
+let priceChart = null, epsChart = null, sharesChart = null, projEpsChart = null;
 
 function renderCharts(m) {{
   const gridCfg = {{ color:'rgba(61,74,92,0.3)', drawBorder:false }};
@@ -337,17 +345,29 @@ function renderCharts(m) {{
   const prices = m.tx.map(t => t.gns_kurs_gbp);
   const fairVals = m.tx.map(() => m.fairPricePence);
 
-  // Cumulative EPS-accretion series
+  // Cumulative EPS-accretion series AND shares-remaining + EPS-projection
   let cumShares = 0;
-  const cumAccretion = m.tx.map(t => {{
+  const cumAccretion = [];
+  const sharesRemaining = [];
+  const epsProjection = [];
+  for (const t of m.tx) {{
     cumShares += t.antal_aktier;
     const sharesAfter = m.sharesStart - cumShares;
-    if (sharesAfter <= 0) return 0;
-    return ((m.sharesStart / sharesAfter) - 1) * 100;
-  }});
+    sharesRemaining.push(sharesAfter);
+    if (sharesAfter <= 0) {{
+      cumAccretion.push(0);
+      epsProjection.push(m.epsBase);
+    }} else {{
+      const factor = m.sharesStart / sharesAfter;
+      cumAccretion.push((factor - 1) * 100);
+      epsProjection.push(m.epsBase * factor);
+    }}
+  }}
 
   if (priceChart) priceChart.destroy();
   if (epsChart) epsChart.destroy();
+  if (sharesChart) sharesChart.destroy();
+  if (projEpsChart) projEpsChart.destroy();
 
   priceChart = new Chart(document.getElementById('priceChart'), {{
     type: 'line',
@@ -404,6 +424,74 @@ function renderCharts(m) {{
       scales: {{
         x: {{ grid:gridCfg, ticks:{{...ticksCfg, maxRotation:0, maxTicksLimit:8}} }},
         y: {{ grid:gridCfg, ticks:{{...ticksCfg, callback:v => '+'+v.toFixed(2)+'%'}} }}
+      }}
+    }}
+  }});
+
+  // Chart 3 — Shares outstanding (trappekurve)
+  sharesChart = new Chart(document.getElementById('sharesChart'), {{
+    type:'line',
+    data: {{
+      labels,
+      datasets: [{{
+        label:'Aktier i omløb',
+        data: sharesRemaining,
+        borderColor:'#b0bac9',
+        backgroundColor:'rgba(176,186,201,0.08)',
+        borderWidth:2, pointRadius:2, pointBackgroundColor:'#b0bac9',
+        tension:0,           // no smoothing — stepped feel
+        stepped:'before',    // true trappekurve
+        fill:true
+      }}]
+    }},
+    options: {{
+      responsive:true, maintainAspectRatio:false,
+      plugins: {{
+        legend: {{ display:false }},
+        tooltip: {{
+          backgroundColor:'#0a0e17', titleColor:'#e8ecf2', bodyColor:'#b0bac9',
+          borderColor:'#3d4a5c', borderWidth:1,
+          callbacks: {{ label: ctx => `${{(ctx.parsed.y/1e6).toFixed(2)}}M aktier` }}
+        }}
+      }},
+      scales: {{
+        x: {{ grid:gridCfg, ticks:{{...ticksCfg, maxRotation:0, maxTicksLimit:8}} }},
+        y: {{ grid:gridCfg, ticks:{{...ticksCfg, callback:v => (v/1e6).toFixed(1)+'M'}} }}
+      }}
+    }}
+  }});
+
+  // Chart 4 — EPS projection (løbende EPS når buyback kører)
+  projEpsChart = new Chart(document.getElementById('projEpsChart'), {{
+    type:'line',
+    data: {{
+      labels,
+      datasets: [
+        {{ label:'EPS-projection (£)', data:epsProjection,
+           borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.12)',
+           borderWidth:2, pointRadius:3, pointBackgroundColor:'#10b981',
+           tension:0.2, fill:true }},
+        {{ label:`Basis EPS (£${{m.epsBase.toFixed(2)}})`,
+           data: m.tx.map(() => m.epsBase),
+           borderColor:'#8b99ad', borderWidth:1.5, borderDash:[6,4],
+           pointRadius:0, fill:false }}
+      ]
+    }},
+    options: {{
+      responsive:true, maintainAspectRatio:false,
+      interaction: {{ mode:'index', intersect:false }},
+      plugins: {{
+        legend: {{ display:true, position:'bottom',
+          labels: {{ color:'#b0bac9', boxWidth:12, boxHeight:2, font:{{size:10}} }} }},
+        tooltip: {{
+          backgroundColor:'#0a0e17', titleColor:'#e8ecf2', bodyColor:'#b0bac9',
+          borderColor:'#3d4a5c', borderWidth:1,
+          callbacks: {{ label: ctx => `${{ctx.dataset.label}}: £${{ctx.parsed.y.toFixed(4)}}` }}
+        }}
+      }},
+      scales: {{
+        x: {{ grid:gridCfg, ticks:{{...ticksCfg, maxRotation:0, maxTicksLimit:8}} }},
+        y: {{ grid:gridCfg, ticks:{{...ticksCfg, callback:v => '£'+v.toFixed(3)}} }}
       }}
     }}
   }});
@@ -513,7 +601,9 @@ function render(progKey) {{
   `;
 
   // Chart header Fair PE label
+  // Chart header Fair PE + EPS-projection labels
   document.getElementById('chFairPe').textContent = `P/E ${{m.fairPe}}× på ${{m.fund.eps_source}}`;
+  document.getElementById('chEpsProj').textContent = `basis: ${{m.fund.eps_source}} £${{m.epsBase.toFixed(2)}}`;
 
   // Charts
   renderCharts(m);
