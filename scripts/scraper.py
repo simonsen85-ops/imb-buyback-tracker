@@ -99,62 +99,91 @@ def merge_transactions(existing: list, new: list, programs: dict):
     return existing, added
 
 
+def get_known_lse_hashes(data: dict) -> set:
+    """Collect all LSE.co.uk-style rns_id's ('lse_{hash}') for dedup."""
+    hashes = set()
+    for t in data.get("transaktioner", []):
+        rns_id = t.get("rns_id", "")
+        if rns_id and rns_id.startswith("lse_"):
+            hashes.add(rns_id)
+    return hashes
+
+
 def normal_scrape(data: dict) -> list:
-    """Incremental forward scrape: new filings since last run."""
+    """
+    Incremental forward scrape using LSE.co.uk (primary).
+    Falls back to Investegate if LSE returns nothing.
+    """
+    known_lse = get_known_lse_hashes(data)
+    print(f"   Known LSE hashes: {len(known_lse)}")
+
+    # Primary: LSE.co.uk (per-company URL, no issuer confusion)
+    new_ann = lse_co_uk.scrape_new_filings(
+        known_hashes=known_lse,
+        max_pages=3,        # Normal daily: 3 pages = ~45 filings coverage
+        request_delay=1.0,
+    )
+
+    if new_ann:
+        return new_ann
+
+    # Fallback: Investegate (historical path — only if LSE.co.uk fails)
+    print("   LSE.co.uk returned nothing — trying Investegate fallback")
     last_id = get_highest_known_id(data)
-    print(f"   Last known RNS ID: {last_id or 'none (first run)'}")
-    return investegate.scrape_new_filings(last_known_id=last_id, max_lookback=200)
+    return investegate.scrape_new_filings(last_known_id=last_id, max_lookback=100)
 
 
 def backfill_scrape(data: dict, n: int) -> list:
     """
-    Backward scrape: enumerate N IDs backwards from the lowest known ID.
-    Used for one-off historical data recovery.
+    Backward scrape via LSE.co.uk — paginate through listing to get historic filings.
 
-    Rate limiting: 1.5 sec delay between requests to avoid triggering
-    Investegate's bot-detection. Stops early if we hit consecutive 403's,
-    which signals the WAF has blocked us.
+    `n` is interpreted as max_pages for LSE.co.uk (each page ≈ 15 filings).
+    So n=20 fetches up to ~300 filings, covering FY24 onwards.
     """
-    import time
+    known_lse = get_known_lse_hashes(data)
+    print(f"   Known LSE hashes: {len(known_lse)}")
+    print(f"   Paginating up to {n} pages of LSE.co.uk listings...")
 
+    new_ann = lse_co_uk.scrape_new_filings(
+        known_hashes=known_lse,
+        max_pages=n,
+        request_delay=1.5,  # Slightly more polite during backfill
+    )
+
+    if new_ann:
+        return new_ann
+
+    # Fallback: original ID-enumeration via Investegate
+    print("   LSE.co.uk returned nothing — trying Investegate ID-enumeration fallback")
+    return _backfill_investegate(data, n * 15)  # Rough equivalence
+
+
+def _backfill_investegate(data: dict, n: int) -> list:
+    """Legacy Investegate backfill (kept as fallback only)."""
+    import time
     lowest = get_lowest_known_id(data)
     if not lowest:
-        print("   No existing data — use normal mode first to establish baseline")
         return []
-
-    start = lowest - 1      # start one below lowest known
-    end = max(1, start - n) # go back N IDs
-    print(f"   Backfill: enumerating IDs {end}..{start} ({start - end + 1} candidates)")
-    print(f"   Rate limit: 1.5s per request → est. {(start - end + 1) * 1.5 / 60:.1f} minutes")
+    start = lowest - 1
+    end = max(1, start - n)
+    print(f"   Investegate backfill: IDs {end}..{start}")
 
     announcements = []
     hits = 0
-    misses = 0
-    consecutive_fails = 0  # Track 403/None streak to detect blocking
-    total = start - end + 1
+    consecutive_fails = 0
     for i, rns_id in enumerate(range(start, end - 1, -1)):
         ann = investegate.parse_rns_page(rns_id)
         if ann:
             announcements.append(ann)
             hits += 1
-            consecutive_fails = 0  # Reset on successful parse
+            consecutive_fails = 0
             print(f"    ✓ {rns_id}: {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
         else:
-            misses += 1
             consecutive_fails += 1
-            # If we see many consecutive fails AND no hits yet, we're probably blocked
             if consecutive_fails >= 10 and hits == 0 and i > 10:
-                print(f"    ⚠ {consecutive_fails} consecutive fails with 0 hits — likely blocked by WAF")
-                print(f"    Stopping early. Try again in an hour or reduce --backfill N")
+                print(f"    ⚠ Investegate blocked — stopping")
                 break
-
-        # Rate limit: wait between requests to avoid triggering bot-detection
         time.sleep(1.5)
-
-        if (i + 1) % 20 == 0:
-            print(f"    [{i+1}/{total}] {hits} hits, {misses} misses")
-
-    print(f"  Backfill parsed {hits} buyback filings ({misses} skipped)")
     return announcements
 
 

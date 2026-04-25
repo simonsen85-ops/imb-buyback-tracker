@@ -3,10 +3,10 @@ name: Backfill Historical IMB Buyback Data
 on:
   workflow_dispatch:
     inputs:
-      num_ids:
-        description: 'Number of RNS IDs to enumerate backwards (30 recommended to avoid WAF block)'
+      num_pages:
+        description: 'LSE.co.uk listing pages to paginate (each ~15 filings, default 5 = FY26 + part of FY25)'
         required: true
-        default: '30'
+        default: '5'
         type: string
 
 permissions:
@@ -24,12 +24,12 @@ jobs:
           python-version: '3.12'
 
       - name: Run historical backfill
-        run: python scripts/scraper.py --backfill ${{ github.event.inputs.num_ids }}
+        run: python scripts/scraper.py --backfill ${{ github.event.inputs.num_pages }}
 
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json index.html
-          git diff --staged --quiet || git commit -m "🔙 Backfill ${{ github.event.inputs.num_ids }} historic RNS IDs $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git diff --staged --quiet || git commit -m "🔙 Backfill ${{ github.event.inputs.num_pages }} LSE listing pages $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
