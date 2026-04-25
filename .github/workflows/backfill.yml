@@ -3,10 +3,10 @@ name: Backfill Historical IMB Buyback Data
 on:
   workflow_dispatch:
     inputs:
-      num_pages:
-        description: 'ADVFN listing pages to paginate (each ~20 filings, default 5 = ~100 filings)'
+      num_ids:
+        description: 'ADVFN IDs to enumerate backwards (default 2000 = ~5-6 weeks; full FY24+FY25 = 30000)'
         required: true
-        default: '5'
+        default: '2000'
         type: string
 
 permissions:
@@ -15,7 +15,7 @@ permissions:
 jobs:
   backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
@@ -24,12 +24,12 @@ jobs:
           python-version: '3.12'
 
       - name: Run historical backfill
-        run: python scripts/scraper.py --backfill ${{ github.event.inputs.num_pages }}
+        run: python scripts/scraper.py --backfill ${{ github.event.inputs.num_ids }}
 
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json index.html
-          git diff --staged --quiet || git commit -m "🔙 Backfill ${{ github.event.inputs.num_pages }} ADVFN pages $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git diff --staged --quiet || git commit -m "🔙 Backfill ${{ github.event.inputs.num_ids }} ADVFN IDs $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push

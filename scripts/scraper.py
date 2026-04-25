@@ -155,28 +155,37 @@ def normal_scrape(data: dict) -> list:
 
 def backfill_scrape(data: dict, n: int) -> list:
     """
-    Backfill via ADVFN listing pagination.
+    Backfill via ADVFN ID-enumeration.
 
-    `n` = max listing pages to fetch (each page ≈ 20 filings).
-    For full FY24+ coverage use n=20.
+    `n` = number of IDs to enumerate backwards from lowest known ADVFN ID.
+    Per-company URL means no cross-issuer contamination.
+
+    Estimated ID density for IMB: ~1500 IDs per month.
+    n=2000 → ~5-6 weeks of historical filings
+    n=10000 → ~7 months
+    n=30000 → ~20 months (covers FY24-FY25)
     """
     known_advfn = get_known_advfn_ids(data)
     print(f"   Known ADVFN ids: {len(known_advfn)}")
-    print(f"   Paginating up to {n} listing pages...")
 
-    new_ann = advfn.scrape_new_filings(
+    if not known_advfn:
+        print("   ⚠ No ADVFN IDs in data.json — run normal scrape first to anchor backfill")
+        return []
+
+    print(f"   Enumerating {n} ADVFN IDs backwards...")
+    new_ann = advfn.backfill_via_id_enumeration(
         known_ids=known_advfn,
-        max_pages=n,
-        request_delay=1.5,  # More polite during backfill
+        num_ids=n,
+        request_delay=1.5,
     )
     if new_ann:
         return new_ann
 
-    print("   ADVFN returned nothing — trying LSE.co.uk crawl fallback")
+    print("   ADVFN enumeration returned nothing — falling back to LSE.co.uk")
     known_lse = get_known_lse_hashes(data)
     new_ann = lse_co_uk.scrape_new_filings(
         known_hashes=known_lse,
-        max_filings=n * 20,
+        max_filings=200,
         request_delay=1.5,
     )
     if new_ann:

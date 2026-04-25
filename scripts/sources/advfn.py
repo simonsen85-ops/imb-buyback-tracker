@@ -53,44 +53,147 @@ def fetch_advfn_html(url: str, timeout: int = 20) -> Optional[str]:
 def get_listing_filing_urls(max_pages: int = 5,
                              request_delay: float = 1.0) -> list[str]:
     """
-    Paginate ADVFN's listing page to get filing URLs.
-
-    Returns full URLs of "Transaction in Own Shares" filings.
+    Fetch listing page (limited to ~8 latest filings on ADVFN — no real pagination).
+    Used for daily incremental updates.
     """
-    all_urls = []
+    html = fetch_advfn_html(LISTING_URL)
+    if not html:
+        return []
+
+    link_pattern = (
+        r'(/stock-market/london/imperial-brands-IMB/share-news/'
+        r'[^"\']*?[Tt]ransaction[^"\']*?[Oo]wn[^"\']*?[Ss]hares[^"\']*?/\d+)'
+    )
+    matches = re.findall(link_pattern, html)
     seen = set()
+    urls = []
+    for path in matches:
+        full = f"https://uk.advfn.com{path}"
+        if full not in seen:
+            seen.add(full)
+            urls.append(full)
 
-    # ADVFN uses ?p=N for pagination
-    for page in range(1, max_pages + 1):
-        page_url = f"{LISTING_URL}?p={page}"
-        html = fetch_advfn_html(page_url)
-        if not html:
-            print(f"    Page {page}: fetch failed, stopping")
+    print(f"    Listing returned {len(urls)} latest filings")
+    return urls
+
+
+def enumerate_ids_backwards(lowest_known_id: int,
+                             num_ids: int,
+                             request_delay: float = 1.0) -> list[Announcement]:
+    """
+    Enumerate ADVFN IDs backwards from lowest_known_id.
+
+    For each ID, fetch /share-news/anything/{id} — if it's a Transaction in Own Shares
+    page for IMB, parse it. Other filing types and 404s are skipped silently.
+
+    Note: ADVFN ID range for IMB is per-company and sequential, so we only hit
+    IMB filings — no cross-issuer contamination risk.
+    """
+    print(f"    Enumerating {num_ids} IDs backwards from {lowest_known_id}...")
+
+    # Use a generic URL — ADVFN redirects to canonical URL based on filing type
+    URL_PROBE_TMPL = (
+        "https://uk.advfn.com/stock-market/london/imperial-brands-IMB/"
+        "share-news/probe/{id}"
+    )
+
+    announcements = []
+    hits = 0
+    misses = 0
+    consecutive_404s = 0
+
+    for offset in range(1, num_ids + 1):
+        rns_id = lowest_known_id - offset
+        if rns_id <= 0:
             break
 
-        # Match: /stock-market/london/imperial-brands-IMB/share-news/.../{NUMERIC_ID}
-        # Specifically only "Transaction-in-Own-Shares" links
-        link_pattern = (
-            r'(/stock-market/london/imperial-brands-IMB/share-news/'
-            r'[^"\']*?[Tt]ransaction[^"\']*?[Oo]wn[^"\']*?[Ss]hares[^"\']*?/\d+)'
-        )
-        matches = re.findall(link_pattern, html)
-        new_urls = []
-        for path in matches:
-            full = f"https://uk.advfn.com{path}"
-            if full not in seen:
-                seen.add(full)
-                new_urls.append(full)
-                all_urls.append(full)
+        url = URL_PROBE_TMPL.format(id=rns_id)
+        ann = parse_announcement(url)
 
-        if not new_urls:
-            print(f"    Page {page}: no new filings, reached end")
-            break
+        if ann:
+            announcements.append(ann)
+            hits += 1
+            consecutive_404s = 0
+            print(f"    ✓ {rns_id}: {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
+        else:
+            misses += 1
+            consecutive_404s += 1
+            # If we hit 200 misses in a row with no recent hits, likely past the data
+            if consecutive_404s >= 200 and hits > 0:
+                print(f"    ⚠ {consecutive_404s} consecutive misses — likely past historical range")
+                break
 
-        print(f"    Page {page}: {len(new_urls)} new ({len(all_urls)} total)")
         time.sleep(request_delay)
 
-    return all_urls
+        if (offset) % 100 == 0:
+            print(f"    [{offset}/{num_ids}] {hits} hits, {misses} misses")
+
+    print(f"    Enumeration complete: {hits} hits from {hits + misses} requests")
+    return announcements
+
+
+def scrape_new_filings(known_ids: set = None,
+                       max_pages: int = 5,
+                       request_delay: float = 1.0) -> list[Announcement]:
+    """
+    Scrape ADVFN for IMB Transaction in Own Shares filings.
+
+    For normal updates: uses listing (8 most recent filings).
+    `max_pages` is kept for compatibility but only first call is used.
+    """
+    if known_ids is None:
+        known_ids = set()
+
+    print(f"  Fetching listing from ADVFN...")
+    urls = get_listing_filing_urls(request_delay=request_delay)
+    print(f"  Found {len(urls)} filing URLs in listing")
+
+    new_urls = [u for u in urls
+                if f"advfn_{u.rstrip('/').split('/')[-1]}" not in known_ids]
+    print(f"  {len(new_urls)} new (skipping {len(urls) - len(new_urls)} already in data.json)")
+
+    announcements = []
+    for url in new_urls:
+        ann = parse_announcement(url)
+        if ann:
+            announcements.append(ann)
+            print(f"    ✓ {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
+        time.sleep(request_delay)
+
+    print(f"  Parsed {len(announcements)}/{len(new_urls)} buyback filings")
+    return announcements
+
+
+def backfill_via_id_enumeration(known_ids: set,
+                                  num_ids: int = 1000,
+                                  request_delay: float = 1.0) -> list[Announcement]:
+    """
+    Backfill historical filings by enumerating ADVFN IDs backwards.
+
+    Starts from the lowest known ADVFN ID and counts down `num_ids` IDs.
+    Per-company URL structure means we cannot accidentally fetch other companies.
+    """
+    if not known_ids:
+        print("  ⚠ No known ADVFN IDs to anchor backfill from — run normal scrape first")
+        return []
+
+    # Find lowest known ADVFN ID
+    advfn_ids = []
+    for rns_id in known_ids:
+        if rns_id.startswith("advfn_"):
+            try:
+                advfn_ids.append(int(rns_id.removeprefix("advfn_")))
+            except ValueError:
+                continue
+
+    if not advfn_ids:
+        print("  ⚠ No ADVFN-prefixed IDs found in known_ids")
+        return []
+
+    lowest = min(advfn_ids)
+    print(f"  Lowest known ADVFN ID: {lowest}")
+
+    return enumerate_ids_backwards(lowest, num_ids, request_delay)
 
 
 def parse_announcement(url: str) -> Optional[Announcement]:
@@ -212,41 +315,3 @@ def parse_announcement(url: str) -> Optional[Announcement]:
         rns_id=f"advfn_{advfn_id}",
         source_url=url,
     )
-
-
-def scrape_new_filings(known_ids: set = None,
-                       max_pages: int = 5,
-                       request_delay: float = 1.0) -> list[Announcement]:
-    """
-    Scrape ADVFN listing for IMB Transaction in Own Shares filings.
-
-    `max_pages` paginates through listing (each page ~20 filings).
-    Default 5 = ~100 filings (good for most updates and partial backfill).
-    For full FY24+ coverage use max_pages=20.
-    """
-    if known_ids is None:
-        known_ids = set()
-
-    print(f"  Fetching listing from ADVFN (max {max_pages} pages)...")
-    urls = get_listing_filing_urls(max_pages=max_pages, request_delay=request_delay)
-    print(f"  Found {len(urls)} filing URLs in listing")
-
-    # Skip already-known
-    new_urls = [u for u in urls
-                if f"advfn_{u.rstrip('/').split('/')[-1]}" not in known_ids]
-    print(f"  {len(new_urls)} new (skipping {len(urls) - len(new_urls)} already in data.json)")
-
-    announcements = []
-    hits = 0
-    for i, url in enumerate(new_urls):
-        ann = parse_announcement(url)
-        if ann:
-            announcements.append(ann)
-            hits += 1
-            print(f"    ✓ {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
-        time.sleep(request_delay)
-        if (i + 1) % 10 == 0:
-            print(f"    [{i+1}/{len(new_urls)}] {hits} hits")
-
-    print(f"  Parsed {hits}/{len(new_urls)} buyback filings")
-    return announcements
