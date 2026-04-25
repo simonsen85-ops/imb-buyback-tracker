@@ -23,6 +23,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from sources import yahoo
+from sources import advfn
 from sources import investegate
 from sources import lse_co_uk
 
@@ -109,21 +110,41 @@ def get_known_lse_hashes(data: dict) -> set:
     return hashes
 
 
+def get_known_advfn_ids(data: dict) -> set:
+    """Collect all ADVFN-style rns_id's ('advfn_{id}') for dedup."""
+    ids = set()
+    for t in data.get("transaktioner", []):
+        rns_id = t.get("rns_id", "")
+        if rns_id and rns_id.startswith("advfn_"):
+            ids.add(rns_id)
+    return ids
+
+
 def normal_scrape(data: dict) -> list:
     """
-    Incremental forward scrape using LSE.co.uk crawl (primary).
-    Falls back to Investegate if LSE returns nothing.
+    Source priority:
+      1. ADVFN (full RNS text in HTML, per-company URL — most reliable)
+      2. LSE.co.uk (per-company but JS-rendered content)
+      3. Investegate (sequential IDs, must validate issuer)
     """
-    known_lse = get_known_lse_hashes(data)
-    print(f"   Known LSE hashes: {len(known_lse)}")
+    known_advfn = get_known_advfn_ids(data)
+    print(f"   Known ADVFN ids: {len(known_advfn)}")
 
-    # Primary: LSE.co.uk crawl
-    new_ann = lse_co_uk.scrape_new_filings(
-        known_hashes=known_lse,
-        max_filings=50,     # Normal daily: ~50 filings = enough for any backlog
+    new_ann = advfn.scrape_new_filings(
+        known_ids=known_advfn,
+        max_pages=3,
         request_delay=1.0,
     )
+    if new_ann:
+        return new_ann
 
+    print("   ADVFN returned nothing — trying LSE.co.uk fallback")
+    known_lse = get_known_lse_hashes(data)
+    new_ann = lse_co_uk.scrape_new_filings(
+        known_hashes=known_lse,
+        max_filings=50,
+        request_delay=1.0,
+    )
     if new_ann:
         return new_ann
 
@@ -134,25 +155,34 @@ def normal_scrape(data: dict) -> list:
 
 def backfill_scrape(data: dict, n: int) -> list:
     """
-    Backward backfill via LSE.co.uk crawl.
+    Backfill via ADVFN listing pagination.
 
-    `n` is the max number of filings to crawl in one run.
-    Realistic FY24-FY26 coverage: ~250-300 filings.
+    `n` = max listing pages to fetch (each page ≈ 20 filings).
+    For full FY24+ coverage use n=20.
     """
-    known_lse = get_known_lse_hashes(data)
-    print(f"   Known LSE hashes: {len(known_lse)}")
-    print(f"   Crawling up to {n} filings via BFS sidebar links...")
+    known_advfn = get_known_advfn_ids(data)
+    print(f"   Known ADVFN ids: {len(known_advfn)}")
+    print(f"   Paginating up to {n} listing pages...")
 
-    new_ann = lse_co_uk.scrape_new_filings(
-        known_hashes=known_lse,
-        max_filings=n,
+    new_ann = advfn.scrape_new_filings(
+        known_ids=known_advfn,
+        max_pages=n,
         request_delay=1.5,  # More polite during backfill
     )
-
     if new_ann:
         return new_ann
 
-    print("   LSE.co.uk returned nothing — falling back to Investegate ID enumeration")
+    print("   ADVFN returned nothing — trying LSE.co.uk crawl fallback")
+    known_lse = get_known_lse_hashes(data)
+    new_ann = lse_co_uk.scrape_new_filings(
+        known_hashes=known_lse,
+        max_filings=n * 20,
+        request_delay=1.5,
+    )
+    if new_ann:
+        return new_ann
+
+    print("   LSE.co.uk returned nothing — falling back to Investegate")
     return _backfill_investegate(data, 100)
 
 
