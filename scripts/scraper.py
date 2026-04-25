@@ -111,23 +111,22 @@ def get_known_lse_hashes(data: dict) -> set:
 
 def normal_scrape(data: dict) -> list:
     """
-    Incremental forward scrape using LSE.co.uk (primary).
+    Incremental forward scrape using LSE.co.uk crawl (primary).
     Falls back to Investegate if LSE returns nothing.
     """
     known_lse = get_known_lse_hashes(data)
     print(f"   Known LSE hashes: {len(known_lse)}")
 
-    # Primary: LSE.co.uk (per-company URL, no issuer confusion)
+    # Primary: LSE.co.uk crawl
     new_ann = lse_co_uk.scrape_new_filings(
         known_hashes=known_lse,
-        max_pages=3,        # Normal daily: 3 pages = ~45 filings coverage
+        max_filings=50,     # Normal daily: ~50 filings = enough for any backlog
         request_delay=1.0,
     )
 
     if new_ann:
         return new_ann
 
-    # Fallback: Investegate (historical path — only if LSE.co.uk fails)
     print("   LSE.co.uk returned nothing — trying Investegate fallback")
     last_id = get_highest_known_id(data)
     return investegate.scrape_new_filings(last_known_id=last_id, max_lookback=100)
@@ -135,27 +134,26 @@ def normal_scrape(data: dict) -> list:
 
 def backfill_scrape(data: dict, n: int) -> list:
     """
-    Backward scrape via LSE.co.uk — paginate through listing to get historic filings.
+    Backward backfill via LSE.co.uk crawl.
 
-    `n` is interpreted as max_pages for LSE.co.uk (each page ≈ 15 filings).
-    So n=20 fetches up to ~300 filings, covering FY24 onwards.
+    `n` is the max number of filings to crawl in one run.
+    Realistic FY24-FY26 coverage: ~250-300 filings.
     """
     known_lse = get_known_lse_hashes(data)
     print(f"   Known LSE hashes: {len(known_lse)}")
-    print(f"   Paginating up to {n} pages of LSE.co.uk listings...")
+    print(f"   Crawling up to {n} filings via BFS sidebar links...")
 
     new_ann = lse_co_uk.scrape_new_filings(
         known_hashes=known_lse,
-        max_pages=n,
-        request_delay=1.5,  # Slightly more polite during backfill
+        max_filings=n,
+        request_delay=1.5,  # More polite during backfill
     )
 
     if new_ann:
         return new_ann
 
-    # Fallback: original ID-enumeration via Investegate
-    print("   LSE.co.uk returned nothing — trying Investegate ID-enumeration fallback")
-    return _backfill_investegate(data, n * 15)  # Rough equivalence
+    print("   LSE.co.uk returned nothing — falling back to Investegate ID enumeration")
+    return _backfill_investegate(data, 100)
 
 
 def _backfill_investegate(data: dict, n: int) -> list:

@@ -3,10 +3,10 @@ name: Backfill Historical IMB Buyback Data
 on:
   workflow_dispatch:
     inputs:
-      num_pages:
-        description: 'LSE.co.uk listing pages to paginate (each ~15 filings, default 5 = FY26 + part of FY25)'
+      num_filings:
+        description: 'Max filings to crawl from LSE.co.uk (default 100, full FY24-FY26 = 300)'
         required: true
-        default: '5'
+        default: '100'
         type: string
 
 permissions:
@@ -24,12 +24,12 @@ jobs:
           python-version: '3.12'
 
       - name: Run historical backfill
-        run: python scripts/scraper.py --backfill ${{ github.event.inputs.num_pages }}
+        run: python scripts/scraper.py --backfill ${{ github.event.inputs.num_filings }}
 
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json index.html
-          git diff --staged --quiet || git commit -m "🔙 Backfill ${{ github.event.inputs.num_pages }} LSE listing pages $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git diff --staged --quiet || git commit -m "🔙 Backfill ${{ github.event.inputs.num_filings }} LSE filings $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push

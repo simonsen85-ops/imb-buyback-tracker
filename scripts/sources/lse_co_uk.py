@@ -1,49 +1,48 @@
 """
 LSE.co.uk primary scraper for IMB buyback filings.
 
-URL STRUCTURE (much cleaner than Investegate):
-  Listing (all RNS for IMB):
-    https://www.lse.co.uk/rns/IMB.html?page=1
-
-  Category-filtered (just Transaction in Own Shares):
-    https://www.lse.co.uk/rns/IMB/rns-category.html?category=Transaction%20in%20Own%20Shares&page=1
-
+URL STRUCTURE:
   Individual announcement:
     https://www.lse.co.uk/rns/IMB/transaction-in-own-shares-{hash}.html
 
-The {hash} is a random alphanumeric string — NOT sequential like Investegate.
-But since URLs are scoped to /rns/IMB/, we CANNOT accidentally scrape
-another company's filings. This alone makes LSE.co.uk far more robust.
+The {hash} is alphanumeric (~15 chars), NOT sequential. There is no
+listing/category page that works (those return 404). However, EACH
+individual filing page contains a sidebar of ~50 related filings.
 
-AUTHENTICATION:
-LSE.co.uk shows a "private investor" popup. We bypass it by sending
-a cookie `lse_private_investor=1`.
+CRAWL STRATEGY:
+1. Start from ONE known filing URL (a "seed")
+2. Fetch it, extract all sibling filing URLs from its sidebar
+3. Add new URLs to a queue, fetch them, extract more
+4. Continue BFS-style until no new URLs found OR max_filings limit hit
 
-STRATEGY:
-1. Fetch listing page
-2. Extract all announcement URLs (hash strings)
-3. Fetch each individual page, parse transaction data
-4. Dedup via URL hash (acts as our stable ID)
+Since URLs are scoped to /rns/IMB/, we cannot accidentally scrape
+other companies. Authentication via lse_private_investor=1 cookie.
+
+DEDUP:
+URL hash acts as stable ID — we use it as rns_id with "lse_" prefix.
 """
 
 import re
 import time
 from typing import Optional
 import urllib.request
+import urllib.error
 from .base import Announcement, HEADERS
 
 
-# Send private-investor consent cookie to bypass popup
 SCRAPER_HEADERS = {**HEADERS, "Cookie": "lse_private_investor=1"}
 
-# Listing URL with category filter
-LISTING_URL_TMPL = "https://www.lse.co.uk/rns/IMB/rns-category.html?category=Transaction%20in%20Own%20Shares&page={page}"
+# Pattern for finding sibling filing URLs on any IMB filing page
+# Matches: /rns/IMB/transaction-in-own-shares-{hash}.html
+HASH_PATTERN = r'/rns/IMB/transaction-in-own-shares-([a-z0-9]{10,})\.html'
 
-# Individual announcement URL pattern (for parsing)
+# Seed URLs — known-valid filing pages we use as crawl starting points.
+# Multiple seeds give us robustness if one page returns fewer links.
+SEED_URLS = [
+    "https://www.lse.co.uk/rns/IMB/transaction-in-own-shares-luhoc5juf5zdhzq.html",
+]
+
 ANNOUNCEMENT_URL_TMPL = "https://www.lse.co.uk/rns/IMB/transaction-in-own-shares-{hash}.html"
-
-# Pattern for finding announcement URLs within the listing HTML
-LINK_PATTERN = r'/rns/IMB/transaction-in-own-shares-([a-z0-9]{10,})\.html'
 
 MONTHS = {
     "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
@@ -66,41 +65,68 @@ def fetch_lse_html(url: str, timeout: int = 20) -> Optional[str]:
         return None
 
 
-def get_all_listing_hashes(max_pages: int = 20, delay: float = 1.0) -> list[str]:
-    """
-    Paginate through LSE.co.uk's Transaction in Own Shares listings for IMB.
-    Returns all unique hash strings newest-first.
-
-    max_pages: Safety cap. 20 pages × 15 filings/page ≈ 300 filings, enough for FY24 onwards.
-    delay: Seconds between page requests (LSE.co.uk is more lenient than Investegate,
-           but we're still polite).
-    """
-    all_hashes = []
+def extract_hashes_from_page(html: str) -> list[str]:
+    """Extract all sibling filing-URL hashes from a filing page."""
+    matches = re.findall(HASH_PATTERN, html, re.IGNORECASE)
     seen = set()
+    unique = []
+    for h in matches:
+        if h not in seen:
+            seen.add(h)
+            unique.append(h)
+    return unique
 
-    for page in range(1, max_pages + 1):
-        url = LISTING_URL_TMPL.format(page=page)
+
+def crawl_all_hashes(seeds: list[str] = None,
+                     max_filings: int = 100,
+                     request_delay: float = 1.0) -> list[str]:
+    """
+    BFS crawl from seed URLs. Returns hashes ordered by discovery.
+
+    Each LSE.co.uk filing page links to ~50 sibling filings, so we:
+    - Visit seeds first
+    - Extract their links
+    - Visit unseen links, extract more
+    - Continue until queue empty OR max_filings hit
+    """
+    if seeds is None:
+        seeds = SEED_URLS
+
+    visited_urls = set()
+    found_hashes = []  # ordered by discovery
+    seen_hashes = set()
+
+    # Initialize queue with seed URLs
+    queue = list(seeds)
+
+    while queue and len(found_hashes) < max_filings:
+        url = queue.pop(0)
+        if url in visited_urls:
+            continue
+        visited_urls.add(url)
+
         html = fetch_lse_html(url)
         if not html:
-            print(f"    Page {page}: fetch failed, stopping")
-            break
+            continue
 
-        matches = re.findall(LINK_PATTERN, html, re.IGNORECASE)
-        new_hashes = [m for m in matches if m not in seen]
+        # Extract hashes from this page
+        page_hashes = extract_hashes_from_page(html)
+        new_count = 0
+        for h in page_hashes:
+            if h not in seen_hashes:
+                seen_hashes.add(h)
+                found_hashes.append(h)
+                new_count += 1
+                # Add to queue if we haven't hit limit (so we can crawl from this page too)
+                if len(found_hashes) < max_filings:
+                    queue.append(ANNOUNCEMENT_URL_TMPL.format(hash=h))
 
-        if not new_hashes:
-            # Empty page — we've gone past the last real page
-            print(f"    Page {page}: no new announcements, reached end")
-            break
+        if new_count:
+            print(f"    Crawled {url.split('/')[-1][:30]}: +{new_count} new ({len(found_hashes)} total)")
 
-        for h in new_hashes:
-            seen.add(h)
-            all_hashes.append(h)
+        time.sleep(request_delay)
 
-        print(f"    Page {page}: {len(new_hashes)} new ({len(all_hashes)} total)")
-        time.sleep(delay)
-
-    return all_hashes
+    return found_hashes
 
 
 def parse_announcement(url_hash: str) -> Optional[Announcement]:
@@ -110,17 +136,16 @@ def parse_announcement(url_hash: str) -> Optional[Announcement]:
     if not html:
         return None
 
-    # Issuer validation (defence in depth — URL is already /rns/IMB/ but sanity check)
+    # Issuer validation: must be IMB (defence in depth)
     html_lower = html.lower()
     if not (
         "549300dfvpob67jl3a42" in html_lower   # IMB LEI
         or "gb0004544929" in html_lower         # IMB ISIN
-        or "imperial brands plc" in html_lower  # Full name
-        or "imperial tobacco group" in html_lower  # Old name (pre-2016) for historical filings
+        or "imperial brands plc" in html_lower
+        or "imperial tobacco group" in html_lower  # Pre-2016 name
     ):
         return None
 
-    # Strip HTML tags for clean regex matching
     text = re.sub(r"<[^>]+>", " ", html)
     text = re.sub(r"\s+", " ", text)
 
@@ -160,7 +185,7 @@ def parse_announcement(url_hash: str) -> Optional[Announcement]:
         if m:
             try:
                 cand = int(m.group(1).replace(",", ""))
-                if cand > 100:  # Sanity: real transactions are in thousands+
+                if cand > 100:
                     antal = cand
                     break
             except ValueError:
@@ -182,7 +207,6 @@ def parse_announcement(url_hash: str) -> Optional[Announcement]:
         if m:
             try:
                 cand = float(m.group(1).replace(",", ""))
-                # IMB has historically traded 1500-4500p — loose sanity check only
                 if 500 < cand < 10000:
                     gns_kurs = cand
                     break
@@ -195,7 +219,7 @@ def parse_announcement(url_hash: str) -> Optional[Announcement]:
     after_patterns = [
         r"(?:remaining\s+)?(?:total\s+)?(?:number\s+of\s+)?ordinary\s+shares\s+in\s+issue\s+"
         r"(?:will\s+be|is\s+now|is)\s+(\d[\d,]+)",
-        r"shares\s+in\s+issue.*?(\d{3}[\d,]{5,})",  # Require at least 9 digits
+        r"shares\s+in\s+issue.*?(\d{3}[\d,]{5,})",
     ]
     aktier_efter = None
     for pat in after_patterns:
@@ -203,7 +227,7 @@ def parse_announcement(url_hash: str) -> Optional[Announcement]:
         if m:
             try:
                 n = int(m.group(1).replace(",", ""))
-                if 500_000_000 < n < 1_500_000_000:  # IMB historically 800-900M
+                if 500_000_000 < n < 1_500_000_000:
                     aktier_efter = n
                     break
             except ValueError:
@@ -217,26 +241,26 @@ def parse_announcement(url_hash: str) -> Optional[Announcement]:
         gns_kurs_gbp=gns_kurs,
         beloeb_gbp_mio=beloeb,
         aktier_efter=aktier_efter,
-        rns_id=f"lse_{url_hash}",  # Stable ID based on URL hash
+        rns_id=f"lse_{url_hash}",
         source_url=url,
     )
 
 
 def scrape_new_filings(known_hashes: set = None,
-                       max_pages: int = 3,
+                       max_filings: int = 50,
                        request_delay: float = 1.0) -> list[Announcement]:
     """
-    Scrape IMB buyback filings from LSE.co.uk, skipping already-known hashes.
+    Crawl LSE.co.uk for IMB filings, skip already-known hashes.
 
-    Default max_pages=3 is enough for normal daily updates (each page has ~15 filings).
-    For backfill, increase max_pages up to 20.
+    max_filings: total filing pages to crawl (covers ~max_filings transactions).
+                 Default 50 ≈ 4 months FY26. For full backfill use 300.
     """
     if known_hashes is None:
         known_hashes = set()
 
-    print(f"  Fetching listing from LSE.co.uk (max {max_pages} pages)...")
-    hashes = get_all_listing_hashes(max_pages=max_pages, delay=request_delay)
-    print(f"  Found {len(hashes)} total announcements in listing")
+    print(f"  Crawling LSE.co.uk (max {max_filings} filings)...")
+    hashes = crawl_all_hashes(max_filings=max_filings, request_delay=request_delay)
+    print(f"  Crawl found {len(hashes)} unique filing hashes")
 
     # Skip already-known
     new_hashes = [h for h in hashes if f"lse_{h}" not in known_hashes]
@@ -250,8 +274,6 @@ def scrape_new_filings(known_hashes: set = None,
             announcements.append(ann)
             hits += 1
             print(f"    ✓ {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
-        else:
-            print(f"    ✗ Parse failed for {url_hash}")
         time.sleep(request_delay)
         if (i + 1) % 10 == 0:
             print(f"    [{i+1}/{len(new_hashes)}] {hits} hits")
