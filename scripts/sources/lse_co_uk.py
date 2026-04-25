@@ -146,13 +146,27 @@ def parse_announcement(url_hash: str) -> Optional[Announcement]:
     ):
         return None
 
-    text = re.sub(r"<[^>]+>", " ", html)
+    # Remove <script> and <style> blocks entirely (incl. their contents)
+    # This is critical — LSE.co.uk has lots of inline JS that pollutes our regex matches
+    cleaned = re.sub(r"<script\b[^>]*>.*?</script>", " ", html, flags=re.IGNORECASE | re.DOTALL)
+    cleaned = re.sub(r"<style\b[^>]*>.*?</style>", " ", cleaned, flags=re.IGNORECASE | re.DOTALL)
+    # Now strip remaining tags (keep their text content)
+    text = re.sub(r"<[^>]+>", " ", cleaned)
+    text = re.sub(r"&nbsp;|&#160;", " ", text)  # HTML entities
     text = re.sub(r"\s+", " ", text)
 
     # ── DATE ──
     date_patterns = [
+        # "on 22 April 2026"
         r"on\s+(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})",
+        # "April 22, 2026"
         r"(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})",
+        # "Date of transaction: 22 April 2026" or "Transaction date: 22 April 2026"
+        r"(?:Date of transaction|Transaction date|Trade date)\s*:?\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})",
+        # "22-Apr-2026" or "22/04/2026"
+        r"(\d{1,2})[\-/](Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[\-/](\d{4})",
+        # ISO format "2026-04-22" (some pages have this)
+        r"(\d{4})-(\d{2})-(\d{2})",
     ]
     dato = None
     for pat in date_patterns:
@@ -161,13 +175,31 @@ def parse_announcement(url_hash: str) -> Optional[Announcement]:
             continue
         groups = m.groups()
         try:
-            if groups[0].isdigit():
+            # Detect ISO format (year first, all numeric)
+            if len(groups) == 3 and groups[0].isdigit() and len(groups[0]) == 4 and groups[1].isdigit():
+                year, month_num, day = groups
+                cand = f"{year}-{int(month_num):02d}-{int(day):02d}"
+            elif groups[0].isdigit():  # "22 April 2026"
                 day, month_str, year = groups
-            else:
+                month_key = month_str.lower()[:3]
+                month_num = next((v for k, v in MONTHS.items() if k.startswith(month_key)), None)
+                if not month_num:
+                    continue
+                cand = f"{year}-{month_num:02d}-{int(day):02d}"
+            else:  # "April 22, 2026"
                 month_str, day, year = groups
-            dato = f"{year}-{MONTHS[month_str.lower()]:02d}-{int(day):02d}"
-            break
-        except (KeyError, ValueError):
+                month_key = month_str.lower()[:3]
+                month_num = next((v for k, v in MONTHS.items() if k.startswith(month_key)), None)
+                if not month_num:
+                    continue
+                cand = f"{year}-{month_num:02d}-{int(day):02d}"
+
+            # Sanity check: date should be 2010-2030 (IMB has been buying back since 2014)
+            year_int = int(cand[:4])
+            if 2010 <= year_int <= 2030:
+                dato = cand
+                break
+        except (KeyError, ValueError, StopIteration):
             continue
     if not dato:
         return None
