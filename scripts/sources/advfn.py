@@ -77,42 +77,65 @@ def fetch_advfn_html(url: str, timeout: int = 20) -> Optional[str]:
 def get_filing_ids_from_listing(max_pages: int = 5,
                                  request_delay: float = 1.0) -> list[int]:
     """
-    Paginate through ADVFN's listing of IMB regulatory news.
-    Returns numeric filing IDs for "Transaction in Own Shares" only.
+    Paginate through ADVFN's listing of IMB regulatory news by following
+    the site's own pagination links (which carry a `last_ts` parameter that
+    we cannot reconstruct from outside).
 
-    Each page contains ~25 RNS filings. We filter to buybacks only.
-    Returns IDs ordered by appearance (newest first).
+    Each page contains ~25 RNS filings (~13 buybacks). We filter to
+    "Transaction in Own Shares" only.
     """
     all_ids = []
     seen = set()
 
+    # Start at page 1
+    next_url = LISTING_URL_TMPL.format(page=1)
+
     for page in range(1, max_pages + 1):
-        url = LISTING_URL_TMPL.format(page=page)
-        print(f"    Fetching listing page {page}: {url[:80]}...")
-        html = fetch_advfn_html(url)
+        print(f"    Fetching page {page}: {next_url[:100]}...")
+        html = fetch_advfn_html(next_url)
         if not html:
             print(f"    Page {page}: fetch failed, stopping")
             break
 
-        # Find all transaction-in-own-shares filing IDs on this page
+        # Extract buyback filing IDs
         matches = re.findall(LISTING_LINK_PATTERN, html, re.IGNORECASE)
-        new_ids = []
+        new_on_page = 0
         for m in matches:
             try:
                 rns_id = int(m)
                 if rns_id not in seen:
                     seen.add(rns_id)
-                    new_ids.append(rns_id)
                     all_ids.append(rns_id)
+                    new_on_page += 1
             except ValueError:
                 continue
 
-        if not new_ids:
-            # Empty page — likely past end of available data
-            print(f"    Page {page}: no new buyback filings found, stopping")
+        if not matches:
+            # Empty page — past end of historical data
+            print(f"    Page {page}: no buyback filings on this page, stopping")
             break
 
-        print(f"    Page {page}: +{len(new_ids)} buyback IDs ({len(all_ids)} total)")
+        print(f"    Page {page}: +{new_on_page} new buyback IDs ({len(all_ids)} total)")
+
+        # Find the link to the NEXT page in the listing's own pagination footer.
+        # ADVFN encodes a `last_ts` timestamp here that we can't construct ourselves.
+        # The next-page link is the one with p_n=N+1.
+        next_page_num = page + 1
+        next_pattern = rf'href="([^"]*p\.php\?pid=news[^"]*p_n={next_page_num}[^"]*)"'
+        next_match = re.search(next_pattern, html, re.IGNORECASE)
+        if not next_match:
+            print(f"    Page {page}: no link to page {next_page_num} found, reached last page")
+            break
+
+        # Decode HTML entities (ADVFN uses &amp; in href)
+        raw_path = next_match.group(1).replace('&amp;', '&')
+        if raw_path.startswith('/'):
+            next_url = f"https://uk.advfn.com{raw_path}"
+        elif raw_path.startswith('http'):
+            next_url = raw_path
+        else:
+            next_url = f"https://uk.advfn.com/{raw_path}"
+
         time.sleep(request_delay)
 
     return all_ids
