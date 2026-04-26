@@ -1293,6 +1293,2004 @@
       "aktier_efter": 803604849,
       "rns_id": "advfn_97115915",
       "program": "FY26"
+    },
+    {
+      "dato": "2025-10-29",
+      "antal_aktier": 164887,
+      "gns_kurs_gbp": 3040.1482,
+      "beloeb_gbp_mio": 5.0,
+      "aktier_efter": 803800378,
+      "rns_id": "advfn_97105048",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-28",
+      "antal_aktier": 114263,
+      "gns_kurs_gbp": 3010.3276,
+      "beloeb_gbp_mio": 3.4,
+      "aktier_efter": 803965265,
+      "rns_id": "advfn_97094848",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-27",
+      "antal_aktier": 124401,
+      "gns_kurs_gbp": 3006.1509,
+      "beloeb_gbp_mio": 3.7,
+      "aktier_efter": 804079528,
+      "rns_id": "advfn_97084233",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-24",
+      "antal_aktier": 36140,
+      "gns_kurs_gbp": 3003.5146,
+      "beloeb_gbp_mio": 1.1,
+      "aktier_efter": 804203929,
+      "rns_id": "advfn_97074632",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-22",
+      "antal_aktier": 7441,
+      "gns_kurs_gbp": 2953.8211,
+      "beloeb_gbp_mio": 0.2,
+      "aktier_efter": 804240069,
+      "rns_id": "advfn_97058213",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-21",
+      "antal_aktier": 289359,
+      "gns_kurs_gbp": 2957.7361,
+      "beloeb_gbp_mio": 8.6,
+      "aktier_efter": 804247510,
+      "rns_id": "advfn_97049000",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-20",
+      "antal_aktier": 149189,
+      "gns_kurs_gbp": 2986.2661,
+      "beloeb_gbp_mio": 4.5,
+      "aktier_efter": 804536869,
+      "rns_id": "advfn_97041666",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-17",
+      "antal_aktier": 84732,
+      "gns_kurs_gbp": 2985.0746,
+      "beloeb_gbp_mio": 2.5,
+      "aktier_efter": 804686058,
+      "rns_id": "advfn_97033016",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-16",
+      "antal_aktier": 346782,
+      "gns_kurs_gbp": 2996.1441,
+      "beloeb_gbp_mio": 10.4,
+      "aktier_efter": 804770790,
+      "rns_id": "advfn_97025448",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-15",
+      "antal_aktier": 488753,
+      "gns_kurs_gbp": 3036.0227,
+      "beloeb_gbp_mio": 14.8,
+      "aktier_efter": 805117572,
+      "rns_id": "advfn_97015243",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-14",
+      "antal_aktier": 199417,
+      "gns_kurs_gbp": 3079.9048,
+      "beloeb_gbp_mio": 6.1,
+      "aktier_efter": 805606325,
+      "rns_id": "advfn_97004840",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-13",
+      "antal_aktier": 150000,
+      "gns_kurs_gbp": 3124.309,
+      "beloeb_gbp_mio": 4.7,
+      "aktier_efter": 805805742,
+      "rns_id": "advfn_96995982",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-10",
+      "antal_aktier": 60144,
+      "gns_kurs_gbp": 3109.1862,
+      "beloeb_gbp_mio": 1.9,
+      "aktier_efter": 805955742,
+      "rns_id": "advfn_96988469",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-07",
+      "antal_aktier": 7478,
+      "gns_kurs_gbp": 3019.2909,
+      "beloeb_gbp_mio": 0.2,
+      "aktier_efter": 806015886,
+      "rns_id": "advfn_96964732",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-06",
+      "antal_aktier": 260365,
+      "gns_kurs_gbp": 3023.5917,
+      "beloeb_gbp_mio": 7.9,
+      "aktier_efter": 806023364,
+      "rns_id": "advfn_96955420",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-03",
+      "antal_aktier": 228924,
+      "gns_kurs_gbp": 3046.578,
+      "beloeb_gbp_mio": 7.0,
+      "aktier_efter": 806283729,
+      "rns_id": "advfn_96946719",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-02",
+      "antal_aktier": 300000,
+      "gns_kurs_gbp": 3057.9635,
+      "beloeb_gbp_mio": 9.2,
+      "aktier_efter": 806512653,
+      "rns_id": "advfn_96937757",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-10-01",
+      "antal_aktier": 488845,
+      "gns_kurs_gbp": 3096.1012,
+      "beloeb_gbp_mio": 15.1,
+      "aktier_efter": 806812653,
+      "rns_id": "advfn_96928814",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-30",
+      "antal_aktier": 132498,
+      "gns_kurs_gbp": 3144.5857,
+      "beloeb_gbp_mio": 4.2,
+      "aktier_efter": 807301498,
+      "rns_id": "advfn_96916514",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-29",
+      "antal_aktier": 225000,
+      "gns_kurs_gbp": 3162.1146,
+      "beloeb_gbp_mio": 7.1,
+      "aktier_efter": 807433996,
+      "rns_id": "advfn_96904938",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-26",
+      "antal_aktier": 88739,
+      "gns_kurs_gbp": 3161.3045,
+      "beloeb_gbp_mio": 2.8,
+      "aktier_efter": 807658996,
+      "rns_id": "advfn_96895425",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-25",
+      "antal_aktier": 4006,
+      "gns_kurs_gbp": 3127.4878,
+      "beloeb_gbp_mio": 0.1,
+      "aktier_efter": 807747735,
+      "rns_id": "advfn_96888110",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-24",
+      "antal_aktier": 53769,
+      "gns_kurs_gbp": 3096.6731,
+      "beloeb_gbp_mio": 1.7,
+      "aktier_efter": 807751741,
+      "rns_id": "advfn_96879633",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-23",
+      "antal_aktier": 125000,
+      "gns_kurs_gbp": 3085.5667,
+      "beloeb_gbp_mio": 3.9,
+      "aktier_efter": 807805510,
+      "rns_id": "advfn_96871367",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-22",
+      "antal_aktier": 70000,
+      "gns_kurs_gbp": 3089.4066,
+      "beloeb_gbp_mio": 2.2,
+      "aktier_efter": 807930510,
+      "rns_id": "advfn_96862242",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-19",
+      "antal_aktier": 400000,
+      "gns_kurs_gbp": 3094.5232,
+      "beloeb_gbp_mio": 12.4,
+      "aktier_efter": 808000510,
+      "rns_id": "advfn_96853529",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-18",
+      "antal_aktier": 248994,
+      "gns_kurs_gbp": 3075.249,
+      "beloeb_gbp_mio": 7.7,
+      "aktier_efter": 808400510,
+      "rns_id": "advfn_96846672",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-16",
+      "antal_aktier": 392091,
+      "gns_kurs_gbp": 3120.9458,
+      "beloeb_gbp_mio": 12.2,
+      "aktier_efter": 808899504,
+      "rns_id": "advfn_96838181",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-16",
+      "antal_aktier": 392091,
+      "gns_kurs_gbp": 3120.9458,
+      "beloeb_gbp_mio": 12.2,
+      "aktier_efter": 808899504,
+      "rns_id": "advfn_96830189",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-15",
+      "antal_aktier": 200000,
+      "gns_kurs_gbp": 3173.6681,
+      "beloeb_gbp_mio": 6.3,
+      "aktier_efter": 809291595,
+      "rns_id": "advfn_96819917",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-11",
+      "antal_aktier": 71901,
+      "gns_kurs_gbp": 3155.7115,
+      "beloeb_gbp_mio": 2.3,
+      "aktier_efter": 809491595,
+      "rns_id": "advfn_96803990",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-10",
+      "antal_aktier": 245191,
+      "gns_kurs_gbp": 3132.5628,
+      "beloeb_gbp_mio": 7.7,
+      "aktier_efter": 806563496,
+      "rns_id": "advfn_96796300",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-09",
+      "antal_aktier": 125000,
+      "gns_kurs_gbp": 3107.9476,
+      "beloeb_gbp_mio": 3.9,
+      "aktier_efter": 806808687,
+      "rns_id": "advfn_96787738",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-08",
+      "antal_aktier": 110000,
+      "gns_kurs_gbp": 3130.2452,
+      "beloeb_gbp_mio": 3.4,
+      "aktier_efter": 806933687,
+      "rns_id": "advfn_96779481",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-05",
+      "antal_aktier": 50116,
+      "gns_kurs_gbp": 3123.1614,
+      "beloeb_gbp_mio": 1.6,
+      "aktier_efter": 807043687,
+      "rns_id": "advfn_96770867",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-04",
+      "antal_aktier": 62493,
+      "gns_kurs_gbp": 3084.4711,
+      "beloeb_gbp_mio": 1.9,
+      "aktier_efter": 807093803,
+      "rns_id": "advfn_96763787",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-03",
+      "antal_aktier": 210000,
+      "gns_kurs_gbp": 3075.2085,
+      "beloeb_gbp_mio": 6.5,
+      "aktier_efter": 807156296,
+      "rns_id": "advfn_96754298",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-02",
+      "antal_aktier": 350000,
+      "gns_kurs_gbp": 3076.6313,
+      "beloeb_gbp_mio": 10.8,
+      "aktier_efter": 807366296,
+      "rns_id": "advfn_96745249",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-09-01",
+      "antal_aktier": 245126,
+      "gns_kurs_gbp": 3102.336,
+      "beloeb_gbp_mio": 7.6,
+      "aktier_efter": 807716296,
+      "rns_id": "advfn_96738389",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-29",
+      "antal_aktier": 114915,
+      "gns_kurs_gbp": 3122.9655,
+      "beloeb_gbp_mio": 3.6,
+      "aktier_efter": 807961422,
+      "rns_id": "advfn_96729331",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-28",
+      "antal_aktier": 170000,
+      "gns_kurs_gbp": 3096.0346,
+      "beloeb_gbp_mio": 5.3,
+      "aktier_efter": 808076337,
+      "rns_id": "advfn_96720696",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-27",
+      "antal_aktier": 160000,
+      "gns_kurs_gbp": 3122.9325,
+      "beloeb_gbp_mio": 5.0,
+      "aktier_efter": 808246337,
+      "rns_id": "advfn_96712720",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-26",
+      "antal_aktier": 100000,
+      "gns_kurs_gbp": 3114.7501,
+      "beloeb_gbp_mio": 3.1,
+      "aktier_efter": 808406337,
+      "rns_id": "advfn_96704663",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-22",
+      "antal_aktier": 227660,
+      "gns_kurs_gbp": 3126.2563,
+      "beloeb_gbp_mio": 7.1,
+      "aktier_efter": 808506337,
+      "rns_id": "advfn_96690732",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-21",
+      "antal_aktier": 125000,
+      "gns_kurs_gbp": 3109.3939,
+      "beloeb_gbp_mio": 3.9,
+      "aktier_efter": 808733997,
+      "rns_id": "advfn_96683832",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-20",
+      "antal_aktier": 36805,
+      "gns_kurs_gbp": 3079.9263,
+      "beloeb_gbp_mio": 1.1,
+      "aktier_efter": 808858997,
+      "rns_id": "advfn_96675998",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-19",
+      "antal_aktier": 146986,
+      "gns_kurs_gbp": 3065.9621,
+      "beloeb_gbp_mio": 4.5,
+      "aktier_efter": 808895802,
+      "rns_id": "advfn_96667621",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-18",
+      "antal_aktier": 21202,
+      "gns_kurs_gbp": 3061.084,
+      "beloeb_gbp_mio": 0.6,
+      "aktier_efter": 809042788,
+      "rns_id": "advfn_96659915",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-15",
+      "antal_aktier": 100000,
+      "gns_kurs_gbp": 3040.1717,
+      "beloeb_gbp_mio": 3.0,
+      "aktier_efter": 809063990,
+      "rns_id": "advfn_96650357",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-14",
+      "antal_aktier": 253122,
+      "gns_kurs_gbp": 3045.7833,
+      "beloeb_gbp_mio": 7.7,
+      "aktier_efter": 809163990,
+      "rns_id": "advfn_96639739",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-13",
+      "antal_aktier": 90000,
+      "gns_kurs_gbp": 3035.4312,
+      "beloeb_gbp_mio": 2.7,
+      "aktier_efter": 809417112,
+      "rns_id": "advfn_96628025",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-12",
+      "antal_aktier": 151901,
+      "gns_kurs_gbp": 3041.4111,
+      "beloeb_gbp_mio": 4.6,
+      "aktier_efter": 809507112,
+      "rns_id": "advfn_96618282",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-11",
+      "antal_aktier": 50757,
+      "gns_kurs_gbp": 3022.179,
+      "beloeb_gbp_mio": 1.5,
+      "aktier_efter": 809659013,
+      "rns_id": "advfn_96608109",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-08",
+      "antal_aktier": 224876,
+      "gns_kurs_gbp": 3014.3348,
+      "beloeb_gbp_mio": 6.8,
+      "aktier_efter": 809709770,
+      "rns_id": "advfn_96598481",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-07",
+      "antal_aktier": 110000,
+      "gns_kurs_gbp": 3000.1197,
+      "beloeb_gbp_mio": 3.3,
+      "aktier_efter": 809934646,
+      "rns_id": "advfn_96588135",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-06",
+      "antal_aktier": 44225,
+      "gns_kurs_gbp": 2989.9906,
+      "beloeb_gbp_mio": 1.3,
+      "aktier_efter": 810044646,
+      "rns_id": "advfn_96576823",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-05",
+      "antal_aktier": 125000,
+      "gns_kurs_gbp": 2982.6379,
+      "beloeb_gbp_mio": 3.7,
+      "aktier_efter": 810088871,
+      "rns_id": "advfn_96566176",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-04",
+      "antal_aktier": 105849,
+      "gns_kurs_gbp": 2957.0178,
+      "beloeb_gbp_mio": 3.1,
+      "aktier_efter": 810213871,
+      "rns_id": "advfn_96556810",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-08-01",
+      "antal_aktier": 40000,
+      "gns_kurs_gbp": 2952.0304,
+      "beloeb_gbp_mio": 1.2,
+      "aktier_efter": 810319720,
+      "rns_id": "advfn_96546987",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-31",
+      "antal_aktier": 82677,
+      "gns_kurs_gbp": 2920.744,
+      "beloeb_gbp_mio": 2.4,
+      "aktier_efter": 810359720,
+      "rns_id": "advfn_96535938",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-29",
+      "antal_aktier": 278294,
+      "gns_kurs_gbp": 2881.8367,
+      "beloeb_gbp_mio": 8.0,
+      "aktier_efter": 810442397,
+      "rns_id": "advfn_96516782",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-28",
+      "antal_aktier": 210000,
+      "gns_kurs_gbp": 2877.8888,
+      "beloeb_gbp_mio": 6.0,
+      "aktier_efter": 810720691,
+      "rns_id": "advfn_96510599",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-25",
+      "antal_aktier": 160000,
+      "gns_kurs_gbp": 2888.9822,
+      "beloeb_gbp_mio": 4.6,
+      "aktier_efter": 810930691,
+      "rns_id": "advfn_96500531",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-24",
+      "antal_aktier": 154421,
+      "gns_kurs_gbp": 2907.319,
+      "beloeb_gbp_mio": 4.5,
+      "aktier_efter": 811090691,
+      "rns_id": "advfn_96493173",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-23",
+      "antal_aktier": 350000,
+      "gns_kurs_gbp": 2891.855,
+      "beloeb_gbp_mio": 10.1,
+      "aktier_efter": 811245112,
+      "rns_id": "advfn_96488431",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-21",
+      "antal_aktier": 137691,
+      "gns_kurs_gbp": 2929.09,
+      "beloeb_gbp_mio": 4.0,
+      "aktier_efter": 811763834,
+      "rns_id": "advfn_96475281",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-21",
+      "antal_aktier": 137691,
+      "gns_kurs_gbp": 2929.09,
+      "beloeb_gbp_mio": 4.0,
+      "aktier_efter": 811763834,
+      "rns_id": "advfn_96467159",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-18",
+      "antal_aktier": 200000,
+      "gns_kurs_gbp": 2924.0199,
+      "beloeb_gbp_mio": 5.8,
+      "aktier_efter": 811901525,
+      "rns_id": "advfn_96458273",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-17",
+      "antal_aktier": 50000,
+      "gns_kurs_gbp": 2916.9517,
+      "beloeb_gbp_mio": 1.5,
+      "aktier_efter": 812101525,
+      "rns_id": "advfn_96451161",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-16",
+      "antal_aktier": 494816,
+      "gns_kurs_gbp": 2926.2476,
+      "beloeb_gbp_mio": 14.5,
+      "aktier_efter": 812151525,
+      "rns_id": "advfn_96443020",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-15",
+      "antal_aktier": 120000,
+      "gns_kurs_gbp": 2927.3274,
+      "beloeb_gbp_mio": 3.5,
+      "aktier_efter": 812646341,
+      "rns_id": "advfn_96433514",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-14",
+      "antal_aktier": 56994,
+      "gns_kurs_gbp": 2922.6083,
+      "beloeb_gbp_mio": 1.7,
+      "aktier_efter": 812766341,
+      "rns_id": "advfn_96424157",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-11",
+      "antal_aktier": 39819,
+      "gns_kurs_gbp": 2908.6654,
+      "beloeb_gbp_mio": 1.2,
+      "aktier_efter": 812823335,
+      "rns_id": "advfn_96415530",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-10",
+      "antal_aktier": 2930,
+      "gns_kurs_gbp": 2877.77,
+      "beloeb_gbp_mio": 0.1,
+      "aktier_efter": 812863154,
+      "rns_id": "advfn_96409033",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-09",
+      "antal_aktier": 148634,
+      "gns_kurs_gbp": 2865.7359,
+      "beloeb_gbp_mio": 4.3,
+      "aktier_efter": 812866084,
+      "rns_id": "advfn_96401362",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-08",
+      "antal_aktier": 179410,
+      "gns_kurs_gbp": 2857.7362,
+      "beloeb_gbp_mio": 5.1,
+      "aktier_efter": 813014718,
+      "rns_id": "advfn_96392638",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-07",
+      "antal_aktier": 176065,
+      "gns_kurs_gbp": 2848.768,
+      "beloeb_gbp_mio": 5.0,
+      "aktier_efter": 813194128,
+      "rns_id": "advfn_96384671",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-04",
+      "antal_aktier": 200000,
+      "gns_kurs_gbp": 2842.3581,
+      "beloeb_gbp_mio": 5.7,
+      "aktier_efter": 813370193,
+      "rns_id": "advfn_96378356",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-03",
+      "antal_aktier": 217698,
+      "gns_kurs_gbp": 2829.0036,
+      "beloeb_gbp_mio": 6.2,
+      "aktier_efter": 813570193,
+      "rns_id": "advfn_96370736",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-02",
+      "antal_aktier": 247522,
+      "gns_kurs_gbp": 2832.4514,
+      "beloeb_gbp_mio": 7.0,
+      "aktier_efter": 813787891,
+      "rns_id": "advfn_96360899",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-07-01",
+      "antal_aktier": 60000,
+      "gns_kurs_gbp": 2861.9777,
+      "beloeb_gbp_mio": 1.7,
+      "aktier_efter": 814035413,
+      "rns_id": "advfn_96351059",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-30",
+      "antal_aktier": 194437,
+      "gns_kurs_gbp": 2866.0542,
+      "beloeb_gbp_mio": 5.6,
+      "aktier_efter": 814095413,
+      "rns_id": "advfn_96338485",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-27",
+      "antal_aktier": 100000,
+      "gns_kurs_gbp": 2837.5636,
+      "beloeb_gbp_mio": 2.8,
+      "aktier_efter": 814289850,
+      "rns_id": "advfn_96327293",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-26",
+      "antal_aktier": 355650,
+      "gns_kurs_gbp": 2850.1886,
+      "beloeb_gbp_mio": 10.1,
+      "aktier_efter": 814389850,
+      "rns_id": "advfn_96319339",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-25",
+      "antal_aktier": 350000,
+      "gns_kurs_gbp": 2861.2211,
+      "beloeb_gbp_mio": 10.0,
+      "aktier_efter": 814745500,
+      "rns_id": "advfn_96309302",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-24",
+      "antal_aktier": 300000,
+      "gns_kurs_gbp": 2905.0388,
+      "beloeb_gbp_mio": 8.7,
+      "aktier_efter": 815095500,
+      "rns_id": "advfn_96300038",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-23",
+      "antal_aktier": 300000,
+      "gns_kurs_gbp": 2939.5158,
+      "beloeb_gbp_mio": 8.8,
+      "aktier_efter": 815395500,
+      "rns_id": "advfn_96289871",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-20",
+      "antal_aktier": 120000,
+      "gns_kurs_gbp": 2958.2019,
+      "beloeb_gbp_mio": 3.5,
+      "aktier_efter": 815695500,
+      "rns_id": "advfn_96280873",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-19",
+      "antal_aktier": 120000,
+      "gns_kurs_gbp": 2976.7349,
+      "beloeb_gbp_mio": 3.6,
+      "aktier_efter": 815815500,
+      "rns_id": "advfn_96275842",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-18",
+      "antal_aktier": 107930,
+      "gns_kurs_gbp": 2950.7802,
+      "beloeb_gbp_mio": 3.2,
+      "aktier_efter": 815935500,
+      "rns_id": "advfn_96268776",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-17",
+      "antal_aktier": 148907,
+      "gns_kurs_gbp": 2924.6943,
+      "beloeb_gbp_mio": 4.4,
+      "aktier_efter": 816043430,
+      "rns_id": "advfn_96260131",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-16",
+      "antal_aktier": 200000,
+      "gns_kurs_gbp": 2936.2221,
+      "beloeb_gbp_mio": 5.9,
+      "aktier_efter": 816192337,
+      "rns_id": "advfn_96249890",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-13",
+      "antal_aktier": 15293,
+      "gns_kurs_gbp": 2902.2181,
+      "beloeb_gbp_mio": 0.4,
+      "aktier_efter": 816392337,
+      "rns_id": "advfn_96239817",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-12",
+      "antal_aktier": 166576,
+      "gns_kurs_gbp": 2894.3626,
+      "beloeb_gbp_mio": 4.8,
+      "aktier_efter": 816407630,
+      "rns_id": "advfn_96232145",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-11",
+      "antal_aktier": 160000,
+      "gns_kurs_gbp": 2870.1274,
+      "beloeb_gbp_mio": 4.6,
+      "aktier_efter": 816574206,
+      "rns_id": "advfn_96224040",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-10",
+      "antal_aktier": 238882,
+      "gns_kurs_gbp": 2880.8098,
+      "beloeb_gbp_mio": 6.9,
+      "aktier_efter": 816734206,
+      "rns_id": "advfn_96215994",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-09",
+      "antal_aktier": 240000,
+      "gns_kurs_gbp": 2874.8526,
+      "beloeb_gbp_mio": 6.9,
+      "aktier_efter": 816973088,
+      "rns_id": "advfn_96207324",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-06",
+      "antal_aktier": 120000,
+      "gns_kurs_gbp": 2893.7668,
+      "beloeb_gbp_mio": 3.5,
+      "aktier_efter": 817213088,
+      "rns_id": "advfn_96198101",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-05",
+      "antal_aktier": 50473,
+      "gns_kurs_gbp": 2858.2067,
+      "beloeb_gbp_mio": 1.4,
+      "aktier_efter": 817333088,
+      "rns_id": "advfn_96193870",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-04",
+      "antal_aktier": 220000,
+      "gns_kurs_gbp": 2832.7231,
+      "beloeb_gbp_mio": 6.2,
+      "aktier_efter": 817383561,
+      "rns_id": "advfn_96182612",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-03",
+      "antal_aktier": 100000,
+      "gns_kurs_gbp": 2835.9495,
+      "beloeb_gbp_mio": 2.8,
+      "aktier_efter": 817603561,
+      "rns_id": "advfn_96173155",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-06-02",
+      "antal_aktier": 113174,
+      "gns_kurs_gbp": 2822.7232,
+      "beloeb_gbp_mio": 3.2,
+      "aktier_efter": 817703561,
+      "rns_id": "advfn_96162994",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-30",
+      "antal_aktier": 190000,
+      "gns_kurs_gbp": 2810.0266,
+      "beloeb_gbp_mio": 5.3,
+      "aktier_efter": 817816735,
+      "rns_id": "advfn_96151036",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-29",
+      "antal_aktier": 260000,
+      "gns_kurs_gbp": 2782.5484,
+      "beloeb_gbp_mio": 7.2,
+      "aktier_efter": 818006735,
+      "rns_id": "advfn_96142928",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-28",
+      "antal_aktier": 160000,
+      "gns_kurs_gbp": 2805.8585,
+      "beloeb_gbp_mio": 4.5,
+      "aktier_efter": 818266735,
+      "rns_id": "advfn_96136043",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-27",
+      "antal_aktier": 120664,
+      "gns_kurs_gbp": 2814.7021,
+      "beloeb_gbp_mio": 3.4,
+      "aktier_efter": 818426735,
+      "rns_id": "advfn_96128913",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-23",
+      "antal_aktier": 254405,
+      "gns_kurs_gbp": 2791.1132,
+      "beloeb_gbp_mio": 7.1,
+      "aktier_efter": 818547399,
+      "rns_id": "advfn_96118884",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-22",
+      "antal_aktier": 200000,
+      "gns_kurs_gbp": 2761.6979,
+      "beloeb_gbp_mio": 5.5,
+      "aktier_efter": 818801804,
+      "rns_id": "advfn_96112882",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-21",
+      "antal_aktier": 150000,
+      "gns_kurs_gbp": 2813.8207,
+      "beloeb_gbp_mio": 4.2,
+      "aktier_efter": 819001804,
+      "rns_id": "advfn_96105559",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-20",
+      "antal_aktier": 32787,
+      "gns_kurs_gbp": 2780.265,
+      "beloeb_gbp_mio": 0.9,
+      "aktier_efter": 819151804,
+      "rns_id": "advfn_96098349",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-19",
+      "antal_aktier": 133414,
+      "gns_kurs_gbp": 2731.7134,
+      "beloeb_gbp_mio": 3.6,
+      "aktier_efter": 819184591,
+      "rns_id": "advfn_96091266",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-16",
+      "antal_aktier": 209765,
+      "gns_kurs_gbp": 2689.9592,
+      "beloeb_gbp_mio": 5.6,
+      "aktier_efter": 819318005,
+      "rns_id": "advfn_96082724",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-15",
+      "antal_aktier": 180000,
+      "gns_kurs_gbp": 2685.3947,
+      "beloeb_gbp_mio": 4.8,
+      "aktier_efter": 819527770,
+      "rns_id": "advfn_96073623",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-14",
+      "antal_aktier": 513078,
+      "gns_kurs_gbp": 2700.3947,
+      "beloeb_gbp_mio": 13.9,
+      "aktier_efter": 819707770,
+      "rns_id": "advfn_96061612",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-13",
+      "antal_aktier": 250000,
+      "gns_kurs_gbp": 2901.9184,
+      "beloeb_gbp_mio": 7.3,
+      "aktier_efter": 820220848,
+      "rns_id": "advfn_96050011",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-12",
+      "antal_aktier": 220000,
+      "gns_kurs_gbp": 2948.345,
+      "beloeb_gbp_mio": 6.5,
+      "aktier_efter": 820470848,
+      "rns_id": "advfn_96038751",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-09",
+      "antal_aktier": 210000,
+      "gns_kurs_gbp": 3041.7971,
+      "beloeb_gbp_mio": 6.4,
+      "aktier_efter": 820690848,
+      "rns_id": "advfn_96028010",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-08",
+      "antal_aktier": 170000,
+      "gns_kurs_gbp": 3116.7418,
+      "beloeb_gbp_mio": 5.3,
+      "aktier_efter": 820900848,
+      "rns_id": "advfn_96017395",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-07",
+      "antal_aktier": 170000,
+      "gns_kurs_gbp": 3159.6904,
+      "beloeb_gbp_mio": 5.4,
+      "aktier_efter": 821070848,
+      "rns_id": "advfn_96009709",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-06",
+      "antal_aktier": 178680,
+      "gns_kurs_gbp": 3114.4353,
+      "beloeb_gbp_mio": 5.6,
+      "aktier_efter": 821240848,
+      "rns_id": "advfn_95994796",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-02",
+      "antal_aktier": 240000,
+      "gns_kurs_gbp": 3080.6874,
+      "beloeb_gbp_mio": 7.4,
+      "aktier_efter": 821419528,
+      "rns_id": "advfn_95975375",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-05-01",
+      "antal_aktier": 200000,
+      "gns_kurs_gbp": 3076.3096,
+      "beloeb_gbp_mio": 6.2,
+      "aktier_efter": 821659528,
+      "rns_id": "advfn_95967236",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-30",
+      "antal_aktier": 224252,
+      "gns_kurs_gbp": 3063.49,
+      "beloeb_gbp_mio": 6.9,
+      "aktier_efter": 821859528,
+      "rns_id": "advfn_95948057",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-29",
+      "antal_aktier": 233562,
+      "gns_kurs_gbp": 3015.51,
+      "beloeb_gbp_mio": 7.0,
+      "aktier_efter": 822083780,
+      "rns_id": "advfn_95933539",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-28",
+      "antal_aktier": 245183,
+      "gns_kurs_gbp": 3002.54,
+      "beloeb_gbp_mio": 7.4,
+      "aktier_efter": 822317342,
+      "rns_id": "advfn_95922106",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-25",
+      "antal_aktier": 231123,
+      "gns_kurs_gbp": 3011.78,
+      "beloeb_gbp_mio": 7.0,
+      "aktier_efter": 822562525,
+      "rns_id": "advfn_95911788",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-24",
+      "antal_aktier": 205601,
+      "gns_kurs_gbp": 3034.91,
+      "beloeb_gbp_mio": 6.2,
+      "aktier_efter": 822793648,
+      "rns_id": "advfn_95902455",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-23",
+      "antal_aktier": 221291,
+      "gns_kurs_gbp": 2986.62,
+      "beloeb_gbp_mio": 6.6,
+      "aktier_efter": 822999249,
+      "rns_id": "advfn_95896142",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-22",
+      "antal_aktier": 217090,
+      "gns_kurs_gbp": 2985.5,
+      "beloeb_gbp_mio": 6.5,
+      "aktier_efter": 823220540,
+      "rns_id": "advfn_95882933",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-17",
+      "antal_aktier": 215819,
+      "gns_kurs_gbp": 2974.49,
+      "beloeb_gbp_mio": 6.4,
+      "aktier_efter": 823437630,
+      "rns_id": "advfn_95866732",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-16",
+      "antal_aktier": 175502,
+      "gns_kurs_gbp": 2966.75,
+      "beloeb_gbp_mio": 5.2,
+      "aktier_efter": 823653449,
+      "rns_id": "advfn_95858545",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-15",
+      "antal_aktier": 148923,
+      "gns_kurs_gbp": 2947.12,
+      "beloeb_gbp_mio": 4.4,
+      "aktier_efter": 823828951,
+      "rns_id": "advfn_95847982",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-14",
+      "antal_aktier": 72379,
+      "gns_kurs_gbp": 2912.98,
+      "beloeb_gbp_mio": 2.1,
+      "aktier_efter": 823977874,
+      "rns_id": "advfn_95849855",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-11",
+      "antal_aktier": 75563,
+      "gns_kurs_gbp": 2863.6,
+      "beloeb_gbp_mio": 2.2,
+      "aktier_efter": 824050253,
+      "rns_id": "advfn_95831593",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-10",
+      "antal_aktier": 3630,
+      "gns_kurs_gbp": 2808.85,
+      "beloeb_gbp_mio": 0.1,
+      "aktier_efter": 824125816,
+      "rns_id": "advfn_95824712",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-09",
+      "antal_aktier": 203766,
+      "gns_kurs_gbp": 2790.62,
+      "beloeb_gbp_mio": 5.7,
+      "aktier_efter": 824129446,
+      "rns_id": "advfn_95814996",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-08",
+      "antal_aktier": 136850,
+      "gns_kurs_gbp": 2765.73,
+      "beloeb_gbp_mio": 3.8,
+      "aktier_efter": 824333212,
+      "rns_id": "advfn_95807107",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-07",
+      "antal_aktier": 856378,
+      "gns_kurs_gbp": 2736.63,
+      "beloeb_gbp_mio": 23.4,
+      "aktier_efter": 824470062,
+      "rns_id": "advfn_95797356",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-04",
+      "antal_aktier": 20413,
+      "gns_kurs_gbp": 2899.0,
+      "beloeb_gbp_mio": 0.6,
+      "aktier_efter": 825326440,
+      "rns_id": "advfn_95789028",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-04-03",
+      "antal_aktier": 4052,
+      "gns_kurs_gbp": 2882.36,
+      "beloeb_gbp_mio": 0.1,
+      "aktier_efter": 825346853,
+      "rns_id": "advfn_95780885",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-27",
+      "antal_aktier": 244092,
+      "gns_kurs_gbp": 2759.27,
+      "beloeb_gbp_mio": 6.7,
+      "aktier_efter": 825350905,
+      "rns_id": "advfn_95722649",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-26",
+      "antal_aktier": 220263,
+      "gns_kurs_gbp": 2732.26,
+      "beloeb_gbp_mio": 6.0,
+      "aktier_efter": 825594997,
+      "rns_id": "advfn_95712374",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-25",
+      "antal_aktier": 92206,
+      "gns_kurs_gbp": 2746.54,
+      "beloeb_gbp_mio": 2.5,
+      "aktier_efter": 825815260,
+      "rns_id": "advfn_95702609",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-24",
+      "antal_aktier": 218140,
+      "gns_kurs_gbp": 2721.76,
+      "beloeb_gbp_mio": 5.9,
+      "aktier_efter": 825907466,
+      "rns_id": "advfn_95693480",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-21",
+      "antal_aktier": 317512,
+      "gns_kurs_gbp": 2720.72,
+      "beloeb_gbp_mio": 8.6,
+      "aktier_efter": 826125606,
+      "rns_id": "advfn_95683488",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-20",
+      "antal_aktier": 399756,
+      "gns_kurs_gbp": 2723.57,
+      "beloeb_gbp_mio": 10.9,
+      "aktier_efter": 826443118,
+      "rns_id": "advfn_95674603",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-19",
+      "antal_aktier": 409769,
+      "gns_kurs_gbp": 2741.15,
+      "beloeb_gbp_mio": 11.2,
+      "aktier_efter": 826842874,
+      "rns_id": "advfn_95665561",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-18",
+      "antal_aktier": 265470,
+      "gns_kurs_gbp": 2759.05,
+      "beloeb_gbp_mio": 7.3,
+      "aktier_efter": 827252643,
+      "rns_id": "advfn_95654943",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-17",
+      "antal_aktier": 194532,
+      "gns_kurs_gbp": 2776.7,
+      "beloeb_gbp_mio": 5.4,
+      "aktier_efter": 827518113,
+      "rns_id": "advfn_95643774",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-14",
+      "antal_aktier": 104507,
+      "gns_kurs_gbp": 2775.42,
+      "beloeb_gbp_mio": 2.9,
+      "aktier_efter": 827712645,
+      "rns_id": "advfn_95633580",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-13",
+      "antal_aktier": 212461,
+      "gns_kurs_gbp": 2773.84,
+      "beloeb_gbp_mio": 5.9,
+      "aktier_efter": 827817152,
+      "rns_id": "advfn_95626214",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-12",
+      "antal_aktier": 227851,
+      "gns_kurs_gbp": 2755.68,
+      "beloeb_gbp_mio": 6.3,
+      "aktier_efter": 828029613,
+      "rns_id": "advfn_95616507",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-11",
+      "antal_aktier": 158613,
+      "gns_kurs_gbp": 2770.8,
+      "beloeb_gbp_mio": 4.4,
+      "aktier_efter": 828257464,
+      "rns_id": "advfn_95607137",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-10",
+      "antal_aktier": 108708,
+      "gns_kurs_gbp": 2765.1,
+      "beloeb_gbp_mio": 3.0,
+      "aktier_efter": 828416077,
+      "rns_id": "advfn_95598451",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-07",
+      "antal_aktier": 297435,
+      "gns_kurs_gbp": 2755.92,
+      "beloeb_gbp_mio": 8.2,
+      "aktier_efter": 828524785,
+      "rns_id": "advfn_95589582",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-06",
+      "antal_aktier": 585542,
+      "gns_kurs_gbp": 2744.23,
+      "beloeb_gbp_mio": 16.1,
+      "aktier_efter": 828822220,
+      "rns_id": "advfn_95581509",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-05",
+      "antal_aktier": 310611,
+      "gns_kurs_gbp": 2774.6,
+      "beloeb_gbp_mio": 8.6,
+      "aktier_efter": 829407762,
+      "rns_id": "advfn_95570765",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-04",
+      "antal_aktier": 71081,
+      "gns_kurs_gbp": 2837.25,
+      "beloeb_gbp_mio": 2.0,
+      "aktier_efter": 829718373,
+      "rns_id": "advfn_95560785",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-03-03",
+      "antal_aktier": 135352,
+      "gns_kurs_gbp": 2800.09,
+      "beloeb_gbp_mio": 3.8,
+      "aktier_efter": 829789454,
+      "rns_id": "advfn_95551811",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-28",
+      "antal_aktier": 72570,
+      "gns_kurs_gbp": 2797.57,
+      "beloeb_gbp_mio": 2.0,
+      "aktier_efter": 829924806,
+      "rns_id": "advfn_95540387",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-27",
+      "antal_aktier": 2584,
+      "gns_kurs_gbp": 2781.68,
+      "beloeb_gbp_mio": 0.1,
+      "aktier_efter": 829997376,
+      "rns_id": "advfn_95529581",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-25",
+      "antal_aktier": 17674,
+      "gns_kurs_gbp": 2742.73,
+      "beloeb_gbp_mio": 0.5,
+      "aktier_efter": 829999960,
+      "rns_id": "advfn_95508784",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-24",
+      "antal_aktier": 492346,
+      "gns_kurs_gbp": 2721.64,
+      "beloeb_gbp_mio": 13.4,
+      "aktier_efter": 830017634,
+      "rns_id": "advfn_95498371",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-21",
+      "antal_aktier": 612071,
+      "gns_kurs_gbp": 2717.34,
+      "beloeb_gbp_mio": 16.6,
+      "aktier_efter": 830509980,
+      "rns_id": "advfn_95489722",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-20",
+      "antal_aktier": 341481,
+      "gns_kurs_gbp": 2720.98,
+      "beloeb_gbp_mio": 9.3,
+      "aktier_efter": 831122051,
+      "rns_id": "advfn_95484533",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-19",
+      "antal_aktier": 217135,
+      "gns_kurs_gbp": 2766.29,
+      "beloeb_gbp_mio": 6.0,
+      "aktier_efter": 831463532,
+      "rns_id": "advfn_95469502",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-18",
+      "antal_aktier": 284344,
+      "gns_kurs_gbp": 2764.85,
+      "beloeb_gbp_mio": 7.9,
+      "aktier_efter": 831680667,
+      "rns_id": "advfn_95458969",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-17",
+      "antal_aktier": 255723,
+      "gns_kurs_gbp": 2783.63,
+      "beloeb_gbp_mio": 7.1,
+      "aktier_efter": 831965011,
+      "rns_id": "advfn_95450825",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-14",
+      "antal_aktier": 465603,
+      "gns_kurs_gbp": 2797.51,
+      "beloeb_gbp_mio": 13.0,
+      "aktier_efter": 832220734,
+      "rns_id": "advfn_95438912",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-13",
+      "antal_aktier": 431054,
+      "gns_kurs_gbp": 2809.66,
+      "beloeb_gbp_mio": 12.1,
+      "aktier_efter": 832686337,
+      "rns_id": "advfn_95430190",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-12",
+      "antal_aktier": 57314,
+      "gns_kurs_gbp": 2868.77,
+      "beloeb_gbp_mio": 1.6,
+      "aktier_efter": 833117391,
+      "rns_id": "advfn_95421166",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-06",
+      "antal_aktier": 50549,
+      "gns_kurs_gbp": 2804.94,
+      "beloeb_gbp_mio": 1.4,
+      "aktier_efter": 833174705,
+      "rns_id": "advfn_95386285",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-05",
+      "antal_aktier": 100438,
+      "gns_kurs_gbp": 2753.98,
+      "beloeb_gbp_mio": 2.8,
+      "aktier_efter": 833225254,
+      "rns_id": "advfn_95376419",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-04",
+      "antal_aktier": 18569,
+      "gns_kurs_gbp": 2745.86,
+      "beloeb_gbp_mio": 0.5,
+      "aktier_efter": 833325692,
+      "rns_id": "advfn_95367413",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-02-03",
+      "antal_aktier": 31647,
+      "gns_kurs_gbp": 2733.83,
+      "beloeb_gbp_mio": 0.9,
+      "aktier_efter": 833344261,
+      "rns_id": "advfn_95356925",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-31",
+      "antal_aktier": 42190,
+      "gns_kurs_gbp": 2704.85,
+      "beloeb_gbp_mio": 1.1,
+      "aktier_efter": 833375908,
+      "rns_id": "advfn_95347083",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-30",
+      "antal_aktier": 155848,
+      "gns_kurs_gbp": 2682.42,
+      "beloeb_gbp_mio": 4.2,
+      "aktier_efter": 833418098,
+      "rns_id": "advfn_95339873",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-29",
+      "antal_aktier": 143346,
+      "gns_kurs_gbp": 2665.52,
+      "beloeb_gbp_mio": 3.8,
+      "aktier_efter": 833573946,
+      "rns_id": "advfn_95331153",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-28",
+      "antal_aktier": 4712,
+      "gns_kurs_gbp": 2658.1,
+      "beloeb_gbp_mio": 0.1,
+      "aktier_efter": 833717292,
+      "rns_id": "advfn_95324041",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-27",
+      "antal_aktier": 118363,
+      "gns_kurs_gbp": 2666.17,
+      "beloeb_gbp_mio": 3.2,
+      "aktier_efter": 833722004,
+      "rns_id": "advfn_95316810",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-24",
+      "antal_aktier": 155452,
+      "gns_kurs_gbp": 2607.77,
+      "beloeb_gbp_mio": 4.1,
+      "aktier_efter": 833840367,
+      "rns_id": "advfn_95309647",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-23",
+      "antal_aktier": 113706,
+      "gns_kurs_gbp": 2627.7,
+      "beloeb_gbp_mio": 3.0,
+      "aktier_efter": 833995819,
+      "rns_id": "advfn_95302671",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-22",
+      "antal_aktier": 189621,
+      "gns_kurs_gbp": 2606.88,
+      "beloeb_gbp_mio": 4.9,
+      "aktier_efter": 834109525,
+      "rns_id": "advfn_95295178",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-21",
+      "antal_aktier": 233936,
+      "gns_kurs_gbp": 2599.84,
+      "beloeb_gbp_mio": 6.1,
+      "aktier_efter": 834299146,
+      "rns_id": "advfn_95284952",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-20",
+      "antal_aktier": 117641,
+      "gns_kurs_gbp": 2603.67,
+      "beloeb_gbp_mio": 3.1,
+      "aktier_efter": 834533082,
+      "rns_id": "advfn_95279118",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-17",
+      "antal_aktier": 63874,
+      "gns_kurs_gbp": 2600.3,
+      "beloeb_gbp_mio": 1.7,
+      "aktier_efter": 834650723,
+      "rns_id": "advfn_95271748",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-16",
+      "antal_aktier": 152276,
+      "gns_kurs_gbp": 2583.48,
+      "beloeb_gbp_mio": 3.9,
+      "aktier_efter": 834714597,
+      "rns_id": "advfn_95263999",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-15",
+      "antal_aktier": 247543,
+      "gns_kurs_gbp": 2562.99,
+      "beloeb_gbp_mio": 6.3,
+      "aktier_efter": 834866873,
+      "rns_id": "advfn_95255073",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-14",
+      "antal_aktier": 430750,
+      "gns_kurs_gbp": 2570.13,
+      "beloeb_gbp_mio": 11.1,
+      "aktier_efter": 835114416,
+      "rns_id": "advfn_95246307",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-13",
+      "antal_aktier": 402274,
+      "gns_kurs_gbp": 2582.52,
+      "beloeb_gbp_mio": 10.4,
+      "aktier_efter": 835545166,
+      "rns_id": "advfn_95238382",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-10",
+      "antal_aktier": 241126,
+      "gns_kurs_gbp": 2614.91,
+      "beloeb_gbp_mio": 6.3,
+      "aktier_efter": 835947440,
+      "rns_id": "advfn_95231120",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-09",
+      "antal_aktier": 88639,
+      "gns_kurs_gbp": 2633.67,
+      "beloeb_gbp_mio": 2.3,
+      "aktier_efter": 836188566,
+      "rns_id": "advfn_95224428",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-08",
+      "antal_aktier": 154680,
+      "gns_kurs_gbp": 2618.74,
+      "beloeb_gbp_mio": 4.1,
+      "aktier_efter": 836277205,
+      "rns_id": "advfn_95218100",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-07",
+      "antal_aktier": 203139,
+      "gns_kurs_gbp": 2600.58,
+      "beloeb_gbp_mio": 5.3,
+      "aktier_efter": 836431885,
+      "rns_id": "advfn_95209638",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-06",
+      "antal_aktier": 70396,
+      "gns_kurs_gbp": 2598.99,
+      "beloeb_gbp_mio": 1.8,
+      "aktier_efter": 836635024,
+      "rns_id": "advfn_95200541",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-03",
+      "antal_aktier": 59387,
+      "gns_kurs_gbp": 2605.0,
+      "beloeb_gbp_mio": 1.5,
+      "aktier_efter": 836705420,
+      "rns_id": "advfn_95191300",
+      "program": "FY25"
+    },
+    {
+      "dato": "2025-01-02",
+      "antal_aktier": 150010,
+      "gns_kurs_gbp": 2568.57,
+      "beloeb_gbp_mio": 3.9,
+      "aktier_efter": 836764807,
+      "rns_id": "advfn_95185370",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-31",
+      "antal_aktier": 253189,
+      "gns_kurs_gbp": 2554.63,
+      "beloeb_gbp_mio": 6.5,
+      "aktier_efter": 836914817,
+      "rns_id": "advfn_95177395",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-30",
+      "antal_aktier": 249466,
+      "gns_kurs_gbp": 2554.09,
+      "beloeb_gbp_mio": 6.4,
+      "aktier_efter": 837168006,
+      "rns_id": "advfn_95171557",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-27",
+      "antal_aktier": 243113,
+      "gns_kurs_gbp": 2565.21,
+      "beloeb_gbp_mio": 6.2,
+      "aktier_efter": 837417472,
+      "rns_id": "advfn_95164266",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-24",
+      "antal_aktier": 211965,
+      "gns_kurs_gbp": 2564.97,
+      "beloeb_gbp_mio": 5.4,
+      "aktier_efter": 837660585,
+      "rns_id": "advfn_95154373",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-23",
+      "antal_aktier": 171685,
+      "gns_kurs_gbp": 2573.35,
+      "beloeb_gbp_mio": 4.4,
+      "aktier_efter": 837872550,
+      "rns_id": "advfn_95152390",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-20",
+      "antal_aktier": 207071,
+      "gns_kurs_gbp": 2559.34,
+      "beloeb_gbp_mio": 5.3,
+      "aktier_efter": 838044235,
+      "rns_id": "advfn_95141129",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-19",
+      "antal_aktier": 187487,
+      "gns_kurs_gbp": 2566.39,
+      "beloeb_gbp_mio": 4.8,
+      "aktier_efter": 838251306,
+      "rns_id": "advfn_95132569",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-18",
+      "antal_aktier": 368531,
+      "gns_kurs_gbp": 2556.91,
+      "beloeb_gbp_mio": 9.4,
+      "aktier_efter": 838438793,
+      "rns_id": "advfn_95123148",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-17",
+      "antal_aktier": 376790,
+      "gns_kurs_gbp": 2564.66,
+      "beloeb_gbp_mio": 9.7,
+      "aktier_efter": 838807324,
+      "rns_id": "advfn_95113605",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-16",
+      "antal_aktier": 145250,
+      "gns_kurs_gbp": 2606.37,
+      "beloeb_gbp_mio": 3.8,
+      "aktier_efter": 839184114,
+      "rns_id": "advfn_95104825",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-13",
+      "antal_aktier": 148541,
+      "gns_kurs_gbp": 2613.75,
+      "beloeb_gbp_mio": 3.9,
+      "aktier_efter": 839329364,
+      "rns_id": "advfn_95095861",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-12",
+      "antal_aktier": 212519,
+      "gns_kurs_gbp": 2582.91,
+      "beloeb_gbp_mio": 5.5,
+      "aktier_efter": 836777905,
+      "rns_id": "advfn_95088383",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-11",
+      "antal_aktier": 127479,
+      "gns_kurs_gbp": 2597.63,
+      "beloeb_gbp_mio": 3.3,
+      "aktier_efter": 836990424,
+      "rns_id": "advfn_95078894",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-10",
+      "antal_aktier": 225935,
+      "gns_kurs_gbp": 2575.3,
+      "beloeb_gbp_mio": 5.8,
+      "aktier_efter": 837117903,
+      "rns_id": "advfn_95070854",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-09",
+      "antal_aktier": 212791,
+      "gns_kurs_gbp": 2574.26,
+      "beloeb_gbp_mio": 5.5,
+      "aktier_efter": 837343838,
+      "rns_id": "advfn_95061674",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-06",
+      "antal_aktier": 117246,
+      "gns_kurs_gbp": 2577.46,
+      "beloeb_gbp_mio": 3.0,
+      "aktier_efter": 837556629,
+      "rns_id": "advfn_95053142",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-05",
+      "antal_aktier": 189939,
+      "gns_kurs_gbp": 2564.3,
+      "beloeb_gbp_mio": 4.9,
+      "aktier_efter": 837673875,
+      "rns_id": "advfn_95045149",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-04",
+      "antal_aktier": 281354,
+      "gns_kurs_gbp": 2550.87,
+      "beloeb_gbp_mio": 7.2,
+      "aktier_efter": 837863814,
+      "rns_id": "advfn_95037453",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-03",
+      "antal_aktier": 221669,
+      "gns_kurs_gbp": 2560.96,
+      "beloeb_gbp_mio": 5.7,
+      "aktier_efter": 838145168,
+      "rns_id": "advfn_95027677",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-12-02",
+      "antal_aktier": 226593,
+      "gns_kurs_gbp": 2575.81,
+      "beloeb_gbp_mio": 5.8,
+      "aktier_efter": 838366837,
+      "rns_id": "advfn_95017939",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-11-29",
+      "antal_aktier": 331210,
+      "gns_kurs_gbp": 2568.17,
+      "beloeb_gbp_mio": 8.5,
+      "aktier_efter": 838593430,
+      "rns_id": "advfn_95009215",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-11-28",
+      "antal_aktier": 372987,
+      "gns_kurs_gbp": 2587.56,
+      "beloeb_gbp_mio": 9.7,
+      "aktier_efter": 838924640,
+      "rns_id": "advfn_95003380",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-11-27",
+      "antal_aktier": 26748,
+      "gns_kurs_gbp": 2623.64,
+      "beloeb_gbp_mio": 0.7,
+      "aktier_efter": 839297627,
+      "rns_id": "advfn_94997104",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-11-26",
+      "antal_aktier": 54966,
+      "gns_kurs_gbp": 2590.22,
+      "beloeb_gbp_mio": 1.4,
+      "aktier_efter": 839324375,
+      "rns_id": "advfn_94989457",
+      "program": "FY25"
+    },
+    {
+      "dato": "2024-11-25",
+      "antal_aktier": 110932,
+      "gns_kurs_gbp": 2538.58,
+      "beloeb_gbp_mio": 2.8,
+      "aktier_efter": 839379341,
+      "rns_id": "advfn_94980930",
+      "program": "FY25"
     }
   ],
   "kurs": {
@@ -1301,10 +3299,10 @@
     "change": -3.0,
     "change_pct": -0.11,
     "currency": "GBp",
-    "timestamp": "2026-04-26T07:08:59+00:00Z"
+    "timestamp": "2026-04-26T07:19:12+00:00Z"
   },
   "meta": {
-    "last_updated": "2026-04-26 07:12 UTC",
+    "last_updated": "2026-04-26 07:27 UTC",
     "data_kilde": "Investegate RNS (primary), Yahoo Finance (price)"
   },
   "programmer": {
