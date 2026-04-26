@@ -122,15 +122,13 @@ def get_known_advfn_ids(data: dict) -> set:
 
 def normal_scrape(data: dict) -> list:
     """
-    Source priority:
-      1. ADVFN (full RNS text in HTML, per-company URL — most reliable)
-      2. LSE.co.uk (per-company but JS-rendered content)
-      3. Investegate (sequential IDs, must validate issuer)
+    Daily incremental scrape via ADVFN listing (first 3 pages = ~75 RNS filings).
+    Falls back to LSE.co.uk → Investegate if ADVFN fails.
     """
     known_advfn = get_known_advfn_ids(data)
     print(f"   Known ADVFN ids: {len(known_advfn)}")
 
-    new_ann = advfn.scrape_new_filings(
+    new_ann = advfn.scrape_filings(
         known_ids=known_advfn,
         max_pages=3,
         request_delay=1.0,
@@ -155,33 +153,27 @@ def normal_scrape(data: dict) -> list:
 
 def backfill_scrape(data: dict, n: int) -> list:
     """
-    Backfill via ADVFN ID-enumeration.
+    Backfill via ADVFN listing pagination — `n` is page count.
 
-    `n` = number of IDs to enumerate backwards from lowest known ADVFN ID.
-    Per-company URL means no cross-issuer contamination.
-
-    Estimated ID density for IMB: ~1500 IDs per month.
-    n=2000 → ~5-6 weeks of historical filings
-    n=10000 → ~7 months
-    n=30000 → ~20 months (covers FY24-FY25)
+    Each page ≈ 25 RNS filings (~10 buybacks per page).
+    Recommended values:
+      n=5   → ~50 buybacks (recent ~3-4 months)
+      n=10  → ~120 buybacks (1 year)
+      n=20  → ~240 buybacks (full FY24-FY26 coverage)
     """
     known_advfn = get_known_advfn_ids(data)
     print(f"   Known ADVFN ids: {len(known_advfn)}")
+    print(f"   Paginating {n} listing pages...")
 
-    if not known_advfn:
-        print("   ⚠ No ADVFN IDs in data.json — run normal scrape first to anchor backfill")
-        return []
-
-    print(f"   Enumerating {n} ADVFN IDs backwards...")
-    new_ann = advfn.backfill_via_id_enumeration(
+    new_ann = advfn.scrape_filings(
         known_ids=known_advfn,
-        num_ids=n,
-        request_delay=1.5,
+        max_pages=n,
+        request_delay=1.5,  # More polite during backfill
     )
     if new_ann:
         return new_ann
 
-    print("   ADVFN enumeration returned nothing — falling back to LSE.co.uk")
+    print("   ADVFN returned nothing — falling back to LSE.co.uk")
     known_lse = get_known_lse_hashes(data)
     new_ann = lse_co_uk.scrape_new_filings(
         known_hashes=known_lse,

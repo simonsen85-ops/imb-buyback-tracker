@@ -1,15 +1,22 @@
 """
 ADVFN UK scraper for IMB buyback filings.
 
-Per-company URL structure:
-  Listing:  https://uk.advfn.com/stock-market/london/imperial-brands-IMB/share-news?type=transaction-in-own-shares
-  Filing:   https://uk.advfn.com/stock-market/london/imperial-brands-IMB/share-news/.../{numeric_id}
+LISTING URL (Regulatory News only, paginated):
+  https://uk.advfn.com/p.php?pid=news&symbol=L^IMB&old_sources=RN&p_n={page}
 
-The numeric IDs are sequential per-company (not global like Investegate),
-so we cannot accidentally hit other companies' filings.
+Each listing page returns ~25 filings (all RNS types — buybacks, AGM,
+director declarations, etc.). We filter to "Transaction in Own Shares"
+during parsing.
 
-ADVFN delivers the FULL RNS text in the HTML response (not JS-rendered),
-which makes parsing reliable.
+FILING URL (per filing detail):
+  https://uk.advfn.com/stock-market/london/imperial-brands-IMB/share-news/Imperial-Brands-PLC-Transaction-in-Own-Shares/{id}
+
+The HTML link in listing uses /share-market/ but the canonical URL uses
+/stock-market/. Both work — we use whatever the listing gives us.
+
+DEDUP:
+We use `advfn_{numeric_id}` as the rns_id. Numeric IDs are per-company
+sequential, so no risk of cross-issuer contamination.
 """
 
 import re
@@ -22,12 +29,29 @@ from .base import Announcement, HEADERS
 
 SCRAPER_HEADERS = {
     **HEADERS,
-    # ADVFN does not require special cookies, but a real-looking referer helps
     "Referer": "https://uk.advfn.com/",
 }
 
-# Listing page (filtered to Transaction in Own Shares is via query param)
-LISTING_URL = "https://uk.advfn.com/stock-market/london/imperial-brands-IMB/share-news"
+# RNS-only listing with pagination
+# Note: "L^IMB" gets URL-encoded as "L%5EIMB"
+LISTING_URL_TMPL = (
+    "https://uk.advfn.com/p.php?pid=news&symbol=L%5EIMB"
+    "&old_sources=RN&p_n={page}"
+)
+
+# Pattern for finding filing links in the listing page
+# Matches: /share-market/london/imperial-brands-IMB/share-news/...Transaction-in-Own-Shares/{id}
+# OR:      /stock-market/london/imperial-brands-IMB/share-news/...Transaction-in-Own-Shares/{id}
+LISTING_LINK_PATTERN = (
+    r'/(?:share|stock)-market/london/imperial-brands-IMB/share-news/'
+    r'Imperial-Brands-PLC-Transaction-in-Own-Shares/(\d+)'
+)
+
+# URL template for individual filing pages (canonical)
+FILING_URL_TMPL = (
+    "https://uk.advfn.com/stock-market/london/imperial-brands-IMB/"
+    "share-news/Imperial-Brands-PLC-Transaction-in-Own-Shares/{id}"
+)
 
 MONTHS = {
     "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
@@ -50,179 +74,74 @@ def fetch_advfn_html(url: str, timeout: int = 20) -> Optional[str]:
         return None
 
 
-def get_listing_filing_urls(max_pages: int = 5,
-                             request_delay: float = 1.0) -> list[str]:
+def get_filing_ids_from_listing(max_pages: int = 5,
+                                 request_delay: float = 1.0) -> list[int]:
     """
-    Fetch listing page (limited to ~8 latest filings on ADVFN — no real pagination).
-    Used for daily incremental updates.
-    """
-    html = fetch_advfn_html(LISTING_URL)
-    if not html:
-        return []
+    Paginate through ADVFN's listing of IMB regulatory news.
+    Returns numeric filing IDs for "Transaction in Own Shares" only.
 
-    link_pattern = (
-        r'(/stock-market/london/imperial-brands-IMB/share-news/'
-        r'[^"\']*?[Tt]ransaction[^"\']*?[Oo]wn[^"\']*?[Ss]hares[^"\']*?/\d+)'
-    )
-    matches = re.findall(link_pattern, html)
+    Each page contains ~25 RNS filings. We filter to buybacks only.
+    Returns IDs ordered by appearance (newest first).
+    """
+    all_ids = []
     seen = set()
-    urls = []
-    for path in matches:
-        full = f"https://uk.advfn.com{path}"
-        if full not in seen:
-            seen.add(full)
-            urls.append(full)
 
-    print(f"    Listing returned {len(urls)} latest filings")
-    return urls
-
-
-def enumerate_ids_backwards(lowest_known_id: int,
-                             num_ids: int,
-                             request_delay: float = 1.0) -> list[Announcement]:
-    """
-    Enumerate ADVFN IDs backwards from lowest_known_id.
-
-    For each ID, fetch /share-news/anything/{id} — if it's a Transaction in Own Shares
-    page for IMB, parse it. Other filing types and 404s are skipped silently.
-
-    Note: ADVFN ID range for IMB is per-company and sequential, so we only hit
-    IMB filings — no cross-issuer contamination risk.
-    """
-    print(f"    Enumerating {num_ids} IDs backwards from {lowest_known_id}...")
-
-    # Use a generic URL — ADVFN redirects to canonical URL based on filing type
-    URL_PROBE_TMPL = (
-        "https://uk.advfn.com/stock-market/london/imperial-brands-IMB/"
-        "share-news/probe/{id}"
-    )
-
-    announcements = []
-    hits = 0
-    misses = 0
-    consecutive_404s = 0
-
-    for offset in range(1, num_ids + 1):
-        rns_id = lowest_known_id - offset
-        if rns_id <= 0:
+    for page in range(1, max_pages + 1):
+        url = LISTING_URL_TMPL.format(page=page)
+        print(f"    Fetching listing page {page}: {url[:80]}...")
+        html = fetch_advfn_html(url)
+        if not html:
+            print(f"    Page {page}: fetch failed, stopping")
             break
 
-        url = URL_PROBE_TMPL.format(id=rns_id)
-        ann = parse_announcement(url)
-
-        if ann:
-            announcements.append(ann)
-            hits += 1
-            consecutive_404s = 0
-            print(f"    ✓ {rns_id}: {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
-        else:
-            misses += 1
-            consecutive_404s += 1
-            # If we hit 200 misses in a row with no recent hits, likely past the data
-            if consecutive_404s >= 200 and hits > 0:
-                print(f"    ⚠ {consecutive_404s} consecutive misses — likely past historical range")
-                break
-
-        time.sleep(request_delay)
-
-        if (offset) % 100 == 0:
-            print(f"    [{offset}/{num_ids}] {hits} hits, {misses} misses")
-
-    print(f"    Enumeration complete: {hits} hits from {hits + misses} requests")
-    return announcements
-
-
-def scrape_new_filings(known_ids: set = None,
-                       max_pages: int = 5,
-                       request_delay: float = 1.0) -> list[Announcement]:
-    """
-    Scrape ADVFN for IMB Transaction in Own Shares filings.
-
-    For normal updates: uses listing (8 most recent filings).
-    `max_pages` is kept for compatibility but only first call is used.
-    """
-    if known_ids is None:
-        known_ids = set()
-
-    print(f"  Fetching listing from ADVFN...")
-    urls = get_listing_filing_urls(request_delay=request_delay)
-    print(f"  Found {len(urls)} filing URLs in listing")
-
-    new_urls = [u for u in urls
-                if f"advfn_{u.rstrip('/').split('/')[-1]}" not in known_ids]
-    print(f"  {len(new_urls)} new (skipping {len(urls) - len(new_urls)} already in data.json)")
-
-    announcements = []
-    for url in new_urls:
-        ann = parse_announcement(url)
-        if ann:
-            announcements.append(ann)
-            print(f"    ✓ {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
-        time.sleep(request_delay)
-
-    print(f"  Parsed {len(announcements)}/{len(new_urls)} buyback filings")
-    return announcements
-
-
-def backfill_via_id_enumeration(known_ids: set,
-                                  num_ids: int = 1000,
-                                  request_delay: float = 1.0) -> list[Announcement]:
-    """
-    Backfill historical filings by enumerating ADVFN IDs backwards.
-
-    Starts from the lowest known ADVFN ID and counts down `num_ids` IDs.
-    Per-company URL structure means we cannot accidentally fetch other companies.
-    """
-    if not known_ids:
-        print("  ⚠ No known ADVFN IDs to anchor backfill from — run normal scrape first")
-        return []
-
-    # Find lowest known ADVFN ID
-    advfn_ids = []
-    for rns_id in known_ids:
-        if rns_id.startswith("advfn_"):
+        # Find all transaction-in-own-shares filing IDs on this page
+        matches = re.findall(LISTING_LINK_PATTERN, html, re.IGNORECASE)
+        new_ids = []
+        for m in matches:
             try:
-                advfn_ids.append(int(rns_id.removeprefix("advfn_")))
+                rns_id = int(m)
+                if rns_id not in seen:
+                    seen.add(rns_id)
+                    new_ids.append(rns_id)
+                    all_ids.append(rns_id)
             except ValueError:
                 continue
 
-    if not advfn_ids:
-        print("  ⚠ No ADVFN-prefixed IDs found in known_ids")
-        return []
+        if not new_ids:
+            # Empty page — likely past end of available data
+            print(f"    Page {page}: no new buyback filings found, stopping")
+            break
 
-    lowest = min(advfn_ids)
-    print(f"  Lowest known ADVFN ID: {lowest}")
+        print(f"    Page {page}: +{len(new_ids)} buyback IDs ({len(all_ids)} total)")
+        time.sleep(request_delay)
 
-    return enumerate_ids_backwards(lowest, num_ids, request_delay)
+    return all_ids
 
 
-def parse_announcement(url: str) -> Optional[Announcement]:
-    """Parse a single ADVFN Transaction in Own Shares page."""
+def parse_announcement(filing_id: int) -> Optional[Announcement]:
+    """Parse a single ADVFN Transaction in Own Shares page by ID."""
+    url = FILING_URL_TMPL.format(id=filing_id)
     html = fetch_advfn_html(url)
     if not html:
         return None
 
-    # Issuer validation
+    # Issuer validation: must be IMB (defence in depth)
     html_lower = html.lower()
     if not (
-        "549300dfvpob67jl3a42" in html_lower   # IMB LEI
+        "549300dfvpob67jl3a42" in html_lower   # IMB LEI (most reliable)
         or "imperial brands plc" in html_lower
     ):
         return None
 
-    # Strip script/style blocks before tag-stripping (defense, even though ADVFN is server-rendered)
+    # Strip script/style blocks
     cleaned = re.sub(r"<script\b[^>]*>.*?</script>", " ", html, flags=re.IGNORECASE | re.DOTALL)
     cleaned = re.sub(r"<style\b[^>]*>.*?</style>", " ", cleaned, flags=re.IGNORECASE | re.DOTALL)
     text = re.sub(r"<[^>]+>", " ", cleaned)
     text = re.sub(r"&nbsp;|&#160;", " ", text)
     text = re.sub(r"\s+", " ", text)
 
-    # Extract URL ID for stable rns_id
-    id_match = re.search(r"/(\d+)/?$", url)
-    advfn_id = id_match.group(1) if id_match else url.split("/")[-1]
-
     # ── DATE ──
-    # ADVFN uses very explicit formatting: "Date of transaction: 24 April 2026"
+    # ADVFN format: "Date of transaction: 24 April 2026"
     date_patterns = [
         r"Date of transaction\s*:?\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})",
         r"on\s+(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\s+it\s+purchased",
@@ -245,7 +164,6 @@ def parse_announcement(url: str) -> Optional[Announcement]:
         return None
 
     # ── SHARES PURCHASED ──
-    # ADVFN: "Number of shares repurchased: 179,206"
     share_patterns = [
         r"Number of shares (?:re)?purchased\s*:?\s*(\d[\d,]+)",
         r"Number of securities purchased\s*:?\s*(\d[\d,]+)",
@@ -265,8 +183,7 @@ def parse_announcement(url: str) -> Optional[Announcement]:
     if not antal:
         return None
 
-    # ── AVERAGE PRICE ──
-    # ADVFN: "Average price paid per share: GBp 2,768.2686"
+    # ── AVERAGE PRICE (GBp) ──
     price_patterns = [
         r"Average price paid per share\s*:?\s*(?:GBp?\s+)?(\d[\d,]*\.\d+)",
         r"Volume[\- ]weighted average price[^:]*:\s*(?:GBp?\s+)?(\d[\d,]*\.\d+)",
@@ -312,6 +229,69 @@ def parse_announcement(url: str) -> Optional[Announcement]:
         gns_kurs_gbp=gns_kurs,
         beloeb_gbp_mio=beloeb,
         aktier_efter=aktier_efter,
-        rns_id=f"advfn_{advfn_id}",
+        rns_id=f"advfn_{filing_id}",
         source_url=url,
     )
+
+
+def scrape_filings(known_ids: set = None,
+                   max_pages: int = 3,
+                   request_delay: float = 1.0) -> list[Announcement]:
+    """
+    Main scraper entry point — works for both daily updates and backfill.
+
+    `max_pages`: How many listing pages to fetch.
+                 - 1 page  ≈ 25 RNS filings, ~10 buybacks  → daily updates
+                 - 5 pages ≈ 125 RNS, ~50 buybacks → weekly catch-up
+                 - 10 pages ≈ 250 RNS, ~120 buybacks → 1 year coverage
+                 - 20 pages ≈ 500 RNS, ~250 buybacks → full FY24-FY26 coverage
+    """
+    if known_ids is None:
+        known_ids = set()
+
+    print(f"  Listing scrape: {max_pages} pages, {len(known_ids)} known IDs to skip")
+
+    # Step 1: get all buyback IDs from listing
+    filing_ids = get_filing_ids_from_listing(
+        max_pages=max_pages,
+        request_delay=request_delay,
+    )
+    print(f"  Found {len(filing_ids)} buyback filing IDs across {max_pages} pages")
+
+    # Step 2: filter out already-known
+    new_ids = [i for i in filing_ids if f"advfn_{i}" not in known_ids]
+    print(f"  {len(new_ids)} new (skipping {len(filing_ids) - len(new_ids)} already in data.json)")
+
+    if not new_ids:
+        return []
+
+    # Step 3: fetch + parse each new filing
+    announcements = []
+    hits = 0
+    for i, filing_id in enumerate(new_ids):
+        ann = parse_announcement(filing_id)
+        if ann:
+            announcements.append(ann)
+            hits += 1
+            print(f"    ✓ {filing_id}: {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
+        time.sleep(request_delay)
+        if (i + 1) % 25 == 0:
+            print(f"    [{i+1}/{len(new_ids)}] {hits} hits")
+
+    print(f"  Parsed {hits}/{len(new_ids)} buyback filings")
+    return announcements
+
+
+# Backwards-compat aliases for old scraper.py
+def scrape_new_filings(known_ids=None, max_pages=3, request_delay=1.0):
+    """Daily incremental scrape — uses listing's first few pages."""
+    return scrape_filings(known_ids=known_ids, max_pages=max_pages, request_delay=request_delay)
+
+
+def backfill_via_id_enumeration(known_ids=None, num_ids=None, request_delay=1.5, max_pages=20):
+    """
+    Backfill — paginate deeper through listing.
+
+    `max_pages` controls depth. `num_ids` and `known_ids` retained for compat.
+    """
+    return scrape_filings(known_ids=known_ids, max_pages=max_pages, request_delay=request_delay)
