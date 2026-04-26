@@ -167,12 +167,30 @@
       "program": "FY26"
     },
     {
+      "dato": "2026-04-14",
+      "antal_aktier": 260000,
+      "gns_kurs_gbp": 2901.164,
+      "beloeb_gbp_mio": 7.5,
+      "aktier_efter": 780189990,
+      "rns_id": "advfn_98280287",
+      "program": "FY26"
+    },
+    {
       "dato": "2026-04-13",
       "antal_aktier": 249435,
       "gns_kurs_gbp": 3101.9783,
       "beloeb_gbp_mio": 7.7,
       "aktier_efter": 780449990,
       "rns_id": "9517820",
+      "program": "FY26"
+    },
+    {
+      "dato": "2026-04-13",
+      "antal_aktier": 249435,
+      "gns_kurs_gbp": 3101.9783,
+      "beloeb_gbp_mio": 7.7,
+      "aktier_efter": 780449990,
+      "rns_id": "advfn_98270698",
       "program": "FY26"
     },
     {
@@ -194,6 +212,15 @@
       "program": "FY26"
     },
     {
+      "dato": "2026-04-10",
+      "antal_aktier": 194858,
+      "gns_kurs_gbp": 3095.48,
+      "beloeb_gbp_mio": 6.0,
+      "aktier_efter": 780699425,
+      "rns_id": "advfn_98261873",
+      "program": "FY26"
+    },
+    {
       "dato": "2026-04-09",
       "antal_aktier": 47870,
       "gns_kurs_gbp": 3087.45,
@@ -203,12 +230,30 @@
       "program": "FY26"
     },
     {
+      "dato": "2026-04-09",
+      "antal_aktier": 47870,
+      "gns_kurs_gbp": 3087.45,
+      "beloeb_gbp_mio": 1.5,
+      "aktier_efter": 780894283,
+      "rns_id": "advfn_98253738",
+      "program": "FY26"
+    },
+    {
       "dato": "2026-04-08",
       "antal_aktier": 92392,
       "gns_kurs_gbp": 3121.25,
       "beloeb_gbp_mio": 2.9,
       "aktier_efter": 780942153,
       "rns_id": "9511156",
+      "program": "FY26"
+    },
+    {
+      "dato": "2026-04-08",
+      "antal_aktier": 92392,
+      "gns_kurs_gbp": 3121.25,
+      "beloeb_gbp_mio": 2.9,
+      "aktier_efter": 780942153,
+      "rns_id": "advfn_98244241",
       "program": "FY26"
     },
     {
@@ -455,10 +500,10 @@
     "change": -3.0,
     "change_pct": -0.11,
     "currency": "GBp",
-    "timestamp": "2026-04-25T08:46:03+00:00Z"
+    "timestamp": "2026-04-26T07:01:22+00:00Z"
   },
   "meta": {
-    "last_updated": "2026-04-25 09:56 UTC",
+    "last_updated": "2026-04-26 07:01 UTC",
     "data_kilde": "Investegate RNS (primary), Yahoo Finance (price)"
   },
   "programmer": {
