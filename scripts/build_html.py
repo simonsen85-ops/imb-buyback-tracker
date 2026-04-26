@@ -474,10 +474,10 @@ function renderCharts(m) {{
       labels,
       datasets: [
         {{ label:'Købskurs (GBp)', data:prices, borderColor:'#e8ecf2',
-           backgroundColor:'rgba(232,236,242,0.05)', borderWidth:2, pointRadius:3,
-           pointBackgroundColor:'#e8ecf2', tension:0.2, fill:false }},
+           backgroundColor:'rgba(232,236,242,0.05)', borderWidth:1.2, pointRadius:0,
+           pointHoverRadius:4, pointBackgroundColor:'#e8ecf2', tension:0.15, fill:false }},
         {{ label:`Fair Value (P/E ${{m.fairPe}}×)`, data:fairVals, borderColor:'#10b981',
-           borderWidth:1.5, borderDash:[6,4], pointRadius:0, fill:false }}
+           borderWidth:1, borderDash:[6,4], pointRadius:0, fill:false }}
       ]
     }},
     options: {{
@@ -506,8 +506,9 @@ function renderCharts(m) {{
       datasets: [{{
         label:'Kumulativ EPS-accretion (%)', data:cumAccretion,
         borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.12)',
-        borderWidth:2, pointRadius:3, pointBackgroundColor:'#10b981',
-        tension:0.2, fill:true
+        borderWidth:1.2, pointRadius:0, pointHoverRadius:4,
+        pointBackgroundColor:'#10b981',
+        tension:0.15, fill:true
       }}]
     }},
     options: {{
@@ -537,7 +538,8 @@ function renderCharts(m) {{
         data: sharesRemaining,
         borderColor:'#b0bac9',
         backgroundColor:'rgba(176,186,201,0.08)',
-        borderWidth:2, pointRadius:2, pointBackgroundColor:'#b0bac9',
+        borderWidth:1.2, pointRadius:0, pointHoverRadius:4,
+        pointBackgroundColor:'#b0bac9',
         tension:0,           // no smoothing — stepped feel
         stepped:'before',    // true trappekurve
         fill:true
@@ -568,11 +570,11 @@ function renderCharts(m) {{
       datasets: [
         {{ label:'EPS-projection (£)', data:epsProjection,
            borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.12)',
-           borderWidth:2, pointRadius:3, pointBackgroundColor:'#10b981',
-           tension:0.2, fill:true }},
+           borderWidth:1.2, pointRadius:0, pointHoverRadius:4,
+           pointBackgroundColor:'#10b981', tension:0.15, fill:true }},
         {{ label:`Basis EPS (£${{m.epsBase.toFixed(2)}})`,
            data: m.tx.map(() => m.epsBase),
-           borderColor:'#8b99ad', borderWidth:1.5, borderDash:[6,4],
+           borderColor:'#8b99ad', borderWidth:1, borderDash:[6,4],
            pointRadius:0, fill:false }}
       ]
     }},
