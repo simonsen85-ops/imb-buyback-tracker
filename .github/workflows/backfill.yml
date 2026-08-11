@@ -3,8 +3,13 @@ name: Backfill Historical IMB Buyback Data
 on:
   workflow_dispatch:
     inputs:
+      from_page:
+        description: 'Listing page to start from (1 = newest). Use ~18 to target the Nov 2022 - Feb 2023 gap.'
+        required: true
+        default: '1'
+        type: string
       num_pages:
-        description: 'ADVFN listing pages to paginate (5=3-4 months, 10=1 year, 20=full FY24-FY26)'
+        description: 'Investegate listing pages, 50 announcements each (2=3 months, 10=1.5 years, 32=full archive)'
         required: true
         default: '10'
         type: string
@@ -15,7 +20,7 @@ permissions:
 jobs:
   backfill:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -24,12 +29,15 @@ jobs:
           python-version: '3.12'
 
       - name: Run historical backfill
-        run: python scripts/scraper.py --backfill ${{ github.event.inputs.num_pages }}
+        run: python scripts/scraper.py --backfill ${{ github.event.inputs.num_pages }} --from-page ${{ github.event.inputs.from_page }}
+
+      - name: Data integrity report (informational)
+        run: python scripts/check_integrity.py || true
 
       - name: Commit & push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json index.html
-          git diff --staged --quiet || git commit -m "🔙 Backfill ${{ github.event.inputs.num_pages }} ADVFN pages $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git diff --staged --quiet || git commit -m "🔙 Backfill ${{ github.event.inputs.num_pages }} pages from ${{ github.event.inputs.from_page }} $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push

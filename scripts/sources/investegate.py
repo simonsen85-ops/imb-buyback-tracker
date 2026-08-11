@@ -1,172 +1,211 @@
 """
-Investegate scraper for IMB buyback filings.
+Investegate scraper for IMB buyback filings — PRIMARY SOURCE.
 
-Strategy:
-1. Fetch company listing to get the latest RNS IDs
-2. Enumerate backwards from newest ID until we hit the last known ID (from data.json)
-3. Parse each RNS page for buyback transaction data
+WHY THIS IS PRIMARY (Aug 2026):
+ADVFN added site-wide bot detection and now returns HTTP 403 to any
+non-browser client. Investegate's company page is server-rendered plain
+HTML with per-company URLs, so it is both accessible and safe.
 
-Why ID enumeration beats pagination:
-- Investegate's company listing page shows max 30 items
-- Paginating is fragile (URL pattern changes, server errors compound)
-- RNS IDs are sequential — if we know we have ID 9500000 and newest is 9534918,
-  we just iterate the range. Non-existent IDs return 404 (which we skip).
-- This makes first-run historical backfill possible and ongoing updates trivial.
+LISTING (paginated, 50 entries/page, ~32 pages of history):
+  https://www.investegate.co.uk/company/IMB?page={n}
+
+FILING DETAIL:
+  https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/
+  transaction-in-own-shares/{id}
+
+The listing links are per-company (`imperial-brands--imb` slug), so we
+cannot pick up another issuer's filings by accident. We still validate
+the LEI on every detail page as defence in depth.
+
+IMPORTANT — the link pattern requires a literal "/" immediately after
+"transaction-in-own-shares", which deliberately excludes the separate
+"transaction-in-own-shares-treasury-share-transfer" announcements.
+Those are treasury transfers, not market purchases for cancellation.
+
+DEDUP:
+rns_id is the bare numeric string (e.g. "9713069"), matching the
+40 Investegate-sourced rows already in data.json. Do NOT add a prefix
+here or every historical row will be re-fetched as a duplicate.
 """
 
 import re
+import time
 from typing import Optional
 from .base import Announcement, fetch_html
 
 
-COMPANY_URL = "https://www.investegate.co.uk/company/IMB"
-ANNOUNCEMENT_URL = "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/transaction-in-own-shares/{id}"
+COMPANY_URL_TMPL = "https://www.investegate.co.uk/company/IMB?page={page}"
+ANNOUNCEMENT_URL = (
+    "https://www.investegate.co.uk/announcement/rns/imperial-brands--imb/"
+    "transaction-in-own-shares/{id}"
+)
+
+# Trailing "/" after the slug excludes the treasury-share-transfer variant.
+LISTING_LINK_PATTERN = (
+    r'/announcement/rns/imperial-brands--imb/transaction-in-own-shares/(\d+)'
+)
 
 MONTHS = {
     "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
-    "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12,
+    "july": 7, "august": 8, "september": 9, "october": 10, "november": 11,
+    "december": 12,
 }
 
 
-def get_latest_rns_ids(max_ids: int = 30) -> list[int]:
-    """Fetch the most recent Transaction in Own Shares RNS IDs from Investegate's company page."""
-    html = fetch_html(COMPANY_URL)
-    if not html:
-        print("  ✗ Could not fetch Investegate company page")
-        return []
+def _clean_text(html: str) -> str:
+    """
+    Strip everything that could poison a regex match, in order:
+      1. <script>/<style> blocks (inline JS contains stray numbers)
+      2. The "Summary by AI BETA" block — it restates the figures in prose
+         and sits ABOVE the real RNS text, so re.search would hit it first.
+      3. Remaining tags and HTML entities.
+    """
+    cleaned = re.sub(r"<script\b[^>]*>.*?</script>", " ", html,
+                     flags=re.IGNORECASE | re.DOTALL)
+    cleaned = re.sub(r"<style\b[^>]*>.*?</style>", " ", cleaned,
+                     flags=re.IGNORECASE | re.DOTALL)
 
-    print(f"  Fetched {len(html):,} chars from {COMPANY_URL}")
+    text = re.sub(r"<[^>]+>", " ", cleaned)
+    text = re.sub(r"&nbsp;|&#160;", " ", text)
+    text = re.sub(r"&amp;", "&", text)
+    text = re.sub(r"\s+", " ", text)
 
-    # Try primary pattern (slash-separated with --imb slug)
-    pattern = r'/announcement/rns/imperial-brands--imb/transaction-in-own-shares/(\d+)'
-    matches = re.findall(pattern, html, re.IGNORECASE)
+    # Drop the AI summary: starts at "Summary by AI", ends at the disclaimer
+    # link that always follows it. If the end marker is missing, drop nothing
+    # rather than risk cutting the real announcement.
+    m_start = re.search(r"Summary by AI", text, re.IGNORECASE)
+    if m_start:
+        m_end = re.search(r"Disclaimer\s*\*?", text[m_start.end():],
+                          re.IGNORECASE)
+        if m_end:
+            cut_to = m_start.end() + m_end.end()
+            text = text[:m_start.start()] + " " + text[cut_to:]
 
-    # If no matches with primary pattern, try fallback patterns
-    if not matches:
-        print("  ⚠ Primary URL pattern found 0 matches — trying fallbacks")
-        # Fallback 1: any RNS link mentioning transaction-in-own-shares
-        fallback1 = re.findall(r'transaction-in-own-shares[/-](\d{7,})', html, re.IGNORECASE)
-        # Fallback 2: broader RNS link for imperial-brands
-        fallback2 = re.findall(r'imperial-brands[^"\']*?/(\d{7,})', html, re.IGNORECASE)
-        # Diagnostic: count how many /announcement/ links in total
-        all_announcements = re.findall(r'/announcement/rns/([^"\']+)', html, re.IGNORECASE)
+    return text
 
-        print(f"    Fallback 1 (transaction-in-own-shares): {len(fallback1)} matches")
-        print(f"    Fallback 2 (imperial-brands/ID): {len(fallback2)} matches")
-        print(f"    Any /announcement/rns/ links: {len(all_announcements)} matches")
 
-        if all_announcements:
-            # Show first 3 for debugging
-            print(f"    Sample announcement paths:")
-            for sample in all_announcements[:3]:
-                print(f"      /announcement/rns/{sample[:80]}")
+def get_filing_ids_from_listing(max_pages: int = 2,
+                                request_delay: float = 1.0,
+                                start_page: int = 1) -> list[int]:
+    """
+    Paginate Investegate's IMB company listing and return buyback filing IDs.
 
-        # Use best fallback available
-        matches = fallback1 or fallback2 or []
+    Each page holds 50 announcements of all RNS types; typically ~35 of them
+    are Transaction in Own Shares. Returns IDs newest-first.
 
-    if not matches:
-        # Final diagnostic: what does the HTML actually contain?
-        has_imb = "IMB" in html or "imperial" in html.lower()
-        has_rns = "RNS" in html or "announcement" in html.lower()
-        has_cookie_wall = "cookie" in html.lower() and "accept" in html.lower()
-        has_captcha = "captcha" in html.lower() or "cloudflare" in html.lower()
-        print(f"    HTML content check: IMB={has_imb}, RNS={has_rns}, cookie_wall={has_cookie_wall}, captcha={has_captcha}")
+    start_page lets a backfill jump straight to the era it needs instead of
+    re-walking pages already covered. Page 1 is the newest ~5 weeks, and
+    each page is roughly 2-3 weeks further back.
+    """
+    all_ids = []
+    seen = set()
 
-    unique = sorted({int(m) for m in matches}, reverse=True)
-    return unique[:max_ids]
+    for page in range(start_page, start_page + max_pages):
+        url = COMPANY_URL_TMPL.format(page=page)
+        html = fetch_html(url)
+        if not html:
+            print(f"    Page {page}: fetch failed, stopping")
+            break
+
+        matches = re.findall(LISTING_LINK_PATTERN, html, re.IGNORECASE)
+        if not matches:
+            # A page with zero buyback links means we ran past the end of
+            # the archive (or the layout changed) — either way, stop.
+            print(f"    Page {page}: no buyback links found, stopping "
+                  f"({len(html):,} chars fetched)")
+            break
+
+        new_on_page = 0
+        for m in matches:
+            try:
+                rns_id = int(m)
+            except ValueError:
+                continue
+            if rns_id not in seen:
+                seen.add(rns_id)
+                all_ids.append(rns_id)
+                new_on_page += 1
+
+        print(f"    Page {page}: +{new_on_page} buyback IDs "
+              f"({len(all_ids)} total)")
+        time.sleep(request_delay)
+
+    return all_ids
 
 
 def parse_rns_page(rns_id: int) -> Optional[Announcement]:
-    """Parse a single RNS Transaction in Own Shares page into an Announcement."""
+    """Parse a single Transaction in Own Shares page into an Announcement."""
     url = ANNOUNCEMENT_URL.format(id=rns_id)
     html = fetch_html(url)
     if not html:
         return None
 
-    # Verify this is actually a Transaction in Own Shares page (not a redirect/404 page)
-    if "transaction in own shares" not in html.lower() and "purchased for cancellation" not in html.lower():
-        return None
-
-    # CRITICAL: Verify this is Imperial Brands, not another issuer.
-    # Investegate renders ANY RNS page regardless of URL slug — content must confirm issuer.
-    # Use LEI + ISIN as primary (regulatory identifiers), fall back to full company name.
     html_lower = html.lower()
-    is_imperial = (
-        "549300dfvpob67jl3a42" in html_lower  # IMB LEI (ISO 17442)
-        or "gb0004544929" in html_lower        # IMB ISIN
-        or "imperial brands plc" in html_lower  # Full legal name (fallback)
-    )
-    if not is_imperial:
+
+    # Must be a buyback page, not a redirect or error shell
+    if ("transaction in own shares" not in html_lower
+            and "purchased for cancellation" not in html_lower):
         return None
 
-    # Strip HTML for cleaner regex matching
-    text = re.sub(r"<[^>]+>", " ", html)
-    text = re.sub(r"\s+", " ", text)
+    # Issuer validation (defence in depth — LEI/ISIN are regulatory IDs)
+    if not (
+        "549300dfvpob67jl3a42" in html_lower      # IMB LEI (ISO 17442)
+        or "gb0004544929" in html_lower           # IMB ISIN
+        or "imperial brands plc" in html_lower    # legal name fallback
+    ):
+        return None
+
+    text = _clean_text(html)
 
     # ── DATE ──
-    # Patterns: "on 22 April 2026" OR "April 22, 2026" OR "on April 22 2026"
+    # Labelled pattern FIRST: the RNS always carries "Date of transaction:".
+    # The unlabelled fallbacks exist for older filings with prose-only wording.
     date_patterns = [
+        r"Date of transaction\s*:?\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})",
+        r"on\s+(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\s+it\s+purchased",
         r"on\s+(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})",
-        r"(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})",
     ]
     dato = None
     for pat in date_patterns:
         m = re.search(pat, text, re.IGNORECASE)
         if not m:
             continue
-        groups = m.groups()
         try:
-            if groups[0].isdigit():  # "22 April 2026"
-                day, month_str, year = groups
-            else:                     # "April 22, 2026"
-                month_str, day, year = groups
-            dato = f"{year}-{MONTHS[month_str.lower()]:02d}-{int(day):02d}"
-            break
+            day, month_str, year = m.groups()
+            year_int = int(year)
+            if 2010 <= year_int <= 2035:
+                dato = f"{year}-{MONTHS[month_str.lower()]:02d}-{int(day):02d}"
+                break
         except (KeyError, ValueError):
             continue
-
     if not dato:
         return None
 
     # ── SHARES PURCHASED ──
     share_patterns = [
+        r"Number of shares (?:re)?purchased\s*:?\s*(\d[\d,]+)",
+        r"Number of securities purchased\s*:?\s*(\d[\d,]+)",
         r"(?:purchased|repurchased)\s+(?:for\s+cancellation\s+)?(\d[\d,]+)\s+(?:of\s+its\s+)?ordinary",
-        r"repurchased\s+(\d[\d,]+)\s+ordinary",
-        r"purchased\s+(?:the\s+following\s+number\s+of\s+its\s+)?(?:ordinary\s+shares.*?:\s*)?(\d[\d,]+)",
-        r"Number\s+of\s+securities\s+purchased\s*:?\s*(\d[\d,]+)",
     ]
     antal = None
     for pat in share_patterns:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
             try:
-                antal = int(m.group(1).replace(",", ""))
-                if antal > 100:  # Sanity: ignore tiny matches like "10 pence each"
-                    break
+                cand = int(m.group(1).replace(",", ""))
             except ValueError:
                 continue
+            if cand > 100:          # guards against "10 pence each"
+                antal = cand
+                break
     if not antal:
         return None
 
     # ── AVERAGE PRICE (GBp) ──
-    # Try many patterns — RNS formatting has evolved over years
     price_patterns = [
-        # Modern (2024+): "average price paid per share was 3050.44 pence"
+        r"Average price paid per share\s*:?\s*(?:GBp?\s*)?(\d[\d,]*\.\d+)",
+        r"Volume[\- ]weighted average price[^:]*:\s*(?:GBp?\s*)?(\d[\d,]*\.\d+)",
         r"average\s+price\s+(?:paid\s+)?(?:per\s+share\s+)?(?:was\s+)?(?:of\s+)?(?:GBp?\s*)?(\d[\d,]*\.\d+)",
-        # Table format: "Weighted average price (pence) | 3050.44"
-        r"weighted\s+average\s+price\s*\([^)]+\)\s*[:\|]?\s*(\d[\d,]*\.\d+)",
-        # Older format: "at an average price of 3050.44 pence"
-        r"at\s+an?\s+average\s+price\s+of\s+(\d[\d,]*\.\d+)\s*(?:pence|GBp|p\b)",
-        # "volume weighted average price of 3050.44p"
-        r"volume\s+weighted\s+average\s+price\s+of\s+(\d[\d,]*\.\d+)",
-        # "price per share: 3050.44"
-        r"price\s+per\s+share\s*[:\-]?\s*(?:GBp\s+)?(\d[\d,]*\.\d+)",
-        # Prefix: "GBp 3050.44" or "GBX 3050.44"
-        r"GB[pPxX]\s+(\d[\d,]*\.\d+)",
-        # Suffix: "3050.44 pence per share"
-        r"(\d[\d,]*\.\d+)\s*(?:pence|p)\s+per\s+(?:ordinary\s+)?share",
-        # Fallback: "3050.44p" near "average"
-        r"average[^.]{0,80}?(\d[\d,]*\.\d+)\s*p\b",
     ]
     gns_kurs = 0.0
     for pat in price_patterns:
@@ -174,43 +213,33 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
         if m:
             try:
                 cand = float(m.group(1).replace(",", ""))
-                # Sanity check: IMB trades historically between 1500-4500p
-                if 1000 < cand < 5000:
-                    gns_kurs = cand
-                    break
             except ValueError:
                 continue
+            if 500 < cand < 10000:   # IMB trades in the 1500-3600 GBp band
+                gns_kurs = cand
+                break
+    if gns_kurs == 0:
+        return None
 
-    # ── SHARES IN ISSUE AFTER ──
+    # ── SHARES IN ISSUE AFTER CANCELLATION ──
     after_patterns = [
-        r"(?:remaining\s+)?(?:total\s+)?(?:number\s+of\s+)?ordinary\s+shares\s+in\s+issue\s+"
-        r"(?:will\s+be|is\s+now|is)\s+(\d[\d,]+)",
-        r"shares\s+in\s+issue.*?(\d{3}[\d,]+)",
+        r"remaining number of ordinary shares in issue will be\s+(\d[\d,]+)",
+        r"ordinary shares in issue\s+(?:will be|is now|is)\s+(\d[\d,]+)",
+        r"shares in issue.*?(\d{3}[\d,]{5,})",
     ]
     aktier_efter = None
-    any_shares_in_issue = None  # Track if we found ANY number that looked like share count
     for pat in after_patterns:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
             try:
                 n = int(m.group(1).replace(",", ""))
-                if 500_000_000 < n < 1_000_000_000:  # Sanity: IMB ~780M shares
-                    aktier_efter = n
-                    break
-                else:
-                    any_shares_in_issue = n  # Found a share count, but wrong magnitude
             except ValueError:
                 continue
+            if 500_000_000 < n < 1_500_000_000:
+                aktier_efter = n
+                break
 
-    # If we found a share count but it's not IMB-sized, this is another issuer. Reject.
-    if any_shares_in_issue is not None and aktier_efter is None:
-        return None
-
-    beloeb = round(antal * gns_kurs / 100 / 1e6, 1) if gns_kurs else 0
-
-    # Require a valid price — reject rather than save garbage data.
-    if gns_kurs == 0:
-        return None
+    beloeb = round(antal * gns_kurs / 100 / 1e6, 1)
 
     return Announcement(
         dato=dato,
@@ -218,83 +247,82 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
         gns_kurs_gbp=gns_kurs,
         beloeb_gbp_mio=beloeb,
         aktier_efter=aktier_efter,
-        rns_id=str(rns_id),
+        rns_id=str(rns_id),          # bare numeric — matches existing rows
         source_url=url,
     )
 
 
-def probe_recent_ids(start_id: int = 9535000, window: int = 50) -> list[int]:
+def scrape_filings(known_ids: set = None,
+                   max_pages: int = 2,
+                   request_delay: float = 1.0,
+                   start_page: int = 1) -> list[Announcement]:
     """
-    Fallback when listing page fails: probe a range of recent IDs directly.
-    We know IDs are sequential (~9534918 at 22/4-2026), so probing
-    start_id-window..start_id finds recent transaction-in-own-shares filings.
+    Main entry point for both daily updates and backfill.
+
+    max_pages guide (50 announcements/page, ~35 buybacks/page):
+      1  → ~5 weeks   (daily updates; 1 page is plenty)
+      2  → ~3 months  (safe default — survives a long outage)
+      10 → ~1.5 years
+      32 → full archive back to 2022
+
+    start_page skips ahead — use it to target a known gap rather than
+    re-walking pages whose filings are already stored under another
+    source's rns_id (those get discarded at merge, but still cost a fetch).
     """
-    print(f"  Probing IDs {start_id-window}..{start_id} directly...")
-    found_ids = []
-    for rns_id in range(start_id, start_id - window, -1):
-        url = ANNOUNCEMENT_URL.format(id=rns_id)
-        html = fetch_html(url)
-        if html and ("transaction in own shares" in html.lower() or "purchased for cancellation" in html.lower()):
-            found_ids.append(rns_id)
-    print(f"    Probe found {len(found_ids)} buyback filings in window")
-    return found_ids
+    known_ids = known_ids or set()
 
+    span = (f"pages {start_page}-{start_page + max_pages - 1}"
+            if max_pages > 1 else f"page {start_page}")
+    print(f"  Listing scrape: {span}, {len(known_ids)} known IDs to skip")
 
-def scrape_new_filings(last_known_id: Optional[int] = None,
-                        max_lookback: int = 200) -> list[Announcement]:
-    """
-    Scrape IMB buyback RNS filings newer than `last_known_id`.
-    """
-    latest_ids = get_latest_rns_ids(max_ids=30)
-
-    # Fallback: probe recent IDs if listing failed
-    if not latest_ids:
-        print("  ⚠ Listing page gave nothing — falling back to ID probing")
-        # Start probe at a known-good recent ID + some headroom for newer filings
-        probe_start = max(last_known_id + 30, 9535000) if last_known_id else 9535000
-        latest_ids = probe_recent_ids(start_id=probe_start, window=100)
-
-    if not latest_ids:
-        print("  ✗ No RNS IDs discovered by any method")
+    filing_ids = get_filing_ids_from_listing(
+        max_pages=max_pages,
+        request_delay=request_delay,
+        start_page=start_page,
+    )
+    if not filing_ids:
+        print("  ✗ No filing IDs found in listing")
         return []
 
-    newest = latest_ids[0]
-    print(f"  Newest RNS ID discovered: {newest}")
+    print(f"  Found {len(filing_ids)} buyback filing IDs")
 
-    if last_known_id and last_known_id >= newest:
-        print(f"  Already up-to-date (last known: {last_known_id})")
+    new_ids = [i for i in filing_ids if str(i) not in known_ids]
+    print(f"  {len(new_ids)} new "
+          f"(skipping {len(filing_ids) - len(new_ids)} already in data.json)")
+    if not new_ids:
         return []
 
-    # Build target ID list
-    if last_known_id is None:
-        # First run — only scrape what we see in the listing
-        target_ids = latest_ids
-        print(f"  First run: scraping {len(target_ids)} latest IDs from listing")
-    else:
-        # Enumerate the gap, capped by max_lookback
-        start = last_known_id + 1
-        end = newest
-        gap = end - start + 1
-        if gap > max_lookback:
-            print(f"  Gap {gap} > max_lookback {max_lookback} — capping")
-            start = end - max_lookback + 1
-        target_ids = list(range(end, start - 1, -1))  # newest first
-        print(f"  Enumerating IDs {start}..{end} ({len(target_ids)} candidates)")
-
-    # Parse each
     announcements = []
     hits = 0
-    misses = 0
-    for i, rns_id in enumerate(target_ids):
+    for i, rns_id in enumerate(new_ids):
         ann = parse_rns_page(rns_id)
         if ann:
             announcements.append(ann)
             hits += 1
-            print(f"    ✓ {rns_id}: {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
-        else:
-            misses += 1
-        if (i + 1) % 20 == 0:
-            print(f"    [{i+1}/{len(target_ids)}] {hits} hits, {misses} misses")
+            print(f"    ✓ {rns_id}: {ann.dato} | {ann.antal_aktier:,} "
+                  f"@ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
+        time.sleep(request_delay)
+        if (i + 1) % 25 == 0:
+            print(f"    [{i+1}/{len(new_ids)}] {hits} hits")
 
-    print(f"  Parsed {hits} buyback filings ({misses} skipped — other RNS types or 404)")
+    print(f"  Parsed {hits}/{len(new_ids)} buyback filings")
     return announcements
+
+
+# ── Backwards-compatible shims for older scraper.py call sites ──────────────
+
+def get_latest_rns_ids(max_ids: int = 50) -> list[int]:
+    """Legacy helper — newest IDs from page 1 of the listing."""
+    return get_filing_ids_from_listing(max_pages=1, request_delay=0.5)[:max_ids]
+
+
+def scrape_new_filings(last_known_id=None, max_lookback=None,
+                       known_ids=None, max_pages=2,
+                       request_delay=1.0) -> list[Announcement]:
+    """
+    Legacy signature. `last_known_id`/`max_lookback` are ignored — the
+    listing tells us exactly which filings exist, so blind ID enumeration
+    (which ran at a ~1% hit rate) is no longer used.
+    """
+    return scrape_filings(known_ids=known_ids, max_pages=max_pages,
+                          request_delay=request_delay)

@@ -640,26 +640,39 @@ function render(progKey) {{
     }}).join('');
   }} else if (p.tranche_1 && p.tranche_2) {{
     tranchesEl.classList.remove('hide');
-    const t1Spent = Math.min(m.totalGbpMio, p.tranche_1.beloeb_mio);
-    const t2Spent = Math.max(0, m.totalGbpMio - p.tranche_1.beloeb_mio);
-    const t1Pct = (t1Spent / p.tranche_1.beloeb_mio) * 100;
-    const t2Pct = (t2Spent / p.tranche_2.beloeb_mio) * 100;
+    const t1Cap = p.tranche_1.beloeb_mio, t2Cap = p.tranche_2.beloeb_mio;
+    // Spend is allocated to tranche 1 first, then spills into tranche 2.
+    // Both are clamped to their own cap so a data error can never render
+    // a tranche as "£918M / £725M" again — any excess is surfaced
+    // separately as an overspend note instead of being hidden in a bar.
+    const t1Spent = Math.min(m.totalGbpMio, t1Cap);
+    const t2Spent = Math.min(Math.max(0, m.totalGbpMio - t1Cap), t2Cap);
+    const overspend = Math.max(0, m.totalGbpMio - t1Cap - t2Cap);
+    const t1Pct = (t1Spent / t1Cap) * 100;
+    const t2Pct = (t2Spent / t2Cap) * 100;
+    const trStatus = (tr, pct) => {{
+      if (tr.status === 'fuldført' || pct >= 99.95) return 'fuldført';
+      if (pct <= 0) return 'ikke startet';
+      return pct.toFixed(1) + '% fuldført';
+    }};
     tranchesEl.innerHTML = `
       <div class="tr">
         <div class="tr-h">
           <span class="tr-n">Tranche 1${{p.maegler_t1 ? ' · '+p.maegler_t1 : ''}}</span>
-          <span class="tr-amt">£${{t1Spent.toFixed(0)}}M / £${{p.tranche_1.beloeb_mio}}M</span>
+          <span class="tr-amt">£${{t1Spent.toFixed(0)}}M / £${{t1Cap}}M</span>
         </div>
         <div class="tr-bar"><div class="tr-bar-f" style="width:${{Math.min(t1Pct,100).toFixed(1)}}%"></div></div>
-        <div class="tr-meta">${{fmtDate(p.tranche_1.start)}} → ${{fmtDate(p.tranche_1.slut)}} · ${{t1Pct.toFixed(1)}}% fuldført</div>
+        <div class="tr-meta">${{fmtDate(p.tranche_1.start)}} → ${{fmtDate(p.tranche_1.slut)}} · ${{trStatus(p.tranche_1, t1Pct)}}</div>
       </div>
       <div class="tr">
         <div class="tr-h">
           <span class="tr-n">Tranche 2${{p.maegler_t2 ? ' · '+p.maegler_t2 : ''}}</span>
-          <span class="tr-amt">£${{t2Spent.toFixed(0)}}M / £${{p.tranche_2.beloeb_mio}}M</span>
+          <span class="tr-amt">£${{t2Spent.toFixed(0)}}M / £${{t2Cap}}M</span>
         </div>
         <div class="tr-bar"><div class="tr-bar-f" style="width:${{Math.min(t2Pct,100).toFixed(1)}}%"></div></div>
-        <div class="tr-meta">Start ${{fmtDate(p.tranche_2.start)}} · Slut ${{fmtDate(p.tranche_2.slut)}}</div>
+        <div class="tr-meta">${{fmtDate(p.tranche_2.start)}} → ${{fmtDate(p.tranche_2.slut)}} · ${{trStatus(p.tranche_2, t2Pct)}}${{
+          overspend > 0.5 ? ' · ⚠ £'+overspend.toFixed(0)+'M over programrammen — tjek data' : ''
+        }}</div>
       </div>
     `;
   }} else {{

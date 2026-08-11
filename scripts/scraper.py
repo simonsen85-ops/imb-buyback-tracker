@@ -71,25 +71,53 @@ def assign_program(dato: str, programs: dict) -> str:
     return "unknown"
 
 
+def transaction_key(t: dict):
+    """
+    Economic identity of a buyback: date + shares + average price.
+
+    rns_id alone is NOT sufficient for dedup. The same filing carries a
+    different id depending on which source found it (`advfn_98357343` vs
+    Investegate's bare `9537970`), so an id-only check lets the same
+    transaction in twice whenever the primary source changes. That is
+    exactly how the 48 duplicates cleaned up in v8.1 were created — and it
+    would have re-added ~800 of them on the first deep Investegate backfill,
+    since 809 of the stored rows still carry ADVFN ids.
+    """
+    return (t["dato"], t["antal_aktier"], round(t["gns_kurs_gbp"], 2))
+
+
 def merge_transactions(existing: list, new: list, programs: dict):
-    """Merge new announcements, dedup by rns_id, tag with program."""
+    """Merge new announcements, dedup by rns_id AND economic identity."""
     existing_ids = {t.get("rns_id") for t in existing if t.get("rns_id")}
-    existing_dates = {t["dato"] for t in existing}
+    existing_keys = {transaction_key(t) for t in existing}
     added = 0
+    skipped_id = 0
+    skipped_key = 0
     for ann_dict in new:
         rns_id = ann_dict.get("rns_id")
         dato = ann_dict.get("dato")
+
         if rns_id and rns_id in existing_ids:
+            skipped_id += 1
             continue
-        if not rns_id and dato in existing_dates:
+
+        key = transaction_key(ann_dict)
+        if key in existing_keys:
+            # Already held under a different source's rns_id — keep the
+            # stored row (its id is what dedup/backfill state is built on).
+            skipped_key += 1
             continue
-        # Tag with program
+
         ann_dict["program"] = assign_program(dato, programs)
         existing.append(ann_dict)
         if rns_id:
             existing_ids.add(rns_id)
-        existing_dates.add(dato)
+        existing_keys.add(key)
         added += 1
+
+    if skipped_id or skipped_key:
+        print(f"   dedup: {skipped_id} skipped by rns_id, "
+              f"{skipped_key} skipped as same transaction from another source")
 
     # Re-tag existing transactions that may lack a program field (migration)
     for t in existing:
@@ -120,14 +148,44 @@ def get_known_advfn_ids(data: dict) -> set:
     return ids
 
 
+def get_known_investegate_ids(data: dict) -> set:
+    """
+    Collect bare-numeric rns_id's (Investegate style, e.g. '9713069') for dedup.
+    Prefixed IDs from other sources are excluded.
+    """
+    ids = set()
+    for t in data.get("transaktioner", []):
+        rns_id = t.get("rns_id")
+        if rns_id and str(rns_id).isdigit():
+            ids.add(str(rns_id))
+    return ids
+
+
 def normal_scrape(data: dict) -> list:
     """
-    Daily incremental scrape via ADVFN listing (first 3 pages = ~75 RNS filings).
-    Falls back to LSE.co.uk → Investegate if ADVFN fails.
-    """
-    known_advfn = get_known_advfn_ids(data)
-    print(f"   Known ADVFN ids: {len(known_advfn)}")
+    Daily incremental scrape.
 
+    SOURCE PRIORITY (changed Aug 2026):
+      1. Investegate — server-rendered, per-company listing, paginated.
+      2. ADVFN       — was primary until it added site-wide bot detection
+                       (HTTP 403 to every non-browser client). Kept in the
+                       chain so it resumes automatically if that is relaxed.
+      3. LSE.co.uk   — last resort; its RNS body is JS-rendered so it has
+                       never parsed reliably.
+    """
+    known_ig = get_known_investegate_ids(data)
+    print(f"   Known Investegate ids: {len(known_ig)}")
+
+    new_ann = investegate.scrape_filings(
+        known_ids=known_ig,
+        max_pages=2,        # ~3 months of cover — survives a long outage
+        request_delay=1.0,
+    )
+    if new_ann:
+        return new_ann
+
+    print("   Investegate returned nothing — trying ADVFN fallback")
+    known_advfn = get_known_advfn_ids(data)
     new_ann = advfn.scrape_filings(
         known_ids=known_advfn,
         max_pages=3,
@@ -138,86 +196,58 @@ def normal_scrape(data: dict) -> list:
 
     print("   ADVFN returned nothing — trying LSE.co.uk fallback")
     known_lse = get_known_lse_hashes(data)
-    new_ann = lse_co_uk.scrape_new_filings(
+    return lse_co_uk.scrape_new_filings(
         known_hashes=known_lse,
         max_filings=50,
         request_delay=1.0,
     )
+
+
+def backfill_scrape(data: dict, n: int, start_page: int = 1) -> list:
+    """
+    Backfill via Investegate listing pagination — `n` is page count.
+
+    Each page = 50 announcements (~35 of them buybacks).
+      n=2  → ~3 months
+      n=10 → ~1.5 years
+      n=32 → full archive (Investegate holds 1,566 IMB announcements)
+    """
+    known_ig = get_known_investegate_ids(data)
+    print(f"   Known Investegate ids: {len(known_ig)}")
+    print(f"   Paginating {n} listing pages from page {start_page}...")
+
+    new_ann = investegate.scrape_filings(
+        known_ids=known_ig,
+        max_pages=n,
+        request_delay=1.2,
+        start_page=start_page,
+    )
     if new_ann:
         return new_ann
 
-    print("   LSE.co.uk returned nothing — trying Investegate fallback")
-    last_id = get_highest_known_id(data)
-    return investegate.scrape_new_filings(last_known_id=last_id, max_lookback=100)
-
-
-def backfill_scrape(data: dict, n: int) -> list:
-    """
-    Backfill via ADVFN listing pagination — `n` is page count.
-
-    Each page ≈ 25 RNS filings (~10 buybacks per page).
-    Recommended values:
-      n=5   → ~50 buybacks (recent ~3-4 months)
-      n=10  → ~120 buybacks (1 year)
-      n=20  → ~240 buybacks (full FY24-FY26 coverage)
-    """
+    print("   Investegate returned nothing — falling back to ADVFN")
     known_advfn = get_known_advfn_ids(data)
-    print(f"   Known ADVFN ids: {len(known_advfn)}")
-    print(f"   Paginating {n} listing pages...")
-
     new_ann = advfn.scrape_filings(
         known_ids=known_advfn,
         max_pages=n,
-        request_delay=1.5,  # More polite during backfill
+        request_delay=1.5,
     )
     if new_ann:
         return new_ann
 
     print("   ADVFN returned nothing — falling back to LSE.co.uk")
     known_lse = get_known_lse_hashes(data)
-    new_ann = lse_co_uk.scrape_new_filings(
+    return lse_co_uk.scrape_new_filings(
         known_hashes=known_lse,
         max_filings=200,
         request_delay=1.5,
     )
-    if new_ann:
-        return new_ann
-
-    print("   LSE.co.uk returned nothing — falling back to Investegate")
-    return _backfill_investegate(data, 100)
-
-
-def _backfill_investegate(data: dict, n: int) -> list:
-    """Legacy Investegate backfill (kept as fallback only)."""
-    import time
-    lowest = get_lowest_known_id(data)
-    if not lowest:
-        return []
-    start = lowest - 1
-    end = max(1, start - n)
-    print(f"   Investegate backfill: IDs {end}..{start}")
-
-    announcements = []
-    hits = 0
-    consecutive_fails = 0
-    for i, rns_id in enumerate(range(start, end - 1, -1)):
-        ann = investegate.parse_rns_page(rns_id)
-        if ann:
-            announcements.append(ann)
-            hits += 1
-            consecutive_fails = 0
-            print(f"    ✓ {rns_id}: {ann.dato} | {ann.antal_aktier:,} @ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
-        else:
-            consecutive_fails += 1
-            if consecutive_fails >= 10 and hits == 0 and i > 10:
-                print(f"    ⚠ Investegate blocked — stopping")
-                break
-        time.sleep(1.5)
-    return announcements
 
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("--from-page", type=int, default=1,
+                        help="Listing page to start the backfill from (default 1)")
     parser.add_argument("--backfill", type=int, default=0,
                         help="Historical backfill mode: enumerate N IDs backwards from lowest known")
     args = parser.parse_args()
@@ -241,7 +271,7 @@ def main():
     # 2. RNS scraping (mode-dependent)
     if args.backfill:
         print(f"\n2. Backfill mode: fetching {args.backfill} historical IDs...")
-        new_announcements = backfill_scrape(data, args.backfill)
+        new_announcements = backfill_scrape(data, args.backfill, start_page=args.from_page)
     else:
         print("\n2. Normal mode: Investegate RNS filings...")
         new_announcements = normal_scrape(data)
