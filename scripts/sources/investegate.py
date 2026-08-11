@@ -182,17 +182,25 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
         return None
 
     # ── SHARES PURCHASED ──
+    # NUM matches a thousands-grouped figure with EITHER a comma or a space
+    # (incl. non-breaking) as the separator. `(\d[\d,]+)` was used before and
+    # truncated "285 950" to "285" — that single character class cost the
+    # tracker ~£327M of FY23 volume across 48 filings before it was caught.
+    # Each group after the first must be exactly 3 digits, so this cannot
+    # run on into an unrelated adjacent number.
+    NUM = r"(\d{1,3}(?:[,\s\u00a0]\d{3})+|\d+)"
     share_patterns = [
-        r"Number of shares (?:re)?purchased\s*:?\s*(\d[\d,]+)",
-        r"Number of securities purchased\s*:?\s*(\d[\d,]+)",
-        r"(?:purchased|repurchased)\s+(?:for\s+cancellation\s+)?(\d[\d,]+)\s+(?:of\s+its\s+)?ordinary",
+        r"Number of shares (?:re)?purchased\s*:?\s*" + NUM,
+        r"Number of securities purchased\s*:?\s*" + NUM,
+        r"(?:purchased|repurchased)\s+(?:for\s+cancellation\s+)?" + NUM +
+        r"\s+(?:of\s+its\s+)?ordinary",
     ]
     antal = None
     for pat in share_patterns:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
             try:
-                cand = int(m.group(1).replace(",", ""))
+                cand = int(re.sub(r"[,\s\u00a0]", "", m.group(1)))
             except ValueError:
                 continue
             if cand > 100:          # guards against "10 pence each"
@@ -223,8 +231,8 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
 
     # ── SHARES IN ISSUE AFTER CANCELLATION ──
     after_patterns = [
-        r"remaining number of ordinary shares in issue will be\s+(\d[\d,]+)",
-        r"ordinary shares in issue\s+(?:will be|is now|is)\s+(\d[\d,]+)",
+        r"remaining number of ordinary shares in issue will be\s+" + NUM,
+        r"ordinary shares in issue\s+(?:will be|is now|is)\s+" + NUM,
         r"shares in issue.*?(\d{3}[\d,]{5,})",
     ]
     aktier_efter = None
@@ -232,7 +240,7 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
         m = re.search(pat, text, re.IGNORECASE)
         if m:
             try:
-                n = int(m.group(1).replace(",", ""))
+                n = int(re.sub(r"[,\s\u00a0]", "", m.group(1)))
             except ValueError:
                 continue
             if 500_000_000 < n < 1_500_000_000:
