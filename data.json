@@ -8,6 +8,24 @@
   },
   "transaktioner": [
     {
+      "dato": "2026-08-25",
+      "antal_aktier": 200000,
+      "gns_kurs_gbp": 2517.8601,
+      "beloeb_gbp_mio": 5.0,
+      "aktier_efter": 764717586,
+      "rns_id": "9739774",
+      "program": "FY26"
+    },
+    {
+      "dato": "2026-08-24",
+      "antal_aktier": 114422,
+      "gns_kurs_gbp": 2501.6719,
+      "beloeb_gbp_mio": 2.9,
+      "aktier_efter": 764917586,
+      "rns_id": "9738744",
+      "program": "FY26"
+    },
+    {
       "dato": "2026-08-21",
       "antal_aktier": 244746,
       "gns_kurs_gbp": 2505.4385,
@@ -7749,15 +7767,15 @@
     }
   ],
   "kurs": {
-    "price": 2535.0,
-    "prev_close": 2503.0,
-    "change": 32.0,
-    "change_pct": 1.28,
+    "price": 2520.0,
+    "prev_close": 2535.0,
+    "change": -15.0,
+    "change_pct": -0.59,
     "currency": "GBp",
-    "timestamp": "2026-08-24T17:56:22+00:00Z"
+    "timestamp": "2026-08-25T17:54:04+00:00Z"
   },
   "meta": {
-    "last_updated": "2026-08-24 17:58 UTC",
+    "last_updated": "2026-08-25 17:55 UTC",
     "data_kilde": "Investegate RNS (primary), Yahoo Finance (price)"
   },
   "programmer": {
