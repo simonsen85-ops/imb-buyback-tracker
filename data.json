@@ -7767,15 +7767,15 @@
     }
   ],
   "kurs": {
-    "price": 2520.0,
-    "prev_close": 2535.0,
-    "change": -15.0,
-    "change_pct": -0.59,
+    "price": 2559.0,
+    "prev_close": 2520.0,
+    "change": 39.0,
+    "change_pct": 1.55,
     "currency": "GBp",
-    "timestamp": "2026-08-25T17:54:04+00:00Z"
+    "timestamp": "2026-08-26T19:21:19+00:00Z"
   },
   "meta": {
-    "last_updated": "2026-08-25 17:55 UTC",
+    "last_updated": "2026-08-26 19:23 UTC",
     "data_kilde": "Investegate RNS (primary), Yahoo Finance (price)"
   },
   "programmer": {
