@@ -8,6 +8,159 @@
   },
   "transaktioner": [
     {
+      "dato": "2026-10-30",
+      "antal_aktier": 89143,
+      "gns_kurs_gbp": 2947.93,
+      "beloeb_gbp_mio": 2.6,
+      "aktier_efter": 754894240,
+      "rns_id": "9853084",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-29",
+      "antal_aktier": 174206,
+      "gns_kurs_gbp": 2896.48,
+      "beloeb_gbp_mio": 5.0,
+      "aktier_efter": 754983383,
+      "rns_id": "9853084",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-28",
+      "antal_aktier": 170720,
+      "gns_kurs_gbp": 2870.76,
+      "beloeb_gbp_mio": 4.9,
+      "aktier_efter": 755157589,
+      "rns_id": "9853084",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-27",
+      "antal_aktier": 213936,
+      "gns_kurs_gbp": 2857.9,
+      "beloeb_gbp_mio": 6.1,
+      "aktier_efter": 755328309,
+      "rns_id": "9853084",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-26",
+      "antal_aktier": 154749,
+      "gns_kurs_gbp": 2867.85,
+      "beloeb_gbp_mio": 4.4,
+      "aktier_efter": 755542245,
+      "rns_id": "9853084",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-23",
+      "antal_aktier": 169880,
+      "gns_kurs_gbp": 2860.93,
+      "beloeb_gbp_mio": 4.9,
+      "aktier_efter": 755696994,
+      "rns_id": "9841265",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-22",
+      "antal_aktier": 183540,
+      "gns_kurs_gbp": 2854.36,
+      "beloeb_gbp_mio": 5.2,
+      "aktier_efter": 755866874,
+      "rns_id": "9841265",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-21",
+      "antal_aktier": 184924,
+      "gns_kurs_gbp": 2832.15,
+      "beloeb_gbp_mio": 5.2,
+      "aktier_efter": 756050414,
+      "rns_id": "9841265",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-20",
+      "antal_aktier": 174437,
+      "gns_kurs_gbp": 2829.29,
+      "beloeb_gbp_mio": 4.9,
+      "aktier_efter": 756235338,
+      "rns_id": "9841265",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-19",
+      "antal_aktier": 265000,
+      "gns_kurs_gbp": 2816.9,
+      "beloeb_gbp_mio": 7.5,
+      "aktier_efter": 756409775,
+      "rns_id": "9841265",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-16",
+      "antal_aktier": 153231,
+      "gns_kurs_gbp": 2846.65,
+      "beloeb_gbp_mio": 4.4,
+      "aktier_efter": 756674775,
+      "rns_id": "9829327",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-15",
+      "antal_aktier": 239900,
+      "gns_kurs_gbp": 2849.33,
+      "beloeb_gbp_mio": 6.8,
+      "aktier_efter": 756828006,
+      "rns_id": "9829327",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-14",
+      "antal_aktier": 199486,
+      "gns_kurs_gbp": 2756.01,
+      "beloeb_gbp_mio": 5.5,
+      "aktier_efter": 757067906,
+      "rns_id": "9829327",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-13",
+      "antal_aktier": 199861,
+      "gns_kurs_gbp": 2701.97,
+      "beloeb_gbp_mio": 5.4,
+      "aktier_efter": 757267392,
+      "rns_id": "9829327",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-12",
+      "antal_aktier": 224643,
+      "gns_kurs_gbp": 2673.97,
+      "beloeb_gbp_mio": 6.0,
+      "aktier_efter": 757467253,
+      "rns_id": "9829327",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-09",
+      "antal_aktier": 200000,
+      "gns_kurs_gbp": 2651.87,
+      "beloeb_gbp_mio": 5.3,
+      "aktier_efter": 757691896,
+      "rns_id": "9820406",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-10-08",
+      "antal_aktier": 240000,
+      "gns_kurs_gbp": 2589.63,
+      "beloeb_gbp_mio": 6.2,
+      "aktier_efter": 757891896,
+      "rns_id": "9820406",
+      "program": "FY27"
+    },
+    {
       "dato": "2026-10-06",
       "antal_aktier": 572743,
       "gns_kurs_gbp": 2475.1968,
@@ -8028,16 +8181,17 @@
     }
   ],
   "kurs": {
-    "price": 2938.0,
-    "prev_close": 2904.0,
-    "change": 34.0,
-    "change_pct": 1.17,
+    "price": 2989.0,
+    "prev_close": 2938.0,
+    "change": 51.0,
+    "change_pct": 1.74,
     "currency": "GBp",
-    "timestamp": "2026-10-30T21:38:34+00:00Z"
+    "timestamp": "2026-11-02T12:48:06+00:00Z"
   },
   "meta": {
-    "last_updated": "2026-10-30 21:39 UTC",
-    "data_kilde": "Investegate RNS (primary), Yahoo Finance (price)"
+    "last_updated": "2026-11-02 12:48 UTC",
+    "data_kilde": "Investegate RNS (primary), Yahoo Finance (price)",
+    "parse_failures": []
   },
   "programmer": {
     "FY26": {
@@ -8046,7 +8200,7 @@
       "annonceret": "2025-10-07",
       "start": "2025-10-30",
       "frist": "2026-10-28",
-      "status": "aktiv",
+      "status": "fuldført",
       "maegler_t1": "Morgan Stanley",
       "maegler_t2": "Barclays",
       "tranche_1": {
@@ -8058,8 +8212,8 @@
       "tranche_2": {
         "beloeb_mio": 725,
         "start": "2026-04-13",
-        "slut": "2026-10-28",
-        "status": "aktiv"
+        "slut": "2026-10-06",
+        "status": "fuldført"
       },
       "fundamentals": {
         "eps_adjusted_gbp": 3.41,
@@ -8068,7 +8222,8 @@
         "aktier_ved_start": 783274508,
         "pct_af_kapital": 5.7,
         "fair_pe": 10
-      }
+      },
+      "afsluttet": "2026-10-06"
     },
     "FY25": {
       "navn": "FY25 Aktietilbagekøbsprogram",
@@ -8156,7 +8311,36 @@
         "pct_af_kapital": 5.5,
         "fair_pe": 10
       }
+    },
+    "FY27": {
+      "navn": "FY27 Aktietilbagekøbsprogram",
+      "total_gbp_mio": 1500,
+      "annonceret": "2026-10-08",
+      "start": "2026-10-08",
+      "frist": "2027-10-29",
+      "status": "aktiv",
+      "maegler_t1": "HSBC",
+      "tranche_1": {
+        "beloeb_mio": 750,
+        "start": "2026-10-08",
+        "slut": "2027-05-04",
+        "status": "aktiv"
+      },
+      "tranche_2": {
+        "beloeb_mio": 750,
+        "start": "2027-05-05",
+        "slut": "2027-10-29",
+        "status": "kommende"
+      },
+      "fundamentals": {
+        "eps_adjusted_gbp": 3.41,
+        "eps_source": "Placeholder: FY26E konsensus (opdatér efter FY26-resultat 17. nov 2026)",
+        "fcf_mio_gbp": 2700,
+        "aktier_ved_start": 758131896,
+        "pct_af_kapital": 6.7,
+        "fair_pe": 10
+      }
     }
   },
-  "aktuel_program": "FY26"
+  "aktuel_program": "FY27"
 }
