@@ -32,3 +32,16 @@ jobs:
           git add data.json index.html
           git diff --staged --quiet || git commit -m "📊 Auto-update $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
+
+      # Last step, so the price/data commit above still lands. A buyback
+      # filing that cannot be parsed now fails the run (and GitHub emails
+      # you) instead of disappearing silently, which is how FY27 was missed.
+      - name: Fail on unparsed buyback filings
+        run: |
+          python - <<'EOF'
+          import json, sys
+          bad = json.load(open("data.json"))["meta"].get("parse_failures", [])
+          for f in bad:
+              print(f"::error::RNS {f['rns_id']} not parsed: {f['reason']}")
+          sys.exit(1 if bad else 0)
+          EOF
