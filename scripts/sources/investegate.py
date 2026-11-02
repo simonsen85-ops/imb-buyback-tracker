@@ -22,6 +22,20 @@ IMPORTANT — the link pattern requires a literal "/" immediately after
 "transaction-in-own-shares-treasury-share-transfer" announcements.
 Those are treasury transfers, not market purchases for cancellation.
 
+TWO FILING FORMATS (Oct 2026):
+  * Single-day (Morgan Stanley / Barclays, FY23-FY26): one trade date per
+    filing, labelled fields ("Date of transaction:", "Number of shares
+    repurchased:", "Average price paid per share: GBp ...").
+  * Multi-day table (HSBC, FY27 tranche 1 from 8 Oct 2026): one filing per
+    week with a row per trade date:
+      Date of purchase | VWAP (GBp) | Number of Shares purchased | Lowest | Highest
+    plus a prose total ("purchased for cancellation 977,781 of its ordinary
+    shares") that we use as a checksum against the summed rows.
+  The single-day parser must never see a multi-day filing: its prose-date
+  fallback would pick up "announced on 8 October 2026" as the trade date.
+  Until v5 these filings failed the price regex and were dropped SILENTLY,
+  which froze the tracker at 6 Oct 2026 while every workflow run stayed green.
+
 DEDUP:
 rns_id is the bare numeric string (e.g. "9713069"), matching the
 40 Investegate-sourced rows already in data.json. Do NOT add a prefix
@@ -133,33 +147,163 @@ def get_filing_ids_from_listing(max_pages: int = 2,
     return all_ids
 
 
-def parse_rns_page(rns_id: int) -> Optional[Announcement]:
-    """Parse a single Transaction in Own Shares page into an Announcement."""
-    url = ANNOUNCEMENT_URL.format(id=rns_id)
-    html = fetch_html(url)
-    if not html:
+MONTH_RE = (r"(January|February|March|April|May|June|July|August|September|"
+            r"October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|"
+            r"Oct|Nov|Dec)")
+MONTHS_SHORT = {k[:3]: v for k, v in MONTHS.items()}
+ROW_DATE_RE = re.compile(
+    r"\b(\d{1,2})\s+" + MONTH_RE + r"\.?\s+(\d{4})\b"      # 26 October 2026
+    r"|\b(\d{1,2})/(\d{1,2})/(\d{4})\b",                     # 26/10/2026
+    re.IGNORECASE,
+)
+NUM_TOKEN_RE = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?")
+SHARE_TOLERANCE = 1_000
+
+# Set by scrape_filings() so the orchestrator can tell "Investegate is
+# reachable but had nothing new" apart from "Investegate is down".
+LAST_LISTING_OK = False
+# (rns_id, reason) for every buyback filing that could not be parsed.
+LAST_FAILURES: list = []
+
+
+def _num(tok: str) -> float:
+    return float(tok.replace(",", ""))
+
+
+def _row_date(m) -> Optional[str]:
+    try:
+        if m.group(1):
+            day, mon, year = int(m.group(1)), m.group(2).lower(), int(m.group(3))
+            month = MONTHS.get(mon) or MONTHS_SHORT.get(mon[:3])
+        else:
+            day, month, year = int(m.group(4)), int(m.group(5)), int(m.group(6))
+        if not (2010 <= year <= 2035 and 1 <= month <= 12 and 1 <= day <= 31):
+            return None
+        return f"{year}-{month:02d}-{day:02d}"
+    except (TypeError, ValueError, KeyError):
         return None
 
-    html_lower = html.lower()
 
-    # Must be a buyback page, not a redirect or error shell
-    if ("transaction in own shares" not in html_lower
-            and "purchased for cancellation" not in html_lower):
-        return None
-
-    # Issuer validation (defence in depth — LEI/ISIN are regulatory IDs)
-    if not (
-        "549300dfvpob67jl3a42" in html_lower      # IMB LEI (ISO 17442)
-        or "gb0004544929" in html_lower           # IMB ISIN
-        or "imperial brands plc" in html_lower    # legal name fallback
+def _shares_after(text: str) -> Optional[int]:
+    NUM = r"(\d{1,3}(?:[,\s\u00a0]\d{3})+|\d+)"
+    for pat in (
+        r"remaining number of ordinary shares in issue will be\s+" + NUM,
+        r"ordinary shares in issue\s+(?:will be|is now|is)\s+" + NUM,
     ):
-        return None
+        m = re.search(pat, text, re.IGNORECASE)
+        if m:
+            n = int(re.sub(r"[,\s\u00a0]", "", m.group(1)))
+            if 500_000_000 < n < 1_500_000_000:
+                return n
+    return None
 
-    text = _clean_text(html)
 
-    # ── DATE ──
-    # Labelled pattern FIRST: the RNS always carries "Date of transaction:".
-    # The unlabelled fallbacks exist for older filings with prose-only wording.
+def _is_multi_day(text: str) -> bool:
+    return bool(re.search(r"date of purchase|aggregated volume|as detailed in the table",
+                          text, re.IGNORECASE))
+
+
+def _column_order(header: str) -> list:
+    """
+    Map numeric columns from the table header, in the order they appear.
+    "volume weighted average price" contains "volume", so the VWAP span is
+    blanked out before looking for the volume column.
+    """
+    h = header.lower()
+    found = {}
+    m = re.search(r"volume[\s\-]*weighted average price|\bvwap\b|average price", h)
+    if m:
+        found["vwap"] = m.start()
+        h = h[:m.start()] + " " * (m.end() - m.start()) + h[m.end():]
+    m = re.search(r"number of (?:ordinary )?shares (?:re)?purchased|aggregated? volume|\bvolume\b", h)
+    if m:
+        found["vol"] = m.start()
+    m = re.search(r"lowest", h)
+    if m:
+        found["low"] = m.start()
+    m = re.search(r"highest", h)
+    if m:
+        found["high"] = m.start()
+    return [k for k, _ in sorted(found.items(), key=lambda kv: kv[1])]
+
+
+def _parse_multi_day(text: str):
+    """
+    Parse an HSBC-style weekly table. Returns (rows, reason); rows is a list
+    of dicts {dato, antal, vwap}, reason is None on success.
+    """
+    m_hdr = re.search(r"date of purchase|date of transactions?\b|aggregated volume", text, re.IGNORECASE)
+    if not m_hdr:
+        return [], "multi-day: table header not found"
+
+    m_end = re.search(r"intends to cancel|following the purchase|remaining number of ordinary shares"
+                      r"|individual (?:information|transactions|purchases)|schedule of purchases",
+                      text[m_hdr.start():], re.IGNORECASE)
+    region = text[m_hdr.start(): m_hdr.start() + (m_end.start() if m_end else 6000)]
+
+    dates = list(ROW_DATE_RE.finditer(region))
+    if not dates:
+        return [], "multi-day: no dated rows in table"
+
+    cols = _column_order(region[:dates[0].start()])
+    per_day = {}
+    for i, dm in enumerate(dates):
+        dato = _row_date(dm)
+        if not dato:
+            return [], f"multi-day: unreadable date '{dm.group(0)}'"
+        seg_end = dates[i + 1].start() if i + 1 < len(dates) else len(region)
+        toks = NUM_TOKEN_RE.findall(region[dm.end():seg_end])
+
+        vol = vwap = low = high = None
+        if len(cols) == len(toks) and "vol" in cols and "vwap" in cols:
+            vals = dict(zip(cols, toks))
+            vol = vals["vol"]
+            vwap = vals["vwap"]
+            low, high = vals.get("low"), vals.get("high")
+        else:
+            # Header unreadable: volume is the only integer, VWAP is the
+            # median price (it must lie between lowest and highest).
+            ints = [t for t in toks if "." not in t]
+            prices = sorted(_num(t) for t in toks if "." in t and 500 < _num(t) < 10_000)
+            if len(ints) != 1 or not prices:
+                return [], (f"multi-day: cannot map row {dato} "
+                            f"(cols={cols}, tokens={toks})")
+            vol = ints[0]
+            vwap = str(prices[len(prices) // 2])
+            if len(prices) == 3:
+                low, high = str(prices[0]), str(prices[2])
+
+        try:
+            v, px = int(_num(vol)), _num(vwap)
+        except (TypeError, ValueError):
+            return [], f"multi-day: non-numeric row {dato} ({toks})"
+        if not (100 <= v <= 20_000_000) or not (500 < px < 10_000):
+            return [], f"multi-day: implausible row {dato}: {v:,} @ {px}"
+        if low and high and not (_num(low) - 0.01 <= px <= _num(high) + 0.01):
+            return [], f"multi-day: VWAP {px} outside {low}-{high} on {dato} (column mix-up?)"
+
+        d = per_day.setdefault(dato, {"antal": 0, "value": 0.0})
+        d["antal"] += v                      # several venues on one day are summed
+        d["value"] += v * px
+
+    rows = [{"dato": k, "antal": d["antal"], "vwap": d["value"] / d["antal"]}
+            for k, d in sorted(per_day.items())]
+
+    # Checksum against the prose total
+    NUM = r"(\d{1,3}(?:,\d{3})+|\d+)"
+    m_tot = re.search(r"purchased for cancellation (?:a total of )?" + NUM + r"\s+(?:of its )?ordinary",
+                      text, re.IGNORECASE)
+    parsed_total = sum(r["antal"] for r in rows)
+    if m_tot:
+        stated = int(m_tot.group(1).replace(",", ""))
+        if stated != parsed_total:
+            return [], (f"multi-day: rows sum to {parsed_total:,} but filing states "
+                        f"{stated:,} shares")
+    return rows, None
+
+
+def _parse_single_day(text: str):
+    """Original single-day parser. Returns (Announcement fields, reason)."""
     date_patterns = [
         r"Date of transaction\s*:?\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})",
         r"on\s+(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\s+it\s+purchased",
@@ -172,22 +316,16 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
             continue
         try:
             day, month_str, year = m.groups()
-            year_int = int(year)
-            if 2010 <= year_int <= 2035:
+            if 2010 <= int(year) <= 2035:
                 dato = f"{year}-{MONTHS[month_str.lower()]:02d}-{int(day):02d}"
                 break
         except (KeyError, ValueError):
             continue
     if not dato:
-        return None
+        return None, "single-day: no transaction date"
 
-    # ── SHARES PURCHASED ──
-    # NUM matches a thousands-grouped figure with EITHER a comma or a space
-    # (incl. non-breaking) as the separator. `(\d[\d,]+)` was used before and
-    # truncated "285 950" to "285" — that single character class cost the
-    # tracker ~£327M of FY23 volume across 48 filings before it was caught.
-    # Each group after the first must be exactly 3 digits, so this cannot
-    # run on into an unrelated adjacent number.
+    # NUM accepts comma OR space thousands separators — "(\d[\d,]+)" once
+    # truncated "285 950" to "285" and cost ~£327M of FY23 volume.
     NUM = r"(\d{1,3}(?:[,\s\u00a0]\d{3})+|\d+)"
     share_patterns = [
         r"Number of shares (?:re)?purchased\s*:?\s*" + NUM,
@@ -203,13 +341,12 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
                 cand = int(re.sub(r"[,\s\u00a0]", "", m.group(1)))
             except ValueError:
                 continue
-            if cand > 100:          # guards against "10 pence each"
+            if cand > 100:
                 antal = cand
                 break
     if not antal:
-        return None
+        return None, "single-day: no share count"
 
-    # ── AVERAGE PRICE (GBp) ──
     price_patterns = [
         r"Average price paid per share\s*:?\s*(?:GBp?\s*)?(\d[\d,]*\.\d+)",
         r"Volume[\- ]weighted average price[^:]*:\s*(?:GBp?\s*)?(\d[\d,]*\.\d+)",
@@ -223,41 +360,76 @@ def parse_rns_page(rns_id: int) -> Optional[Announcement]:
                 cand = float(m.group(1).replace(",", ""))
             except ValueError:
                 continue
-            if 500 < cand < 10000:   # IMB trades in the 1500-3600 GBp band
+            if 500 < cand < 10000:
                 gns_kurs = cand
                 break
     if gns_kurs == 0:
-        return None
+        return None, "single-day: no average price"
 
-    # ── SHARES IN ISSUE AFTER CANCELLATION ──
-    after_patterns = [
-        r"remaining number of ordinary shares in issue will be\s+" + NUM,
-        r"ordinary shares in issue\s+(?:will be|is now|is)\s+" + NUM,
-        r"shares in issue.*?(\d{3}[\d,]{5,})",
-    ]
-    aktier_efter = None
-    for pat in after_patterns:
-        m = re.search(pat, text, re.IGNORECASE)
-        if m:
-            try:
-                n = int(re.sub(r"[,\s\u00a0]", "", m.group(1)))
-            except ValueError:
-                continue
-            if 500_000_000 < n < 1_500_000_000:
-                aktier_efter = n
-                break
+    return {"dato": dato, "antal": antal, "vwap": gns_kurs}, None
 
-    beloeb = round(antal * gns_kurs / 100 / 1e6, 1)
 
-    return Announcement(
-        dato=dato,
-        antal_aktier=antal,
-        gns_kurs_gbp=gns_kurs,
-        beloeb_gbp_mio=beloeb,
-        aktier_efter=aktier_efter,
-        rns_id=str(rns_id),          # bare numeric — matches existing rows
-        source_url=url,
-    )
+def _debug_snippet(text: str, n: int = 900) -> str:
+    m = re.search(r"Transactions? in own shares", text, re.IGNORECASE)
+    i = m.start() if m else 0
+    return text[i:i + n]
+
+
+def parse_rns_filing(rns_id: int):
+    """
+    Parse one Transaction in Own Shares filing.
+    Returns (announcements, reason). One announcement per trade date, so a
+    weekly HSBC filing becomes five daily rows that share the filing's rns_id.
+    """
+    url = ANNOUNCEMENT_URL.format(id=rns_id)
+    html = fetch_html(url)
+    if not html:
+        return [], "fetch failed"
+
+    html_lower = html.lower()
+    if ("transaction in own shares" not in html_lower
+            and "transactions in own shares" not in html_lower
+            and "purchased for cancellation" not in html_lower):
+        return [], "not a buyback page"
+    if not ("549300dfvpob67jl3a42" in html_lower or "gb0004544929" in html_lower
+            or "imperial brands plc" in html_lower):
+        return [], "issuer check failed"
+
+    text = _clean_text(html)
+    after = _shares_after(text)
+
+    if _is_multi_day(text):
+        rows, reason = _parse_multi_day(text)
+    else:
+        row, reason = _parse_single_day(text)
+        rows = [row] if row else []
+    if not rows:
+        print(f"    ✗ {rns_id}: {reason}\n      text: {_debug_snippet(text)!r}")
+        return [], reason
+
+    # Shares in issue after each day: the filing only states the figure after
+    # the LAST day, so earlier days are rebuilt by adding back later purchases.
+    anns = []
+    later = 0
+    for r in reversed(rows):
+        anns.append(Announcement(
+            dato=r["dato"],
+            antal_aktier=r["antal"],
+            gns_kurs_gbp=round(r["vwap"], 4),
+            beloeb_gbp_mio=round(r["antal"] * r["vwap"] / 100 / 1e6, 1),
+            aktier_efter=(after + later) if after else None,
+            rns_id=str(rns_id),          # bare numeric — matches existing rows
+            source_url=url,
+        ))
+        later += r["antal"]
+    anns.reverse()
+    return anns, None
+
+
+def parse_rns_page(rns_id: int) -> Optional[Announcement]:
+    """Legacy single-result wrapper (returns the last trade date only)."""
+    anns, _ = parse_rns_filing(rns_id)
+    return anns[-1] if anns else None
 
 
 def scrape_filings(known_ids: set = None,
@@ -267,16 +439,16 @@ def scrape_filings(known_ids: set = None,
     """
     Main entry point for both daily updates and backfill.
 
-    max_pages guide (50 announcements/page, ~35 buybacks/page):
-      1  → ~5 weeks   (daily updates; 1 page is plenty)
-      2  → ~3 months  (safe default — survives a long outage)
-      10 → ~1.5 years
+    max_pages guide (50 announcements/page):
+      1  → ~5 weeks of daily filings (much longer now filings are weekly)
+      2  → safe default — survives a long outage
       32 → full archive back to 2022
 
-    start_page skips ahead — use it to target a known gap rather than
-    re-walking pages whose filings are already stored under another
-    source's rns_id (those get discarded at merge, but still cost a fetch).
+    Side effects: sets LAST_LISTING_OK and LAST_FAILURES.
     """
+    global LAST_LISTING_OK, LAST_FAILURES
+    LAST_LISTING_OK = False
+    LAST_FAILURES = []
     known_ids = known_ids or set()
 
     span = (f"pages {start_page}-{start_page + max_pages - 1}"
@@ -291,9 +463,9 @@ def scrape_filings(known_ids: set = None,
     if not filing_ids:
         print("  ✗ No filing IDs found in listing")
         return []
+    LAST_LISTING_OK = True
 
     print(f"  Found {len(filing_ids)} buyback filing IDs")
-
     new_ids = [i for i in filing_ids if str(i) not in known_ids]
     print(f"  {len(new_ids)} new "
           f"(skipping {len(filing_ids) - len(new_ids)} already in data.json)")
@@ -301,19 +473,22 @@ def scrape_filings(known_ids: set = None,
         return []
 
     announcements = []
-    hits = 0
     for i, rns_id in enumerate(new_ids):
-        ann = parse_rns_page(rns_id)
-        if ann:
-            announcements.append(ann)
-            hits += 1
-            print(f"    ✓ {rns_id}: {ann.dato} | {ann.antal_aktier:,} "
-                  f"@ {ann.gns_kurs_gbp:.2f}p = £{ann.beloeb_gbp_mio}M")
+        anns, reason = parse_rns_filing(rns_id)
+        if anns:
+            announcements.extend(anns)
+            for a in anns:
+                print(f"    ✓ {rns_id}: {a.dato} | {a.antal_aktier:,} "
+                      f"@ {a.gns_kurs_gbp:.2f}p = £{a.beloeb_gbp_mio}M")
+        else:
+            LAST_FAILURES.append((str(rns_id), reason))
         time.sleep(request_delay)
         if (i + 1) % 25 == 0:
-            print(f"    [{i+1}/{len(new_ids)}] {hits} hits")
+            print(f"    [{i+1}/{len(new_ids)}] {len(announcements)} rows")
 
-    print(f"  Parsed {hits}/{len(new_ids)} buyback filings")
+    print(f"  Parsed {len(new_ids) - len(LAST_FAILURES)}/{len(new_ids)} filings "
+          f"→ {len(announcements)} daily rows"
+          + (f"  ⚠ {len(LAST_FAILURES)} FAILED" if LAST_FAILURES else ""))
     return announcements
 
 
