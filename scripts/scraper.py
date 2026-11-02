@@ -63,12 +63,62 @@ def assign_program(dato: str, programs: dict) -> str:
     Assign transaction to the correct buyback program based on date.
     Programs are identified by their start/frist date range.
     """
+    matches = []
     for prog_key, prog in programs.items():
         start = prog.get("start")
-        frist = prog.get("frist")
-        if start and frist and start <= dato <= frist:
-            return prog_key
-    return "unknown"
+        end = prog.get("afsluttet") or prog.get("frist")
+        if start and end and start <= dato <= end:
+            matches.append((start, prog_key))
+    # FY26's deadline (28 Oct 2026) overlaps FY27's start (8 Oct 2026):
+    # the newest programme wins.
+    return max(matches)[1] if matches else "unknown"
+
+
+# Programme facts from the RNS filings. ensure_programs() applies them once,
+# so data.json never has to be edited by hand when a new programme starts.
+FY27_PROGRAM = {
+    "navn": "FY27 Aktietilbagekøbsprogram",
+    "total_gbp_mio": 1500,
+    "annonceret": "2026-10-08",
+    "start": "2026-10-08",
+    "frist": "2027-10-29",
+    "status": "aktiv",
+    "maegler_t1": "HSBC",
+    "tranche_1": {"beloeb_mio": 750, "start": "2026-10-08",
+                  "slut": "2027-05-04", "status": "aktiv"},
+    "tranche_2": {"beloeb_mio": 750, "start": "2027-05-05",
+                  "slut": "2027-10-29", "status": "kommende"},
+    "fundamentals": {
+        # PLACEHOLDER: FY26E consensus/FY25 FCF carried over until the FY26
+        # results on 17 Nov 2026 give a proper base — update by hand then.
+        "eps_adjusted_gbp": 3.41,
+        "eps_source": "Placeholder: FY26E konsensus (opdatér efter FY26-resultat 17. nov 2026)",
+        "fcf_mio_gbp": 2700,
+        # Shares in issue after the last FY26 purchase (6 Oct 2026)
+        "aktier_ved_start": 758131896,
+        "pct_af_kapital": 6.7,
+        "fair_pe": 10,
+    },
+}
+
+
+def ensure_programs(data: dict) -> None:
+    programs = data.setdefault("programmer", {})
+    fy26 = programs.get("FY26")
+    if fy26 and fy26.get("status") == "aktiv":
+        # £1,456M of the £1,450M bought by 6 Oct 2026; completion confirmed
+        # in the 8 Oct 2026 trading update.
+        fy26["status"] = "fuldført"
+        fy26["afsluttet"] = "2026-10-06"
+        if isinstance(fy26.get("tranche_2"), dict):
+            fy26["tranche_2"]["status"] = "fuldført"
+            fy26["tranche_2"]["slut"] = "2026-10-06"
+        print("   migration: FY26 marked fuldført (afsluttet 2026-10-06)")
+    if "FY27" not in programs:
+        programs["FY27"] = json.loads(json.dumps(FY27_PROGRAM))
+        print("   migration: FY27 programme added")
+    if data.get("aktuel_program") in (None, "FY26"):
+        data["aktuel_program"] = "FY27"
 
 
 def transaction_key(t: dict):
@@ -88,7 +138,9 @@ def transaction_key(t: dict):
 
 def merge_transactions(existing: list, new: list, programs: dict):
     """Merge new announcements, dedup by rns_id AND economic identity."""
-    existing_ids = {t.get("rns_id") for t in existing if t.get("rns_id")}
+    # A weekly HSBC filing yields one row per trade date under the SAME
+    # rns_id, so id-dedup must be per (rns_id, dato), not per rns_id.
+    existing_ids = {(t.get("rns_id"), t.get("dato")) for t in existing if t.get("rns_id")}
     existing_keys = {transaction_key(t) for t in existing}
     added = 0
     skipped_id = 0
@@ -97,7 +149,7 @@ def merge_transactions(existing: list, new: list, programs: dict):
         rns_id = ann_dict.get("rns_id")
         dato = ann_dict.get("dato")
 
-        if rns_id and rns_id in existing_ids:
+        if rns_id and (rns_id, dato) in existing_ids:
             skipped_id += 1
             continue
 
@@ -111,7 +163,7 @@ def merge_transactions(existing: list, new: list, programs: dict):
         ann_dict["program"] = assign_program(dato, programs)
         existing.append(ann_dict)
         if rns_id:
-            existing_ids.add(rns_id)
+            existing_ids.add((rns_id, dato))
         existing_keys.add(key)
         added += 1
 
@@ -121,7 +173,7 @@ def merge_transactions(existing: list, new: list, programs: dict):
 
     # Re-tag existing transactions that may lack a program field (migration)
     for t in existing:
-        if not t.get("program"):
+        if not t.get("program") or t.get("program") == "unknown":
             t["program"] = assign_program(t["dato"], programs)
 
     existing.sort(key=lambda t: t["dato"], reverse=True)
@@ -181,10 +233,13 @@ def normal_scrape(data: dict) -> list:
         max_pages=2,        # ~3 months of cover — survives a long outage
         request_delay=1.0,
     )
-    if new_ann:
+    if new_ann or investegate.LAST_LISTING_OK:
+        # Investegate answered. "Nothing new" or "could not parse" must NOT
+        # trigger the fallbacks: they would re-read the same filings with
+        # parsers that know only the single-day format.
         return new_ann
 
-    print("   Investegate returned nothing — trying ADVFN fallback")
+    print("   Investegate unreachable — trying ADVFN fallback")
     known_advfn = get_known_advfn_ids(data)
     new_ann = advfn.scrape_filings(
         known_ids=known_advfn,
@@ -222,7 +277,7 @@ def backfill_scrape(data: dict, n: int, start_page: int = 1) -> list:
         request_delay=1.2,
         start_page=start_page,
     )
-    if new_ann:
+    if new_ann or investegate.LAST_LISTING_OK:
         return new_ann
 
     print("   Investegate returned nothing — falling back to ADVFN")
@@ -257,6 +312,7 @@ def main():
     print(f"    {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n")
 
     data = json.loads(DATA_PATH.read_text(encoding="utf-8"))
+    ensure_programs(data)
     programs = data.get("programmer", {})
 
     # 1. Yahoo price (always)
@@ -303,6 +359,16 @@ def main():
     # 4. Save
     data["meta"]["last_updated"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
     data["meta"]["data_kilde"] = "Investegate RNS (primary), Yahoo Finance (price)"
+    # Unparsed buyback filings are written down instead of being dropped
+    # silently; the workflow's last step fails the run when this is non-empty
+    # (GitHub then emails the repo owner). Rewritten every run, so it clears
+    # itself once the filings parse.
+    data["meta"]["parse_failures"] = [
+        {"rns_id": rid, "reason": why} for rid, why in investegate.LAST_FAILURES
+    ]
+    if investegate.LAST_FAILURES:
+        print(f"\n   ⚠ {len(investegate.LAST_FAILURES)} buyback filing(s) could not be parsed: "
+              + ", ".join(rid for rid, _ in investegate.LAST_FAILURES))
 
     DATA_PATH.write_text(
         json.dumps(data, indent=2, ensure_ascii=False),

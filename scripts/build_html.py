@@ -410,7 +410,7 @@ function computeMetricsAll() {{
 
   // Synthetic "prog" object for banner/tranches rendering
   const aggProg = {{
-    navn: "Alle programmer (FY24 + FY25 + FY26)",
+    navn: "Alle programmer (" + progKeys.join(" + ") + ")",
     total_gbp_mio: totalProgramBudget,
     annonceret: subMetrics[0].prog.annonceret,
     frist: subMetrics[subMetrics.length - 1].prog.frist,
