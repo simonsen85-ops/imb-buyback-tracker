@@ -8,6 +8,51 @@
   },
   "transaktioner": [
     {
+      "dato": "2026-11-06",
+      "antal_aktier": 339905,
+      "gns_kurs_gbp": 2975.64,
+      "beloeb_gbp_mio": 10.1,
+      "aktier_efter": 754060210,
+      "rns_id": "9865768",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-11-05",
+      "antal_aktier": 126626,
+      "gns_kurs_gbp": 3029.95,
+      "beloeb_gbp_mio": 3.8,
+      "aktier_efter": 754400115,
+      "rns_id": "9865768",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-11-04",
+      "antal_aktier": 118031,
+      "gns_kurs_gbp": 2952.66,
+      "beloeb_gbp_mio": 3.5,
+      "aktier_efter": 754526741,
+      "rns_id": "9865768",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-11-03",
+      "antal_aktier": 149682,
+      "gns_kurs_gbp": 2953.32,
+      "beloeb_gbp_mio": 4.4,
+      "aktier_efter": 754644772,
+      "rns_id": "9865768",
+      "program": "FY27"
+    },
+    {
+      "dato": "2026-11-02",
+      "antal_aktier": 99786,
+      "gns_kurs_gbp": 2986.81,
+      "beloeb_gbp_mio": 3.0,
+      "aktier_efter": 754794454,
+      "rns_id": "9865768",
+      "program": "FY27"
+    },
+    {
       "dato": "2026-10-30",
       "antal_aktier": 89143,
       "gns_kurs_gbp": 2947.93,
@@ -8181,15 +8226,15 @@
     }
   ],
   "kurs": {
-    "price": 2973.0,
-    "prev_close": 3062.0,
-    "change": -89.0,
-    "change_pct": -2.91,
+    "price": 2899.0,
+    "prev_close": 2973.0,
+    "change": -74.0,
+    "change_pct": -2.49,
     "currency": "GBp",
-    "timestamp": "2026-11-06T22:14:16+00:00Z"
+    "timestamp": "2026-11-10T00:47:28+00:00Z"
   },
   "meta": {
-    "last_updated": "2026-11-06 22:15 UTC",
+    "last_updated": "2026-11-10 00:48 UTC",
     "data_kilde": "Investegate RNS (primary), Yahoo Finance (price)",
     "parse_failures": []
   },
