@@ -70,6 +70,8 @@ def render_html(data: dict) -> str:
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<!-- GoatCounter visitor stats (cookieless): https://imb-tracker.goatcounter.com -->
+<script data-goatcounter="https://imb-tracker.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
 <style>
 :root{{
   --bg1:#0a0e17; --bg2:#111827;
